@@ -59,7 +59,7 @@ class EvoMSA(object):
             _ = c.decision_function([X[x] for x in ts])
             [hy.__setitem__(k, self.tolist(v)) for k, v in zip(ts, _)]
         return hy
-        
+
     def predict(self, X):
         X = self.transform(X)
         hy = self._evodag_model.predict(X)
