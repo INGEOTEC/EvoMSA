@@ -1,0 +1,11 @@
+{
+    "del_dup1": true,
+    "emo_option": "group",
+    "lang": "none",
+    "lc": true,
+    "num_option": "group",
+    "strip_diac": true,
+    "token_list": [-1, 2, 3, 4],
+    "url_option": "group",
+    "usr_option": "group"
+}

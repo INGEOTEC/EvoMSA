@@ -1,0 +1,35 @@
+package:
+  name: evomsa
+  version: "0.1"
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - b4msa
+    - evodag
+
+  run:
+    - python
+    - b4msa
+    - evodag
+
+test:
+    requires:
+        - nose
+        - b4msa
+        - evodag
+
+    imports:
+        - EvoMSA
+
+    commands:
+        - nosetests --exe EvoMSA
+        - EvoMSA-train --help
+        - EvoMSA-predict --help
+
+
+about:
+  home: https://github.com/ingeotec/EvoMSA
+  summary: Sentiment Analysis System based on B4MSA and EvoDAG.
+  license: Apache

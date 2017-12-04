@@ -1,0 +1,2 @@
+include EvoMSA/tests/tweets.json 
+include EvoMSA/conf/default_parameters.json
