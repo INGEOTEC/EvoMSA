@@ -59,7 +59,7 @@ class EvoMSA(object):
             _ = c.decision_function([X[x] for x in ts])
             [hy.__setitem__(k, self.tolist(v)) for k, v in zip(ts, _)]
         return hy
-        
+
     def predict(self, X):
         X = self.transform(X)
         hy = self._evodag_model.predict(X)
@@ -78,7 +78,7 @@ class EvoMSA(object):
             if D is None:
                 D = d
             else:
-                [x.__iadd__(y) for x, y in zip(D, d)]
+                [v.__iadd__(w) for v, w in zip(D, d)]
         return np.array(D)
 
     def fit(self, X, y):
@@ -88,7 +88,7 @@ class EvoMSA(object):
             y = [y]
         svc_models = []
         for t, x, y0 in zip(self._textModel, Xvs, y):
-            c = SVC(model=t)
+            c = SVC(model=None)
             c.fit(x, y0)
             svc_models.append(c)
         self._svc_models = svc_models

@@ -39,7 +39,7 @@ setup(
                   'EvoMSA/tests': ['tweets.json']},
     install_requires=['B4MSA', 'EvoDAG'],
     entry_points={
-        'console_scripts': ['EvoDAG-train=EvoDAG.command_line:train',
-                            'EvoDAG-predict=EvoDAG.command_line:predict']
+        'console_scripts': ['EvoMSA-train=EvoMSA.command_line:train',
+                            'EvoMSA-predict=EvoMSA.command_line:predict']
     }
 )
