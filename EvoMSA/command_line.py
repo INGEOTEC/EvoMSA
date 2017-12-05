@@ -87,6 +87,7 @@ class CommandLineTrain(CommandLine):
                           n_jobs=self.data.n_jobs, b4msa_args=b4msa_kwargs,
                           evodag_args=evo_kwargs).fit(D, Y, test_set=self.data.test_set)
         with gzip.open(self.data.output_file, 'w') as fpt:
+            evo._logger = None
             pickle.dump(evo, fpt)
 
 
