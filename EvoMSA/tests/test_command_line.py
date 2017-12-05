@@ -57,3 +57,12 @@ def test_predict():
     os.unlink('t.model')
     
 
+def test_evo_kwargs():
+    from EvoMSA.base import EvoMSA
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                '-ot.model', '--test_set=tweets.json', '-n4', 'tweets.json']
+    train(output=True)
+    with gzip.open('t.model', 'r') as fpt:
+        evo = pickle.load(fpt)
+    assert isinstance(evo, EvoMSA)
+    os.unlink('t.model')
