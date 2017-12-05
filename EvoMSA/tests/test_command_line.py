@@ -57,7 +57,7 @@ def test_predict():
     os.unlink('t.model')
     
 
-def test_evo_kwargs():
+def test_evo_test_set():
     from EvoMSA.base import EvoMSA
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
                 '-ot.model', '--test_set=tweets.json', '-n4', 'tweets.json']

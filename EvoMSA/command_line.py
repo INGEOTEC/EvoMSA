@@ -54,6 +54,9 @@ class CommandLineTrain(CommandLine):
            help='Parameters in json that overwrite EvoDAG default parameters')
         pa('--b4msa-kw', dest='b4msa_kwargs', default=None, type=str,
            help='Parameters in json that overwrite B4MSA default parameters')
+        pa('--test_set', dest='test_set', default=None, type=str,
+           help='Test set to do transductive learning')
+
 
     def training_set(self):
         cdn = 'File containing the training set.'
@@ -80,7 +83,7 @@ class CommandLineTrain(CommandLine):
             _ = json.loads(self.data.b4msa_kwargs)
             b4msa_kwargs.update(_)
         evo = base.EvoMSA(n_jobs=self.data.n_jobs, b4msa_args=b4msa_kwargs,
-                          evodag_args=evo_kwargs).fit(D, Y)
+                          evodag_args=evo_kwargs).fit(D, Y, test_set=self.data.test_set)
         with gzip.open(self.data.output_file, 'w') as fpt:
             pickle.dump(evo, fpt)
 
