@@ -71,7 +71,7 @@ class CommandLineTrain(CommandLine):
             _ = [[x['text'], x['klass']] for x in tweet_iterator(fname)]
             D.append([x[0] for x in _])
             Y.append([x[1] for x in _])
-        evo_kwargs = {}
+        evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
         if self.data.evo_kwargs is not None:
             _ = json.loads(self.data.evo_kwargs)
             evo_kwargs.update(_)
