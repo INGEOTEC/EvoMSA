@@ -18,6 +18,7 @@ from b4msa.classifier import SVC
 from sklearn.model_selection import KFold
 from EvoDAG.model import EvoDAGE
 import numpy as np
+import logging
 
 
 class EvoMSA(object):
@@ -28,19 +29,22 @@ class EvoMSA(object):
                                         'conf', 'default_parameters.json')
         b4msa_params = self.read_json(b4msa_params)
         b4msa_params.update(b4msa_args)
-        self._b4msa_args = b4msa_args
+        self._b4msa_args = b4msa_params
         self._evodag_args = evodag_args
         self._n_jobs = n_jobs
         self._n_splits = n_splits
         self._seed = seed
         self._svc_models = None
         self._evodag_model = None
+        self._logger = logging.getLogger('EvoMSA')
 
     def model(self, X):
         if not isinstance(X[0], list):
             X = [X]
         m = []
         kwargs = self._b4msa_args
+        self._logger.info("Starting TextModel")
+        self._logger.info(str(kwargs))
         for x in X:
             m.append(TextModel(x, **kwargs))
         self._textModel = m

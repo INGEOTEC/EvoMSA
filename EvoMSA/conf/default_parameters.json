@@ -1,7 +1,7 @@
 {
     "del_dup1": true,
     "emo_option": "group",
-    "lang": "none",
+    "lang": null,
     "lc": true,
     "num_option": "group",
     "strip_diac": true,
