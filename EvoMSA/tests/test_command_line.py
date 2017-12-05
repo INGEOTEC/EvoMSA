@@ -66,3 +66,15 @@ def test_evo_test_set():
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
+
+
+def test_evo_parameters():
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                '-ot.model', '-Pnada.json', '-n4', 'tweets.json']
+    try:
+        train(output=True)
+    except FileNotFoundError:
+        return
+    assert False
+
+
