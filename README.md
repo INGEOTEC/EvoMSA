@@ -55,6 +55,6 @@ contains the model, and `tweets.json` is the test set.
 
 |Competition | Macro-F1 | Macro-Recall|Competition Results|
 |----------:|--------:|-----------:|---------------:|
-|TASS 2016 | 0.5081 | 0.5639| [Proceedings](http://ceur-ws.org/Vol-1896/p0_overview_tass2017.pdf)|
+|TASS 2016 | 0.5081 | 0.5639| [Task 1 General Corpus](http://ceur-ws.org/Vol-1896/p0_overview_tass2017.pdf)|
 |SemEval 2017 - Arabic| 0.5039 |0.5293|[Results](https://competitions.codalab.org/competitions/15887/results/27549/data)|
 |SemEval 2017 - English | 0.5817 | 0.6171|[Results](https://competitions.codalab.org/competitions/15885/results/27545/data)|
