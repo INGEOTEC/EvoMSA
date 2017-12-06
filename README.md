@@ -53,8 +53,11 @@ contains the model, and `tweets.json` is the test set.
 
 # Performance #
 
-|Competition | Macro-F1 | Macro-Recall|Competition Results|
-|----------:|--------:|-----------:|---------------:|
-|TASS 2016 | 0.5081 | 0.5639| [Task 1 General Corpus](http://ceur-ws.org/Vol-1896/p0_overview_tass2017.pdf)|
-|SemEval 2017 - Arabic| 0.5039 |0.5293|[Results](https://competitions.codalab.org/competitions/15887/results/27549/data)|
-|SemEval 2017 - English | 0.5817 | 0.6171|[Results](https://competitions.codalab.org/competitions/15885/results/27545/data)|
+|Competition | Scheme | Macro-F1 | Macro-Recall|Competition Results|
+|----------:|-------:|--------:|-----------:|---------------:|
+|TASS 2016 | Training set (T.S.) |0.5081 | 0.5639| [Task 1 General Corpus](http://ceur-ws.org/Vol-1896/p0_overview_tass2017.pdf)|
+|TASS 2016 | T.S. + external dataset | 0.5101 | 0.5656 | |
+|SemEval 2017 - Arabic| Training set (T.S.) |0.5039 |0.5293|[Results](https://competitions.codalab.org/competitions/15887/results/27549/data)|
+|SemEval 2017 - Arabic| T.S. + external dataset |0.5168 |0.5408| |
+|SemEval 2017 - English | Training set (T.S.) | 0.5817 | 0.6171|[Results](https://competitions.codalab.org/competitions/15885/results/27545/data)|
+|SemEval 2017 - English| T.S.  + external dataset | 0.6054 | 0.6354 | |
