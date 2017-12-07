@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/INGEOTEC/EvoMSA.svg?branch=master)](https://travis-ci.org/INGEOTEC/EvoMSA)
 [![Build status](https://ci.appveyor.com/api/projects/status/wg01w00evm7pb8po?svg=true)](https://ci.appveyor.com/project/mgraffg/evomsa)
-
+[![Coverage Status](https://coveralls.io/repos/github/INGEOTEC/EvoMSA/badge.svg?branch=master)](https://coveralls.io/github/INGEOTEC/EvoMSA?branch=master)
 
 # EvoMSA
 Sentiment Analysis System based on B4MSA and EvoDAG
