@@ -12,8 +12,8 @@ before_install:
   - conda install --yes numpy
   - conda install --yes scipy
   - conda install --yes scikit-learn
-  - conda install --yes b4msa
-  - conda install --yes EvoDAG
+  - conda install --yes -c ingeotec b4msa
+  - conda install --yes -c mgraffg EvoDAG
   - conda install --yes nose
   - conda install --yes gensim
   - conda install --yes nltk
