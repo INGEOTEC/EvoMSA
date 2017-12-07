@@ -31,8 +31,8 @@ test:
 
     commands:
         - nosetests --exe EvoMSA
-        - EvoMSA-train --help
         - EvoMSA-predict --help
+        - EvoMSA-train --help
 
 
 about:
