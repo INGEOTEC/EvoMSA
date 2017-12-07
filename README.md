@@ -61,4 +61,5 @@ contains the model, and `tweets.json` is the test set.
 |SemEval 2017 - Arabic| T.S. + distant supervision dataset |0.5041 | 0.5295 | Average of 30 datasets|
 |SemEval 2017 - Arabic| T.S. + external dataset |0.5168 |0.5408| |
 |SemEval 2017 - English | Training set (T.S.) | 0.5817 | 0.6171|[Results](https://competitions.codalab.org/competitions/15885/results/27545/data)|
+|SemEval 2017 - English| T.S. + distant supervision dataset |0.5888 |0.6212| Average of 30 datasets |
 |SemEval 2017 - English| T.S.  + external dataset | 0.6054 | 0.6354 | |
