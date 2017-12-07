@@ -17,7 +17,7 @@ import sys
 import gzip
 import pickle
 import os
-from .test_base import TWEETS
+from test_base import TWEETS
 
 
 def test_train():
