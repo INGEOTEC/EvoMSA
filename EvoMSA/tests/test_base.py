@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from EvoMSA.base import EvoMSA
+import os
+TWEETS = os.path.join(os.path.dirname(__file__), 'tweets.json')
 
 
 def get_data():
     from b4msa.utils import tweet_iterator
-    D = [[x['text'], x['klass']] for x in tweet_iterator('tweets.json')]
+    D = [[x['text'], x['klass']] for x in tweet_iterator(TWEETS)]
     X = [x[0] for x in D]
     y = [x[1] for x in D]
     return X, y

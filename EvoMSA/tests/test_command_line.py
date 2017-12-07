@@ -17,11 +17,12 @@ import sys
 import gzip
 import pickle
 import os
+from .test_base import TWEETS
 
 
 def test_train():
     from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '-ot.model', '-n4', 'tweets.json']
+    sys.argv = ['EvoMSA', '-ot.model', '-n4', TWEETS]
     train(output=True)
     with gzip.open('t.model', 'r') as fpt:
         evo = pickle.load(fpt)
@@ -32,7 +33,7 @@ def test_train():
 def test_evo_kwargs():
     from EvoMSA.base import EvoMSA
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
-                '-ot.model', '-n4', 'tweets.json', 'tweets.json']
+                '-ot.model', '-n4', TWEETS, TWEETS]
     train(output=True)
     with gzip.open('t.model', 'r') as fpt:
         evo = pickle.load(fpt)
@@ -44,12 +45,12 @@ def test_predict():
     from b4msa.utils import tweet_iterator
     import numpy as np
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
-                '-ot.model', '-n4', 'tweets.json', 'tweets.json']
+                '-ot.model', '-n4', TWEETS, TWEETS]
     train(output=True)
-    sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', 'tweets.json']
+    sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
     predict()
     hy = np.array([x['klass'] for x in tweet_iterator('t1.json')])
-    y = np.array([x['klass'] for x in tweet_iterator('tweets.json')])
+    y = np.array([x['klass'] for x in tweet_iterator(TWEETS)])
     acc = (y == hy).mean()
     print(acc)
     assert acc < 1 and acc > 0.8
@@ -60,7 +61,7 @@ def test_predict():
 def test_evo_test_set():
     from EvoMSA.base import EvoMSA
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
-                '-ot.model', '--test_set=tweets.json', '-n4', 'tweets.json']
+                '-ot.model', '--test_set', TWEETS, '-n4', TWEETS]
     train(output=True)
     with gzip.open('t.model', 'r') as fpt:
         evo = pickle.load(fpt)
@@ -70,7 +71,7 @@ def test_evo_test_set():
 
 def test_evo_parameters():
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
-                '-ot.model', '-Pnada.json', '-n4', 'tweets.json']
+                '-ot.model', '-Pnada.json', '-n4', TWEETS]
     try:
         train(output=True)
     except FileNotFoundError:

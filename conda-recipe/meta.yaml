@@ -8,6 +8,7 @@ requirements:
     - setuptools
     - b4msa
     - evodag
+    - scikit-learn
 
   run:
     - python
@@ -17,6 +18,11 @@ requirements:
 test:
     requires:
         - nose
+        - numpy
+        - scipy	
+        - scikit-learn
+        - gensim
+        - nltk	
         - b4msa
         - evodag
 
