@@ -85,7 +85,7 @@ class EvoMSA(object):
                 [v.__iadd__(w) for v, w in zip(D, d)]
         return np.array(D)
 
-    def fit(self, X, y, test_set=None):
+    def fit_svm(self, X, y):
         self.model(X)
         Xvs = self.vector_space(X)
         if not isinstance(y[0], list):
@@ -96,14 +96,20 @@ class EvoMSA(object):
             c.fit(x, y0)
             svc_models.append(c)
         self._svc_models = svc_models
+
+    def fit(self, X, y, test_set=None):
+        self.fit_svm(X, y)
+        if isinstance(y[0], list):
+            y = y[0]
         if isinstance(X[0], list):
             X = X[0]
-        D = self.transform(X, y[0])
+        D = self.transform(X, y)
         if test_set is not None:
             test_set = self.transform(test_set)
+        svc_models = self._svc_models
         self._evodag_model = EvoDAGE(n_jobs=self._n_jobs,
                                      seed=self._seed,
-                                     **self._evodag_args).fit(D, svc_models[0].le.transform(y[0]),
+                                     **self._evodag_args).fit(D, svc_models[0].le.transform(y),
                                                               test_set=test_set)
         return self
 
