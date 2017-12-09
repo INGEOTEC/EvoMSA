@@ -18,6 +18,7 @@ import gzip
 import pickle
 import os
 from test_base import TWEETS
+from nose.tools import assert_almost_equals
 
 
 def test_train():
@@ -56,7 +57,7 @@ def test_predict():
     assert acc < 1 and acc > 0.8
     os.unlink('t1.json')
     os.unlink('t.model')
-    
+
 
 def test_evo_test_set():
     from EvoMSA.base import EvoMSA
@@ -79,3 +80,20 @@ def test_evo_parameters():
     assert False
 
 
+def test_utils_b4msa_df():
+    from EvoMSA.command_line import utils
+    from b4msa.utils import tweet_iterator
+    import shutil
+    sys.argv = ['EvoMSA', '-omodel.json', '--b4msa-df', TWEETS]
+    utils(output=True)
+    assert os.path.isfile('model.json')
+    sys.argv = ['EvoMSA', '-omodel', '--b4msa-df', '--test_set', TWEETS, TWEETS]
+    utils(output=True)
+    assert os.path.isdir('model')
+    dos = os.path.join('model', 'train.json')
+    for a, b in zip(tweet_iterator('model.json'), tweet_iterator(dos)):
+        for v, w in zip(a['vec'], b['vec']):
+            print(v, w)
+            assert_almost_equals(v, w, places=3)
+    shutil.rmtree('model')
+    os.unlink('model.json')

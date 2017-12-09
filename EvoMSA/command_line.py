@@ -19,11 +19,13 @@ from b4msa.utils import tweet_iterator
 import gzip
 import pickle
 import json
+import os
 
 
 class CommandLine(object):
     def __init__(self):
         self.parser = argparse.ArgumentParser(description='EvoMSA')
+        self._logger = logging.getLogger('EvoMSA')        
         pa = self.parser.add_argument
         pa('--version',
            action='version', version='EvoMSA %s' % EvoMSA.__version__)
@@ -75,6 +77,10 @@ class CommandLineTrain(CommandLine):
             _ = [[x['text'], x['klass']] for x in tweet_iterator(fname)]
             D.append([x[0] for x in _])
             Y.append([x[1] for x in _])
+        if self.data.test_set is not None:
+            test_set = [x['text'] for x in tweet_iterator(self.data.test_set)]
+        else:
+            test_set = None
         evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
         if self.data.evo_kwargs is not None:
             _ = json.loads(self.data.evo_kwargs)
@@ -85,10 +91,69 @@ class CommandLineTrain(CommandLine):
             b4msa_kwargs.update(_)
         evo = base.EvoMSA(b4msa_params=self.data.parameters,
                           n_jobs=self.data.n_jobs, b4msa_args=b4msa_kwargs,
-                          evodag_args=evo_kwargs).fit(D, Y, test_set=self.data.test_set)
+                          evodag_args=evo_kwargs).fit(D, Y, test_set=test_set)
         with gzip.open(self.data.output_file, 'w') as fpt:
             evo._logger = None
             pickle.dump(evo, fpt)
+
+
+class CommandLineUtils(CommandLineTrain):
+    def __init__(self):
+        super(CommandLineUtils, self).__init__()
+        pa = self.parser.add_argument
+        pa('--b4msa-df', dest='b4msa_df', default=False, action='store_true')
+
+    def main(self):
+        if not self.data.b4msa_df:
+            return
+        fnames = self.data.training_set
+        if not isinstance(fnames, list):
+            fnames = [fnames]
+        D = []
+        Y = []
+        for fname in fnames:
+            _ = [[x['text'], x['klass']] for x in tweet_iterator(fname)]
+            D.append([x[0] for x in _])
+            Y.append([x[1] for x in _])
+        self._logger.info('Reading test_set %s' % self.data.test_set)
+        if self.data.test_set is not None:
+            test_set = [x['text'] for x in tweet_iterator(self.data.test_set)]
+        else:
+            test_set = None
+        evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
+        if self.data.evo_kwargs is not None:
+            _ = json.loads(self.data.evo_kwargs)
+            evo_kwargs.update(_)
+        b4msa_kwargs = {}
+        if self.data.b4msa_kwargs is not None:
+            _ = json.loads(self.data.b4msa_kwargs)
+            b4msa_kwargs.update(_)
+        evo = base.EvoMSA(b4msa_params=self.data.parameters,
+                          n_jobs=self.data.n_jobs, b4msa_args=b4msa_kwargs,
+                          evodag_args=evo_kwargs)
+        evo.fit_svm(D, Y)
+        output = self.data.output_file
+        if self.data.test_set is None:
+            hy = evo.transform(D[0])
+            with open(output, 'w') as fpt:
+                for x, y in zip(tweet_iterator(fnames[0]), hy):
+                    x.update(dict(vec=y.tolist()))
+                    fpt.write(json.dumps(x) + '\n')
+        else:
+            if not os.path.isdir(output):
+                os.mkdir(output)
+            train = os.path.join(output, 'train.json')
+            hy = evo.transform(D[0])
+            with open(train, 'w') as fpt:
+                for x, y in zip(tweet_iterator(fnames[0]), hy):
+                    x.update(dict(vec=y.tolist()))
+                    fpt.write(json.dumps(x) + '\n')
+            test = os.path.join(output, 'test.json')
+            hy = evo.transform(test_set)
+            with open(test, 'w') as fpt:
+                for x, y in zip(tweet_iterator(self.data.test_set), hy):
+                    x.update(dict(vec=y.tolist()))
+                    fpt.write(json.dumps(x) + '\n')
 
 
 class CommandLinePredict(CommandLine):
@@ -125,4 +190,11 @@ def predict(output=False):
     c.parse_args()
     if output:
         return c
-    
+
+
+def utils(output=False):
+    c = CommandLineUtils()
+    c.parse_args()
+    if output:
+        return c
+
