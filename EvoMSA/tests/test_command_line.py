@@ -34,7 +34,8 @@ def test_train():
 def test_evo_kwargs():
     from EvoMSA.base import EvoMSA
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
-                '-ot.model', '-n4', TWEETS, TWEETS]
+                '-ot.model', '--b4msa-kw={"del_dup1":false}',
+                '-n4', TWEETS, TWEETS]
     train(output=True)
     with gzip.open('t.model', 'r') as fpt:
         evo = pickle.load(fpt)
@@ -84,7 +85,8 @@ def test_utils_b4msa_df():
     from EvoMSA.command_line import utils
     from b4msa.utils import tweet_iterator
     import shutil
-    sys.argv = ['EvoMSA', '-omodel.json', '--b4msa-df', TWEETS]
+    sys.argv = ['EvoMSA', '--b4msa-kw={"del_dup1":false}',
+                '-omodel.json', '--b4msa-df', TWEETS]
     utils(output=True)
     assert os.path.isfile('model.json')
     sys.argv = ['EvoMSA', '-omodel', '--b4msa-df', '--test_set', TWEETS, TWEETS]

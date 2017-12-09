@@ -120,17 +120,12 @@ class CommandLineUtils(CommandLineTrain):
             test_set = [x['text'] for x in tweet_iterator(self.data.test_set)]
         else:
             test_set = None
-        evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
-        if self.data.evo_kwargs is not None:
-            _ = json.loads(self.data.evo_kwargs)
-            evo_kwargs.update(_)
         b4msa_kwargs = {}
         if self.data.b4msa_kwargs is not None:
             _ = json.loads(self.data.b4msa_kwargs)
             b4msa_kwargs.update(_)
         evo = base.EvoMSA(b4msa_params=self.data.parameters,
-                          n_jobs=self.data.n_jobs, b4msa_args=b4msa_kwargs,
-                          evodag_args=evo_kwargs)
+                          n_jobs=self.data.n_jobs, b4msa_args=b4msa_kwargs)
         evo.fit_svm(D, Y)
         output = self.data.output_file
         if self.data.test_set is None:
