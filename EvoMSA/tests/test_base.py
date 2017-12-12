@@ -99,3 +99,14 @@ def test_EvoMSA_predict():
     hy = evo.predict(X)
     assert len(hy) == 1000
     assert (np.array(y) == hy).mean() > 0.9
+
+
+def test_EvoMSA_fit3():
+    X, y = get_data()
+    evo = EvoMSA(use_ts=False, evodag_args=dict(popsize=10, early_stopping_rounds=10),
+                 n_jobs=4).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
+                               [y, [x for x in y if x in ['P', 'N']]])
+    assert evo
+    D = evo.transform(X, y)
+    assert len(D[0]) == 1
+    

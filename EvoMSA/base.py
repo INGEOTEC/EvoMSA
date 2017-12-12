@@ -16,14 +16,16 @@ from b4msa.command_line import load_json
 from b4msa.textmodel import TextModel
 from b4msa.classifier import SVC
 from sklearn.model_selection import KFold
+from sklearn.preprocessing import LabelEncoder
 from EvoDAG.model import EvoDAGE
 import numpy as np
 import logging
 
 
 class EvoMSA(object):
-    def __init__(self, b4msa_params=None, evodag_args=dict(),
+    def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0):
+        self._use_ts = use_ts
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
                                         'conf', 'default_parameters.json')
@@ -37,6 +39,7 @@ class EvoMSA(object):
         self._svc_models = None
         self._evodag_model = None
         self._logger = logging.getLogger('EvoMSA')
+        self._le = None
 
     def model(self, X):
         if not isinstance(X[0], list):
@@ -67,12 +70,14 @@ class EvoMSA(object):
     def predict(self, X):
         X = self.transform(X)
         hy = self._evodag_model.predict(X)
-        le = self._svc_models[0].le
-        return le.inverse_transform(hy)
+        return self._le.inverse_transform(hy)
 
     def transform(self, X, y=None):
         D = None
         for m, t in zip(self._svc_models, self._textModel):
+            if m is None:
+                y = None
+                continue
             x = [t[_] for _ in X]
             if y is not None:
                 d = self.kfold_decision_function(x, y)
@@ -83,15 +88,21 @@ class EvoMSA(object):
                 D = d
             else:
                 [v.__iadd__(w) for v, w in zip(D, d)]
-        return np.array(D)
+        _ = np.array(D)
+        return _
 
     def fit_svm(self, X, y):
+        n_use_ts = not self._use_ts
         self.model(X)
         Xvs = self.vector_space(X)
         if not isinstance(y[0], list):
             y = [y]
         svc_models = []
         for t, x, y0 in zip(self._textModel, Xvs, y):
+            if n_use_ts:
+                svc_models.append(None)
+                n_use_ts = False
+                continue
             c = SVC(model=None)
             c.fit(x, y0)
             svc_models.append(c)
@@ -107,9 +118,14 @@ class EvoMSA(object):
         if test_set is not None:
             test_set = self.transform(test_set)
         svc_models = self._svc_models
+        if svc_models[0] is not None:
+            self._le = svc_models[0].le
+        else:
+            self._le = LabelEncoder()
+            self._le.fit(y)
         self._evodag_model = EvoDAGE(n_jobs=self._n_jobs,
                                      seed=self._seed,
-                                     **self._evodag_args).fit(D, svc_models[0].le.transform(y),
+                                     **self._evodag_args).fit(D, self._le.transform(y),
                                                               test_set=test_set)
         return self
 
