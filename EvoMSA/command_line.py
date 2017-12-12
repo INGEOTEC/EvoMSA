@@ -25,7 +25,7 @@ import os
 class CommandLine(object):
     def __init__(self):
         self.parser = argparse.ArgumentParser(description='EvoMSA')
-        self._logger = logging.getLogger('EvoMSA')        
+        self._logger = logging.getLogger('EvoMSA')
         pa = self.parser.add_argument
         pa('--version',
            action='version', version='EvoMSA %s' % EvoMSA.__version__)
@@ -60,6 +60,7 @@ class CommandLineTrain(CommandLine):
            help='Test set to do transductive learning')
         pa('-P', '--parameters', dest='parameters', type=str,
            help='B4MSA parameters')
+        pa('--no-use-ts', dest='use_ts', default=True, action='store_false')
 
     def training_set(self):
         cdn = 'File containing the training set.'
@@ -90,6 +91,7 @@ class CommandLineTrain(CommandLine):
             _ = json.loads(self.data.b4msa_kwargs)
             b4msa_kwargs.update(_)
         evo = base.EvoMSA(b4msa_params=self.data.parameters,
+                          use_ts=self.data.use_ts,
                           n_jobs=self.data.n_jobs, b4msa_args=b4msa_kwargs,
                           evodag_args=evo_kwargs).fit(D, Y, test_set=test_set)
         with gzip.open(self.data.output_file, 'w') as fpt:

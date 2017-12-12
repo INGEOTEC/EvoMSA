@@ -23,12 +23,15 @@ from nose.tools import assert_almost_equals
 
 def test_train():
     from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '-ot.model', '-n4', TWEETS]
+    sys.argv = ['EvoMSA', '-ot.model', '-n4',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                TWEETS]
     train(output=True)
     with gzip.open('t.model', 'r') as fpt:
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
+    assert evo._use_ts
 
 
 def test_evo_kwargs():
@@ -99,3 +102,17 @@ def test_utils_b4msa_df():
             assert_almost_equals(v, w, places=3)
     shutil.rmtree('model')
     os.unlink('model.json')
+
+
+def test_train_no_use_ts():
+    from EvoMSA.base import EvoMSA
+    sys.argv = ['EvoMSA', '--no-use-ts', '-ot.model', '-n4',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                TWEETS, TWEETS]
+    train(output=True)
+    with gzip.open('t.model', 'r') as fpt:
+        evo = pickle.load(fpt)
+    assert isinstance(evo, EvoMSA)
+    os.unlink('t.model')
+    assert not evo._use_ts
+    
