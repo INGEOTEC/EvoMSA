@@ -168,10 +168,11 @@ class CommandLinePredict(CommandLine):
         print(self.data.model)
         with gzip.open(self.data.model, 'r') as fpt:
             evo = pickle.load(fpt)
-        hy = evo.predict(D)
+        pr = evo.predict_proba(D)
+        hy = evo._le.inverse_transform(pr.argmax(axis=1))
         with open(self.data.output_file, 'w') as fpt:
-            for x, y in zip(tweet_iterator(predict_file), hy):
-                x.update(dict(klass=y))
+            for x, y, df in zip(tweet_iterator(predict_file), hy, pr):
+                x.update(dict(klass=y, decision_function=df.tolist()))
                 fpt.write(json.dumps(x) + '\n')
 
 

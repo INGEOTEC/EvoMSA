@@ -55,6 +55,7 @@ def test_predict():
     sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
     predict()
     hy = np.array([x['klass'] for x in tweet_iterator('t1.json')])
+    [x['decision_function'] for x in tweet_iterator('t1.json')]
     y = np.array([x['klass'] for x in tweet_iterator(TWEETS)])
     acc = (y == hy).mean()
     print(acc)

@@ -72,6 +72,10 @@ class EvoMSA(object):
         hy = self._evodag_model.predict(X)
         return self._le.inverse_transform(hy)
 
+    def predict_proba(self, X):
+        X = self.transform(X)
+        return self._evodag_model.predict_proba(X)
+
     def transform(self, X, y=None):
         D = None
         for m, t in zip(self._svc_models, self._textModel):
