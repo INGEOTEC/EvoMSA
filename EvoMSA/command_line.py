@@ -26,6 +26,7 @@ class CommandLine(object):
     def __init__(self):
         self._klass = os.getenv('KLASS', default='klass')
         self._text = os.getenv('TEXT', default='text')
+        self._decision_function = os.getenv('DECISION_FUNCTION', default='text')
         self.parser = argparse.ArgumentParser(description='EvoMSA')
         self._logger = logging.getLogger('EvoMSA')
         pa = self.parser.add_argument
@@ -170,10 +171,12 @@ class CommandLinePredict(CommandLine):
         print(self.data.model)
         with gzip.open(self.data.model, 'r') as fpt:
             evo = pickle.load(fpt)
-        hy = evo.predict(D)
+        pr = evo.predict_proba(D)
+        hy = evo._le.inverse_transform(pr.argmax(axis=1))
         with open(self.data.output_file, 'w') as fpt:
-            for x, y in zip(tweet_iterator(predict_file), hy):
-                x.update(dict(self._klass=y))
+            for x, y, df in zip(tweet_iterator(predict_file), hy, pr):
+                _ = {self._klass: y, self._decision_function: df.tolist()}
+                x.update(_)
                 fpt.write(json.dumps(x) + '\n')
 
 

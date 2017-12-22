@@ -109,4 +109,13 @@ def test_EvoMSA_fit3():
     assert evo
     D = evo.transform(X, y)
     assert len(D[0]) == 1
-    
+
+
+def test_EvoMSA_predict_proba():
+    X, y = get_data()
+    evo = EvoMSA(evodag_args=dict(popsize=100, early_stopping_rounds=100),
+                 n_jobs=4).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
+                               [y, [x for x in y if x in ['P', 'N']]])
+    hy = evo.predict_proba(X)
+    assert len(hy) == 1000
+    assert hy.min() >= 0 and hy.max() <= 1
