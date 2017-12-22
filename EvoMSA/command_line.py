@@ -26,7 +26,8 @@ class CommandLine(object):
     def __init__(self):
         self._klass = os.getenv('KLASS', default='klass')
         self._text = os.getenv('TEXT', default='text')
-        self._decision_function = os.getenv('DECISION_FUNCTION', default='text')
+        self._decision_function = os.getenv('DECISION_FUNCTION',
+                                            default='decision_function')
         self.parser = argparse.ArgumentParser(description='EvoMSA')
         self._logger = logging.getLogger('EvoMSA')
         pa = self.parser.add_argument
