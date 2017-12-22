@@ -83,7 +83,7 @@ class CommandLineTrain(CommandLine):
             D.append([x[0] for x in _])
             Y.append([x[1] for x in _])
         if self.data.test_set is not None:
-            test_set = [x['text'] for x in tweet_iterator(self.data.test_set)]
+            test_set = [x[self._text] for x in tweet_iterator(self.data.test_set)]
         else:
             test_set = None
         evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
@@ -123,7 +123,7 @@ class CommandLineUtils(CommandLineTrain):
             Y.append([x[1] for x in _])
         self._logger.info('Reading test_set %s' % self.data.test_set)
         if self.data.test_set is not None:
-            test_set = [x['text'] for x in tweet_iterator(self.data.test_set)]
+            test_set = [x[self._text] for x in tweet_iterator(self.data.test_set)]
         else:
             test_set = None
         b4msa_kwargs = {}
@@ -168,7 +168,7 @@ class CommandLinePredict(CommandLine):
 
     def main(self):
         predict_file = self.data.predict_file[0]
-        D = [x['text'] for x in tweet_iterator(predict_file)]
+        D = [x[self._text] for x in tweet_iterator(predict_file)]
         print(self.data.model)
         with gzip.open(self.data.model, 'r') as fpt:
             evo = pickle.load(fpt)
