@@ -82,7 +82,7 @@ class EvoMSA(object):
             if m is None:
                 y = None
                 continue
-            x = [t[_] for _ in X]
+            x = [t[str(_)] for _ in X]
             if y is not None:
                 d = self.kfold_decision_function(x, y)
                 y = None
