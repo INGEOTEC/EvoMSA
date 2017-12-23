@@ -169,7 +169,6 @@ class CommandLinePredict(CommandLine):
     def main(self):
         predict_file = self.data.predict_file[0]
         D = [x[self._text] for x in tweet_iterator(predict_file)]
-        print(self.data.model)
         with gzip.open(self.data.model, 'r') as fpt:
             evo = pickle.load(fpt)
         pr = evo.predict_proba(D)
