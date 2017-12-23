@@ -119,3 +119,17 @@ def test_EvoMSA_predict_proba():
     hy = evo.predict_proba(X)
     assert len(hy) == 1000
     assert hy.min() >= 0 and hy.max() <= 1
+
+
+def test_binary_labels_json():
+    import json
+    X, y = get_data()
+    h = dict(NONE=0, N=0, NEU=0, P=1)
+    y = [h[x] for x in y]
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
+                 n_jobs=4).fit(X, y)
+    hy = evo.predict(X)
+    for x in hy:
+        print(type(x), str(x))
+        _ = json.dumps(dict(klass=str(x)))
+    print(_)
