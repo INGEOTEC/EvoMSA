@@ -18,13 +18,14 @@ from b4msa.classifier import SVC
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder
 from EvoDAG.model import EvoDAGE
+from sklearn.linear_model import LogisticRegression
 import numpy as np
 import logging
 
 
 class EvoMSA(object):
     def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(),
-                 b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0):
+                 b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False):
         self._use_ts = use_ts
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
@@ -40,6 +41,10 @@ class EvoMSA(object):
         self._evodag_model = None
         self._logger = logging.getLogger('EvoMSA')
         self._le = None
+        self._logistic_regression = None
+        if logistic_regression:
+            self._logistic_regression = LogisticRegression(random_state=0,
+                                                           class_weight='balanced')
 
     def model(self, X):
         if not isinstance(X[0], list):
@@ -74,6 +79,9 @@ class EvoMSA(object):
 
     def predict_proba(self, X):
         X = self.transform(X)
+        if self._logistic_regression is not None:
+            X = self._evodag_model.raw_decision_function(X)
+            return self._logistic_regression.predict_proba(X)
         return self._evodag_model.predict_proba(X)
 
     def transform(self, X, y=None):
@@ -127,10 +135,14 @@ class EvoMSA(object):
         else:
             self._le = LabelEncoder()
             self._le.fit(y)
+        klass = self._le.transform(y)
         self._evodag_model = EvoDAGE(n_jobs=self._n_jobs,
                                      seed=self._seed,
-                                     **self._evodag_args).fit(D, self._le.transform(y),
+                                     **self._evodag_args).fit(D, klass,
                                                               test_set=test_set)
+        if self._logistic_regression is not None:
+            self._logistic_regression.fit(self._evodag_model.raw_decision_function(D),
+                                          klass)
         return self
 
     @staticmethod
