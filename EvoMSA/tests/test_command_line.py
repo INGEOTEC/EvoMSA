@@ -116,4 +116,18 @@ def test_train_no_use_ts():
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
     assert not evo._use_ts
-    
+
+
+def test_train_kw():
+    from EvoMSA.base import EvoMSA
+    sys.argv = ['EvoMSA', '-ot.model', '-n4',
+                '--kw={"logistic_regression": true}',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                TWEETS, TWEETS]
+    train(output=True)
+    with gzip.open('t.model', 'r') as fpt:
+        evo = pickle.load(fpt)
+    assert isinstance(evo, EvoMSA)
+    os.unlink('t.model')
+    assert evo._logistic_regression is not None
+

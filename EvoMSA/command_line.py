@@ -56,6 +56,8 @@ class CommandLineTrain(CommandLine):
         super(CommandLineTrain, self).__init__()
         self.training_set()
         pa = self.parser.add_argument
+        pa('--kw', dest='kwargs', default=None, type=str,
+           help='Parameters in json that overwrite EvoMSA default parameters')
         pa('--evodag-kw', dest='evo_kwargs', default=None, type=str,
            help='Parameters in json that overwrite EvoDAG default parameters')
         pa('--b4msa-kw', dest='b4msa_kwargs', default=None, type=str,
@@ -86,6 +88,10 @@ class CommandLineTrain(CommandLine):
             test_set = [x[self._text] for x in tweet_iterator(self.data.test_set)]
         else:
             test_set = None
+        kwargs = dict(use_ts=self.data.use_ts, n_jobs=self.data.n_jobs)
+        if self.data.kwargs is not None:
+            _ = json.loads(self.data.kwargs)
+            kwargs.update(_)
         evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
         if self.data.evo_kwargs is not None:
             _ = json.loads(self.data.evo_kwargs)
@@ -95,9 +101,8 @@ class CommandLineTrain(CommandLine):
             _ = json.loads(self.data.b4msa_kwargs)
             b4msa_kwargs.update(_)
         evo = base.EvoMSA(b4msa_params=self.data.parameters,
-                          use_ts=self.data.use_ts,
-                          n_jobs=self.data.n_jobs, b4msa_args=b4msa_kwargs,
-                          evodag_args=evo_kwargs).fit(D, Y, test_set=test_set)
+                          b4msa_args=b4msa_kwargs, evodag_args=evo_kwargs,
+                          **kwargs).fit(D, Y, test_set=test_set)
         with gzip.open(self.data.output_file, 'w') as fpt:
             evo._logger = None
             pickle.dump(evo, fpt)
