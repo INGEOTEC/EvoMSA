@@ -123,7 +123,7 @@ def test_train_kw():
     sys.argv = ['EvoMSA', '-ot.model', '-n4',
                 '--kw={"logistic_regression": true}',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
-                TWEETS, TWEETS]
+                TWEETS]
     train(output=True)
     with gzip.open('t.model', 'r') as fpt:
         evo = pickle.load(fpt)
@@ -131,3 +131,27 @@ def test_train_kw():
     os.unlink('t.model')
     assert evo._logistic_regression is not None
 
+
+def test_train_exogenous():
+    from EvoMSA.base import EvoMSA
+    from b4msa.utils import tweet_iterator
+    import json
+    with open('ex.json', 'w') as fpt:
+        for x in tweet_iterator(TWEETS):
+            x['decision_function'] = x['q_voc_ratio']
+            fpt.write(json.dumps(x) + '\n')
+    sys.argv = ['EvoMSA', '-ot.model', '-n4',
+                '--kw={"logistic_regression": true}',
+                '--exogenous=ex.json',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                TWEETS]
+    train(output=True)
+    with gzip.open('t.model', 'r') as fpt:
+        evo = pickle.load(fpt)
+    assert isinstance(evo, EvoMSA)
+    os.unlink('t.model')
+    assert evo._logistic_regression is not None
+    m = evo._evodag_model.models[0]
+    os.unlink('ex.json')
+    print(m.nvar)
+    assert m.nvar == 5

@@ -20,6 +20,7 @@ import gzip
 import pickle
 import json
 import os
+import numpy as np
 
 
 class CommandLine(object):
@@ -39,6 +40,9 @@ class CommandLine(object):
         pa('-o', '--output-file',
            help='File / directory to store the result(s)', dest='output_file',
            default=None, type=str)
+        pa('--exogenous',
+           help='Exogenous variables', dest='exogenous',
+           default=None, type=str, nargs='*')
 
     def parse_args(self):
         self.data = self.parser.parse_args()
@@ -48,7 +52,21 @@ class CommandLine(object):
                 logger = logging.getLogger(k)
                 logger.setLevel(self.data.verbose)
                 logger.info('Logging to: %s', self.data.verbose)
+        self.exogenous()
         self.main()
+
+    def exogenous(self):
+        self._exogenous = None
+        if self.data.exogenous is None:
+            return
+        D = None
+        for fname in self.data.exogenous:
+            d = [base.EvoMSA.tolist(x['decision_function']) for x in tweet_iterator(fname)]
+            if D is None:
+                D = d
+            else:
+                [v.__iadd__(w) for v, w in zip(D, d)]
+        self._exogenous = np.array(D)
 
 
 class CommandLineTrain(CommandLine):
@@ -102,7 +120,10 @@ class CommandLineTrain(CommandLine):
             b4msa_kwargs.update(_)
         evo = base.EvoMSA(b4msa_params=self.data.parameters,
                           b4msa_args=b4msa_kwargs, evodag_args=evo_kwargs,
-                          **kwargs).fit(D, Y, test_set=test_set)
+                          **kwargs)
+        evo.exogenous = self._exogenous
+        evo.fit(D, Y, test_set=test_set)
+        evo.exogenous = None
         with gzip.open(self.data.output_file, 'w') as fpt:
             evo._logger = None
             pickle.dump(evo, fpt)
@@ -176,6 +197,7 @@ class CommandLinePredict(CommandLine):
         D = [x[self._text] for x in tweet_iterator(predict_file)]
         with gzip.open(self.data.model, 'r') as fpt:
             evo = pickle.load(fpt)
+        evo.exogenous = self._exogenous
         pr = evo.predict_proba(D)
         hy = evo._le.inverse_transform(pr.argmax(axis=1))
         with open(self.data.output_file, 'w') as fpt:

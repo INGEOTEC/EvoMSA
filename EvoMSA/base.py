@@ -45,6 +45,7 @@ class EvoMSA(object):
         if logistic_regression:
             self._logistic_regression = LogisticRegression(random_state=0,
                                                            class_weight='balanced')
+        self._exogenous = None
 
     def model(self, X):
         if not isinstance(X[0], list):
@@ -84,6 +85,20 @@ class EvoMSA(object):
             return self._logistic_regression.predict_proba(X)
         return self._evodag_model.predict_proba(X)
 
+    @property
+    def exogenous(self):
+        return self._exogenous
+
+    @exogenous.setter
+    def exogenous(self, a):
+        self._exogenous = a
+
+    def append_exogenous(self, d):
+        e = self.exogenous
+        if e is not None:
+            return np.concatenate((d, e), axis=1)
+        return d
+
     def transform(self, X, y=None):
         D = None
         for m, t in zip(self._svc_models, self._textModel):
@@ -101,7 +116,7 @@ class EvoMSA(object):
             else:
                 [v.__iadd__(w) for v, w in zip(D, d)]
         _ = np.array(D)
-        return _
+        return self.append_exogenous(_)
 
     def fit_svm(self, X, y):
         n_use_ts = not self._use_ts
