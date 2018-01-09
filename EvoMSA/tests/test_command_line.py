@@ -155,3 +155,18 @@ def test_train_exogenous():
     os.unlink('ex.json')
     print(m.nvar)
     assert m.nvar == 6
+
+
+def test_logistic_regression_params():
+    from EvoMSA.base import EvoMSA
+    sys.argv = ['EvoMSA', '-ot.model', '-n1',
+                '--kw={"logistic_regression": true}',
+                '--logistic-regression-kw={"C": 10}',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                TWEETS]
+    train(output=True)
+    with gzip.open('t.model', 'r') as fpt:
+        evo = pickle.load(fpt)
+    assert isinstance(evo, EvoMSA)
+    assert evo._logistic_regression.C == 10
+    os.unlink('t.model')

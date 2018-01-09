@@ -38,7 +38,8 @@ def kfold_decision_function(args):
 
 class EvoMSA(object):
     def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(),
-                 b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False):
+                 b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
+                 logistic_regression_args=None):
         self._use_ts = use_ts
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
@@ -56,8 +57,10 @@ class EvoMSA(object):
         self._le = None
         self._logistic_regression = None
         if logistic_regression:
-            self._logistic_regression = LogisticRegression(random_state=0,
-                                                           class_weight='balanced')
+            p = dict(random_state=0, class_weight='balanced')
+            if logistic_regression_args is not None:
+                p.update(logistic_regression_args)
+            self._logistic_regression = LogisticRegression(**p)
         self._exogenous = None
 
     def model(self, X):
@@ -82,10 +85,13 @@ class EvoMSA(object):
         for tr, ts in KFold(n_splits=self._n_splits,
                             shuffle=True, random_state=self._seed).split(X):
             args.append([X, y, tr, ts])
-        p = Pool(self._n_jobs, maxtasksperchild=1)
-        res = [x for x in tqdm(p.imap_unordered(kfold_decision_function, args),
-                               total=len(args))]
-        p.close()
+        if self._n_jobs == 1:
+            res = [kfold_decision_function(x) for x in tqdm(args, total=len(args))]
+        else:
+            p = Pool(self._n_jobs, maxtasksperchild=1)
+            res = [x for x in tqdm(p.imap_unordered(kfold_decision_function, args),
+                                   total=len(args))]
+            p.close()
         for ts, df in res:
             [hy.__setitem__(k, self.tolist(v)) for k, v in zip(ts, df)]
         return hy

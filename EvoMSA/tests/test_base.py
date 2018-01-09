@@ -145,3 +145,12 @@ def test_EvoMSA_predict_proba_logistic_regression():
     assert len(hy) == 1000
     assert hy.min() >= 0 and hy.max() <= 1
     print(hy)
+
+
+def test_EvoMSA_logistic_regression_params():
+    X, y = get_data()
+    evo = EvoMSA(logistic_regression=True, logistic_regression_args=dict(C=10),
+                 evodag_args=dict(popsize=100, early_stopping_rounds=100),
+                 n_jobs=4)
+    assert evo._logistic_regression.C == 10
+

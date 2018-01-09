@@ -80,6 +80,8 @@ class CommandLineTrain(CommandLine):
            help='Parameters in json that overwrite EvoDAG default parameters')
         pa('--b4msa-kw', dest='b4msa_kwargs', default=None, type=str,
            help='Parameters in json that overwrite B4MSA default parameters')
+        pa('--logistic-regression-kw', dest='logistic_regression_kwargs', default=None, type=str,
+           help='Parameters in json that overwrite Logistic Regression default parameters')
         pa('--test_set', dest='test_set', default=None, type=str,
            help='Test set to do transductive learning')
         pa('-P', '--parameters', dest='parameters', type=str,
@@ -118,8 +120,12 @@ class CommandLineTrain(CommandLine):
         if self.data.b4msa_kwargs is not None:
             _ = json.loads(self.data.b4msa_kwargs)
             b4msa_kwargs.update(_)
+        logistic_regression_kwargs = None
+        if self.data.logistic_regression_kwargs is not None:
+            logistic_regression_kwargs = json.loads(self.data.logistic_regression_kwargs)
         evo = base.EvoMSA(b4msa_params=self.data.parameters,
                           b4msa_args=b4msa_kwargs, evodag_args=evo_kwargs,
+                          logistic_regression_args=logistic_regression_kwargs,
                           **kwargs)
         evo.exogenous = self._exogenous
         evo.fit(D, Y, test_set=test_set)
