@@ -21,10 +21,19 @@ from EvoDAG.model import EvoDAGE
 from sklearn.linear_model import LogisticRegression
 import numpy as np
 import logging
+from multiprocessing import Pool
+try:
+    from tqdm import tqdm
+except ImportError:
+    def tqdm(x, **kwargs):
+        return x
 
 
 def kfold_decision_function(args):
-    pass
+    X, y, tr, ts = args
+    c = SVC(model=None)
+    c.fit([X[x] for x in tr], [y[x] for x in tr])
+    return ts, c.decision_function([X[x] for x in ts])
 
 
 class EvoMSA(object):
@@ -69,12 +78,16 @@ class EvoMSA(object):
 
     def kfold_decision_function(self, X, y):
         hy = [None for x in y]
+        args = []
         for tr, ts in KFold(n_splits=self._n_splits,
                             shuffle=True, random_state=self._seed).split(X):
-            c = SVC(model=None)
-            c.fit([X[x] for x in tr], [y[x] for x in tr])
-            _ = c.decision_function([X[x] for x in ts])
-            [hy.__setitem__(k, self.tolist(v)) for k, v in zip(ts, _)]
+            args.append([X, y, tr, ts])
+        p = Pool(self._n_jobs, maxtasksperchild=1)
+        res = [x for x in tqdm(p.imap_unordered(kfold_decision_function, args),
+                               total=len(args))]
+        p.close()
+        for ts, df in res:
+            [hy.__setitem__(k, self.tolist(v)) for k, v in zip(ts, df)]
         return hy
 
     def predict(self, X):
