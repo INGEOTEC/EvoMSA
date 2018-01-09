@@ -142,7 +142,7 @@ def test_train_exogenous():
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA', '-ot.model', '-n4',
                 '--kw={"logistic_regression": true}',
-                '--exogenous=ex.json',
+                '--exogenous', 'ex.json', 'ex.json',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
                 TWEETS]
     train(output=True)
@@ -154,4 +154,4 @@ def test_train_exogenous():
     m = evo._evodag_model.models[0]
     os.unlink('ex.json')
     print(m.nvar)
-    assert m.nvar == 5
+    assert m.nvar == 6

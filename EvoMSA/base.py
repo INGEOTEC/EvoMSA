@@ -23,6 +23,10 @@ import numpy as np
 import logging
 
 
+def kfold_decision_function(args):
+    pass
+
+
 class EvoMSA(object):
     def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False):
