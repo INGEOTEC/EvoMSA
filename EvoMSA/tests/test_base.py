@@ -98,6 +98,8 @@ def test_EvoMSA_predict():
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict(X)
     assert len(hy) == 1000
+    print((np.array(y) == hy).mean(), hy)
+    print(evo.predict_proba(X))
     assert (np.array(y) == hy).mean() > 0.9
 
 
