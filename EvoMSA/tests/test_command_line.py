@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from EvoMSA.command_line import train
+from EvoMSA.command_line import train, utils
 from EvoMSA.command_line import predict
 import sys
 import gzip
@@ -155,6 +155,7 @@ def test_train_exogenous():
     os.unlink('ex.json')
     print(m.nvar)
     assert m.nvar == 6
+    assert evo._n_jobs == 4
 
 
 def test_logistic_regression_params():
@@ -170,3 +171,26 @@ def test_logistic_regression_params():
     assert isinstance(evo, EvoMSA)
     assert evo._logistic_regression.C == 10
     os.unlink('t.model')
+
+
+def test_utils_transform():
+    from b4msa.utils import tweet_iterator
+    import json
+    with open('ex.json', 'w') as fpt:
+        for x in tweet_iterator(TWEETS):
+            x['decision_function'] = x['q_voc_ratio']
+            fpt.write(json.dumps(x) + '\n')
+    sys.argv = ['EvoMSA', '-ot.model', '-n4', '--no-use-ts',
+                '--kw={"logistic_regression": true}',
+                '--exogenous', 'ex.json', 'ex.json',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                TWEETS, TWEETS]
+    train(output=True)
+
+    sys.argv = ['EvoMSA', '-mt.model', '-ot.json', '--exogenous', 'ex.json', 'ex.json',
+                '--transform', TWEETS]
+    utils()
+    os.unlink('t.model')
+    vec = [x['vec'] for x in tweet_iterator('t.json')]
+    os.unlink('t.json')
+    assert len(vec[0]) == 6

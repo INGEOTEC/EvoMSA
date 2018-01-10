@@ -140,8 +140,25 @@ class CommandLineUtils(CommandLineTrain):
         super(CommandLineUtils, self).__init__()
         pa = self.parser.add_argument
         pa('--b4msa-df', dest='b4msa_df', default=False, action='store_true')
+        pa('--transform', dest='transform', default=False, action='store_true')
+        pa('-m', '--model', dest='model', default=None, help='Model')
+
+    def transform(self):
+        predict_file = self.data.training_set[0]
+        D = [x[self._text] for x in tweet_iterator(predict_file)]
+        with gzip.open(self.data.model, 'r') as fpt:
+            evo = pickle.load(fpt)
+        evo.exogenous = self._exogenous
+        D = evo.transform(D)
+        with open(self.data.output_file, 'w') as fpt:
+            for x, v in zip(tweet_iterator(predict_file), D):
+                _ = dict(vec=v.tolist())
+                x.update(_)
+                fpt.write(json.dumps(x) + '\n')
 
     def main(self):
+        if self.data.transform:
+            return self.transform()
         if not self.data.b4msa_df:
             return
         fnames = self.data.training_set

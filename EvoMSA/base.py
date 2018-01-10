@@ -98,8 +98,8 @@ class EvoMSA(object):
 
     def predict(self, X):
         X = self.transform(X)
-        hy = self._evodag_model.predict(X)
-        return self._le.inverse_transform(hy)
+        pr = self.predict_proba(X)
+        return self._le.inverse_transform(pr.argmax(axis=1))
 
     def predict_proba(self, X):
         X = self.transform(X)
