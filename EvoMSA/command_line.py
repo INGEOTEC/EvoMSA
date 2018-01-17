@@ -214,7 +214,7 @@ class CommandLinePredict(CommandLine):
            default=None, help='File to predict.')
         pa('-m', '--model', dest='model', default=None,
            help='Model')
-        pa('--raw-outpus', dest='raw_outputs', default=False,
+        pa('--raw-outputs', dest='raw_outputs', default=False,
            action='store_true',
            help='Raw decision function')
 

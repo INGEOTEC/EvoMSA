@@ -201,7 +201,7 @@ def test_raw_outputs():
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
                 '-ot.model', '-n4', TWEETS, TWEETS]
     train(output=True)
-    sys.argv = ['EvoMSA', '--raw-outpus', '-mt.model', '-ot1.json', TWEETS]
+    sys.argv = ['EvoMSA', '--raw-outputs', '-mt.model', '-ot1.json', TWEETS]
     predict()
     df = [x['decision_function'] for x in tweet_iterator('t1.json')]
     assert len(df[0]) == 30 * 4
