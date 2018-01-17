@@ -107,6 +107,10 @@ class EvoMSA(object):
             return self._logistic_regression.predict_proba(X)
         return self._evodag_model.predict_proba(X)
 
+    def raw_decision_function(self, X):
+        X = self.transform(X)
+        return self._evodag_model.raw_decision_function(X)
+
     @property
     def exogenous(self):
         return self._exogenous

@@ -214,6 +214,18 @@ class CommandLinePredict(CommandLine):
            default=None, help='File to predict.')
         pa('-m', '--model', dest='model', default=None,
            help='Model')
+        pa('--raw-outpus', dest='raw_outputs', default=False,
+           action='store_true',
+           help='Raw decision function')
+
+    def raw_outputs(self, evo, D):
+        predict_file = self.data.predict_file[0]
+        X = evo.raw_decision_function(D)
+        with open(self.data.output_file, 'w') as fpt:
+            for x, df in zip(tweet_iterator(predict_file), X):
+                _ = {self._decision_function: df.tolist()}
+                x.update(_)
+                fpt.write(json.dumps(x) + '\n')
 
     def main(self):
         predict_file = self.data.predict_file[0]
@@ -221,6 +233,8 @@ class CommandLinePredict(CommandLine):
         with gzip.open(self.data.model, 'r') as fpt:
             evo = pickle.load(fpt)
         evo.exogenous = self._exogenous
+        if self.data.raw_outputs:
+            return self.raw_outputs(evo, D)
         pr = evo.predict_proba(D)
         hy = evo._le.inverse_transform(pr.argmax(axis=1))
         with open(self.data.output_file, 'w') as fpt:
