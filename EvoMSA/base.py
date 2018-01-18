@@ -111,6 +111,12 @@ class EvoMSA(object):
         X = self.transform(X)
         return self._evodag_model.raw_decision_function(X)
 
+    def decision_function(self, X):
+        X = self.transform(X)
+        _ = self._evodag_model.decision_function(X)
+        hy = np.array([x.full_array() for x in _]).T
+        return hy
+
     @property
     def exogenous(self):
         return self._exogenous

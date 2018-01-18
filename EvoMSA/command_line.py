@@ -217,10 +217,22 @@ class CommandLinePredict(CommandLine):
         pa('--raw-outputs', dest='raw_outputs', default=False,
            action='store_true',
            help='Raw decision function')
+        pa('--decision-function', dest='decision_function', default=False,
+           action='store_true',
+           help='Ensemble decision function')
 
     def raw_outputs(self, evo, D):
         predict_file = self.data.predict_file[0]
         X = evo.raw_decision_function(D)
+        with open(self.data.output_file, 'w') as fpt:
+            for x, df in zip(tweet_iterator(predict_file), X):
+                _ = {self._decision_function: df.tolist()}
+                x.update(_)
+                fpt.write(json.dumps(x) + '\n')
+
+    def decision_function(self, evo, D):
+        predict_file = self.data.predict_file[0]
+        X = evo.decision_function(D)
         with open(self.data.output_file, 'w') as fpt:
             for x, df in zip(tweet_iterator(predict_file), X):
                 _ = {self._decision_function: df.tolist()}
@@ -235,6 +247,8 @@ class CommandLinePredict(CommandLine):
         evo.exogenous = self._exogenous
         if self.data.raw_outputs:
             return self.raw_outputs(evo, D)
+        elif self.data.decision_function:
+            return self.decision_function(evo, D)
         pr = evo.predict_proba(D)
         hy = evo._le.inverse_transform(pr.argmax(axis=1))
         with open(self.data.output_file, 'w') as fpt:
