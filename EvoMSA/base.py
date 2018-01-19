@@ -113,9 +113,7 @@ class EvoMSA(object):
 
     def decision_function(self, X):
         X = self.transform(X)
-        _ = self._evodag_model.decision_function(X)
-        hy = np.array([x.full_array() for x in _]).T
-        return hy
+        return self._evodag_model.decision_function(X)
 
     @property
     def exogenous(self):
