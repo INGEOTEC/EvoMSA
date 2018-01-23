@@ -16,7 +16,7 @@ from b4msa.command_line import load_json
 from b4msa.textmodel import TextModel
 from b4msa.classifier import SVC
 from sklearn.model_selection import KFold
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, label_binarize
 from EvoDAG.model import EvoDAGE
 from sklearn.linear_model import LogisticRegression
 import numpy as np
@@ -39,7 +39,7 @@ def kfold_decision_function(args):
 class EvoMSA(object):
     def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
-                 logistic_regression_args=None):
+                 logistic_regression_args=None, probability_calibration=False):
         self._use_ts = use_ts
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
@@ -62,6 +62,7 @@ class EvoMSA(object):
                 p.update(logistic_regression_args)
             self._logistic_regression = LogisticRegression(**p)
         self._exogenous = None
+        self._probability_calibration = probability_calibration
 
     def model(self, X):
         if not isinstance(X[0], list):
@@ -105,6 +106,16 @@ class EvoMSA(object):
         if self._logistic_regression is not None:
             X = self._evodag_model.raw_decision_function(X)
             return self._logistic_regression.predict_proba(X)
+        elif self._probability_calibration:
+            df = [m.decision_function(X) for m in self._evodag_model.models]
+            coef = self._calibration_coef
+            _ = [[1. / (1. + np.exp(np.array(x.full_array()) * c[0] +
+                                    c[1])) for x, c in zip(xx, cc)] for xx, cc in zip(df, coef)]
+            _ = [x / np.sum(x, axis=0) for x in _]
+            proba = np.mean(np.array(_).T, axis=-1)
+            proba /= np.sum(proba, axis=1)[:, np.newaxis]
+            # proba[np.isnan(proba)] = 1. / n_classes
+            return proba
         return self._evodag_model.predict_proba(X)
 
     def raw_decision_function(self, X):
@@ -188,7 +199,16 @@ class EvoMSA(object):
         if self._logistic_regression is not None:
             self._logistic_regression.fit(self._evodag_model.raw_decision_function(D),
                                           klass)
+        elif self._probability_calibration:
+            self.probability_calibration(D, klass)
         return self
+
+    def probability_calibration(self, X, y):
+        from .calibration import _sigmoid_calibration
+        Y = label_binarize(y, np.unique(y))
+        df = [m.decision_function(X) for m in self._evodag_model.models]
+        _ = [[_sigmoid_calibration(np.array(x.full_array()), y) for x, y in zip(xx, Y.T)] for xx in df]
+        self._calibration_coef = _
 
     @staticmethod
     def tolist(x):
