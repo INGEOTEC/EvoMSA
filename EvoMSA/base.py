@@ -16,7 +16,7 @@ from b4msa.command_line import load_json
 from b4msa.textmodel import TextModel
 from b4msa.classifier import SVC
 from sklearn.model_selection import KFold
-from sklearn.preprocessing import LabelEncoder, label_binarize
+from sklearn.preprocessing import LabelEncoder
 from EvoDAG.model import EvoDAGE
 from sklearn.linear_model import LogisticRegression
 import numpy as np
@@ -108,15 +108,7 @@ class EvoMSA(object):
             return self._logistic_regression.predict_proba(X)
         elif self._probability_calibration:
             df = self._evodag_model._decision_function_raw(X, cpu_cores=self._n_jobs)
-            df = [self.normalize(d) for d in df]
-            coef = self._calibration_coef
-            _ = [[1. / (1. + np.exp(x * c[0] +
-                                    c[1])) for x, c in zip(xx.T, cc)] for xx, cc in zip(df, coef)]
-            _ = [x / np.sum(x, axis=0) for x in _]
-            proba = np.mean(np.array(_).T, axis=-1)
-            proba /= np.sum(proba, axis=1)[:, np.newaxis]
-            # proba[np.isnan(proba)] = 1. / n_classes
-            return proba
+            return self._calibration_coef.predict_proba(df)
         return self._evodag_model.predict_proba(X)
 
     def raw_decision_function(self, X):
@@ -204,21 +196,11 @@ class EvoMSA(object):
             self.probability_calibration(X, klass)
         return self
 
-    @staticmethod
-    def normalize(df):
-        df = np.array([x.full_array() for x in df])
-        mu = df.mean(axis=0)
-        df = (df - mu).T
-        return df
-
     def probability_calibration(self, X, y):
-        from .calibration import _sigmoid_calibration
+        from .calibration import Calibration
         X = self.transform(X)
-        Y = label_binarize(y, np.unique(y))
         df = self._evodag_model._decision_function_raw(X, cpu_cores=self._n_jobs)
-        df = [self.normalize(d) for d in df]
-        _ = [[_sigmoid_calibration(x, k) for x, k in zip(xx.T, Y.T)] for xx in df]
-        self._calibration_coef = _
+        self._calibration_coef = Calibration().fit(df, y)
 
     @staticmethod
     def tolist(x):

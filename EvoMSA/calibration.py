@@ -9,6 +9,56 @@
 import numpy as np
 from math import log
 from scipy.optimize import fmin_bfgs
+from sklearn.preprocessing import label_binarize
+from SparseArray import SparseArray
+
+
+class Calibration(object):
+    def __init_(self):
+        self._coef = None
+
+    def predict_proba(self, X):
+        df = [self.normalize(d) for d in X]
+        coef = self._coef
+        if self._nclasses > 2:
+            _ = [[1. / (1. + np.exp(x * c[0] +
+                                    c[1])) for x, c in zip(xx.T, cc)] for xx, cc in zip(df, coef)]
+            _ = [x / np.sum(x, axis=0) for x in _]
+        else:
+            _ = [1. / (1. + np.exp(x[:, 1] * c[0] + c[1])) for x, c in zip(df, coef)]
+            _ = [np.vstack([1 - x, x]) for x in _]
+            # proba = np.array([np.vstack([1 - x, x]) for x in _]).T
+            # proba = np.mean(proba, axis=-1)
+            # proba /= np.sum(proba, axis=1)[:, np.newaxis]
+        proba = np.mean(np.array(_).T, axis=-1)
+        proba /= np.sum(proba, axis=1)[:, np.newaxis]
+        proba[np.isnan(proba)] = 1. / self._nclasses
+        return proba
+
+    def fit(self, X, y):
+        df = [self.normalize(d) for d in X]
+        self._classes = np.unique(y)
+        Y = label_binarize(y, self._classes)
+        self._nclasses = self._classes.shape[0]
+        if self._nclasses > 2:
+            _ = [[_sigmoid_calibration(x, k) for x, k in zip(xx.T, Y.T)] for xx in df]
+        else:
+            _ = [_sigmoid_calibration(xx[:, 1], Y[:, 0]) for xx in df]
+        self._coef = _
+        return self
+
+    @staticmethod
+    def sp2array(d):
+        if isinstance(d, SparseArray):
+            return d.full_array()
+        return d
+
+    @staticmethod
+    def normalize(df):
+        df = np.array([Calibration.sp2array(x) for x in df])
+        mu = df.mean(axis=0)
+        df = (df - mu).T
+        return df
 
 
 def _sigmoid_calibration(df, y, sample_weight=None):

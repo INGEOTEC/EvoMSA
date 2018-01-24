@@ -21,8 +21,9 @@ def test_calibration_coef():
     evo = evomsa(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=2),
                  n_jobs=2, probability_calibration=True).fit(X, y)
     assert evo
-    assert len(evo._calibration_coef) == 2
-    for x in evo._calibration_coef:
+    coef = evo._calibration_coef._coef
+    assert len(coef) == 2
+    for x in coef:
         assert len(x) == 4
 
 
@@ -36,3 +37,20 @@ def test_calibration_predict():
     evo._probability_calibration = False
     pr2 = evo.predict_proba(X)
     assert np.fabs(pr - pr2).sum() > 0
+
+
+def test_calibration_predict_2classes():
+    X, y = get_data()
+    h = dict(NONE='N', NEU='P', N='N', P='P')
+    y = [h[x] for x in y]
+    y = np.array(y)
+    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10,
+                                  early_stopping_rounds=10), seed=0,
+                 n_jobs=2, probability_calibration=True).fit(X, y)
+    pr = evo.predict_proba(X)
+    evo._probability_calibration = False
+    pr2 = evo.predict_proba(X)
+    assert np.fabs(pr - pr2).sum() > 0
+    print(pr2[:3])
+    print(pr[:3])
+    assert pr.shape[1] == 2
