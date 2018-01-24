@@ -13,6 +13,7 @@
 # limitations under the License.
 from test_base import get_data
 from EvoMSA.base import EvoMSA as evomsa
+import numpy as np
 
 
 def test_calibration_coef():
@@ -27,11 +28,11 @@ def test_calibration_coef():
 
 def test_calibration_predict():
     X, y = get_data()
-    evo = evomsa(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=2),
+    y = np.array(y)
+    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10,
+                                  early_stopping_rounds=10), seed=0,
                  n_jobs=2, probability_calibration=True).fit(X, y)
-    print(evo.predict_proba(X))
-    hy = evo.predict(X)
+    pr = evo.predict_proba(X)
     evo._probability_calibration = False
-    hhy = evo.predict(X)
-    print(hy, hhy)
-    assert False
+    pr2 = evo.predict_proba(X)
+    assert np.fabs(pr - pr2).sum() > 0

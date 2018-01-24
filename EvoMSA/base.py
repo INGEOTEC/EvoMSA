@@ -57,7 +57,7 @@ class EvoMSA(object):
         self._le = None
         self._logistic_regression = None
         if logistic_regression:
-            p = dict(random_state=0, class_weight='balanced')
+            p = dict(random_state=self._seed, class_weight='balanced')
             if logistic_regression_args is not None:
                 p.update(logistic_regression_args)
             self._logistic_regression = LogisticRegression(**p)
@@ -107,10 +107,11 @@ class EvoMSA(object):
             X = self._evodag_model.raw_decision_function(X)
             return self._logistic_regression.predict_proba(X)
         elif self._probability_calibration:
-            df = [m.decision_function(X) for m in self._evodag_model.models]
+            df = self._evodag_model._decision_function_raw(X, cpu_cores=self._n_jobs)
+            df = [self.normalize(d) for d in df]
             coef = self._calibration_coef
-            _ = [[1. / (1. + np.exp(np.array(x.full_array()) * c[0] +
-                                    c[1])) for x, c in zip(xx, cc)] for xx, cc in zip(df, coef)]
+            _ = [[1. / (1. + np.exp(x * c[0] +
+                                    c[1])) for x, c in zip(xx.T, cc)] for xx, cc in zip(df, coef)]
             _ = [x / np.sum(x, axis=0) for x in _]
             proba = np.mean(np.array(_).T, axis=-1)
             proba /= np.sum(proba, axis=1)[:, np.newaxis]
@@ -200,14 +201,23 @@ class EvoMSA(object):
             self._logistic_regression.fit(self._evodag_model.raw_decision_function(D),
                                           klass)
         elif self._probability_calibration:
-            self.probability_calibration(D, klass)
+            self.probability_calibration(X, klass)
         return self
+
+    @staticmethod
+    def normalize(df):
+        df = np.array([x.full_array() for x in df])
+        mu = df.mean(axis=0)
+        df = (df - mu).T
+        return df
 
     def probability_calibration(self, X, y):
         from .calibration import _sigmoid_calibration
+        X = self.transform(X)
         Y = label_binarize(y, np.unique(y))
-        df = [m.decision_function(X) for m in self._evodag_model.models]
-        _ = [[_sigmoid_calibration(np.array(x.full_array()), y) for x, y in zip(xx, Y.T)] for xx in df]
+        df = self._evodag_model._decision_function_raw(X, cpu_cores=self._n_jobs)
+        df = [self.normalize(d) for d in df]
+        _ = [[_sigmoid_calibration(x, k) for x, k in zip(xx.T, Y.T)] for xx in df]
         self._calibration_coef = _
 
     @staticmethod
