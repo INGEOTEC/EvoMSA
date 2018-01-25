@@ -13,52 +13,66 @@ from sklearn.preprocessing import label_binarize
 from SparseArray import SparseArray
 
 
+def sp2array(d):
+    if isinstance(d, SparseArray):
+        return d.full_array()
+    return d
+
+
+def normalize(df):
+    df = np.array([sp2array(x) for x in df])
+    mu = df.mean(axis=0)
+    df = (df - mu).T
+    return df
+
+
 class Calibration(object):
+    def __init__(self):
+        self._coef = None
+
+    def fit(self, X, y):
+        X = normalize(X)
+        self._classes = np.unique(y)
+        Y = label_binarize(y, self._classes)
+        self._nclasses = self._classes.shape[0]
+        if self._nclasses > 2:
+            _ = [_sigmoid_calibration(x, k) for x, k in zip(X.T, Y.T)]
+        else:
+            _ = _sigmoid_calibration(X[:, 1], Y[:, 0])
+        self._coef = _
+        return self
+
+    def predict_proba(self, X):
+        X = normalize(X)
+        coef = self._coef
+        if self._nclasses > 2:
+            _ = [1. / (1. + np.exp(x * c[0] + c[1])) for x, c in zip(X.T, coef)]
+            c = np.sum(_, axis=0)
+            _ = [x / c for x in _]
+        else:
+            c = coef
+            _ = 1. / (1. + np.exp(X[:, 1] * c[0] + c[1]))
+            _ = np.vstack([1 - _, _])
+        proba = np.array(_).T
+        proba[np.isnan(proba)] = 1. / self._nclasses
+        return proba
+
+
+class EnsembleCalibration(object):
     def __init_(self):
         self._coef = None
 
     def predict_proba(self, X):
-        df = [self.normalize(d) for d in X]
-        coef = self._coef
-        if self._nclasses > 2:
-            _ = [[1. / (1. + np.exp(x * c[0] +
-                                    c[1])) for x, c in zip(xx.T, cc)] for xx, cc in zip(df, coef)]
-            _ = [x / np.sum(x, axis=0) for x in _]
-        else:
-            _ = [1. / (1. + np.exp(x[:, 1] * c[0] + c[1])) for x, c in zip(df, coef)]
-            _ = [np.vstack([1 - x, x]) for x in _]
-            # proba = np.array([np.vstack([1 - x, x]) for x in _]).T
-            # proba = np.mean(proba, axis=-1)
-            # proba /= np.sum(proba, axis=1)[:, np.newaxis]
-        proba = np.mean(np.array(_).T, axis=-1)
+        proba = np.array([m.predict_proba(x) for m, x in zip(self._coef, X)])
+        proba = np.mean(proba, axis=0)
         proba /= np.sum(proba, axis=1)[:, np.newaxis]
         proba[np.isnan(proba)] = 1. / self._nclasses
         return proba
 
     def fit(self, X, y):
-        df = [self.normalize(d) for d in X]
-        self._classes = np.unique(y)
-        Y = label_binarize(y, self._classes)
-        self._nclasses = self._classes.shape[0]
-        if self._nclasses > 2:
-            _ = [[_sigmoid_calibration(x, k) for x, k in zip(xx.T, Y.T)] for xx in df]
-        else:
-            _ = [_sigmoid_calibration(xx[:, 1], Y[:, 0]) for xx in df]
-        self._coef = _
+        self._coef = [Calibration().fit(x, y) for x in X]
+        self._nclasses = self._coef[0]._nclasses
         return self
-
-    @staticmethod
-    def sp2array(d):
-        if isinstance(d, SparseArray):
-            return d.full_array()
-        return d
-
-    @staticmethod
-    def normalize(df):
-        df = np.array([Calibration.sp2array(x) for x in df])
-        mu = df.mean(axis=0)
-        df = (df - mu).T
-        return df
 
 
 def _sigmoid_calibration(df, y, sample_weight=None):

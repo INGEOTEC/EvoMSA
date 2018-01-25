@@ -197,10 +197,10 @@ class EvoMSA(object):
         return self
 
     def probability_calibration(self, X, y):
-        from .calibration import Calibration
+        from .calibration import EnsembleCalibration
         X = self.transform(X)
         df = self._evodag_model._decision_function_raw(X, cpu_cores=self._n_jobs)
-        self._calibration_coef = Calibration().fit(df, y)
+        self._calibration_coef = EnsembleCalibration().fit(df, y)
 
     @staticmethod
     def tolist(x):

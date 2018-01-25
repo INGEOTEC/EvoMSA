@@ -13,6 +13,7 @@
 # limitations under the License.
 from test_base import get_data
 from EvoMSA.base import EvoMSA as evomsa
+from nose.tools import assert_almost_equals
 import numpy as np
 
 
@@ -24,7 +25,7 @@ def test_calibration_coef():
     coef = evo._calibration_coef._coef
     assert len(coef) == 2
     for x in coef:
-        assert len(x) == 4
+        assert len(x._coef) == 4
 
 
 def test_calibration_predict():
@@ -48,9 +49,45 @@ def test_calibration_predict_2classes():
                                   early_stopping_rounds=10), seed=0,
                  n_jobs=2, probability_calibration=True).fit(X, y)
     pr = evo.predict_proba(X)
+    [assert_almost_equals(x, 1) for x in pr.sum(axis=1)]
     evo._probability_calibration = False
     pr2 = evo.predict_proba(X)
     assert np.fabs(pr - pr2).sum() > 0
     print(pr2[:3])
     print(pr[:3])
     assert pr.shape[1] == 2
+
+
+def test_calibration_predict_2classes_single():
+    from EvoMSA.calibration import Calibration
+    X, y = get_data()
+    h = dict(NONE='N', NEU='P', N='N', P='P')
+    y = [h[x] for x in y]
+    y = np.array(y)
+    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10,
+                                  early_stopping_rounds=10), seed=0,
+                 n_jobs=2).fit(X, y)
+    X = evo.transform(X)
+    df = evo._evodag_model._decision_function_raw(X)
+    y = evo._le.transform(y)
+    c = Calibration().fit(df[0], y)
+    proba = c.predict_proba(df[0])
+    assert proba.shape[1] == 2
+    [assert_almost_equals(x, 1) for x in proba.sum(axis=1)]
+
+
+def test_calibration_predict_single():
+    from EvoMSA.calibration import Calibration
+    X, y = get_data()
+    y = np.array(y)
+    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10,
+                                  early_stopping_rounds=10), seed=0,
+                 n_jobs=2).fit(X, y)
+    X = evo.transform(X)
+    df = evo._evodag_model._decision_function_raw(X)
+    y = evo._le.transform(y)
+    c = Calibration().fit(df[0], y)
+    proba = c.predict_proba(df[0])
+    assert proba.shape[1] == 4
+    [assert_almost_equals(x, 1) for x in proba.sum(axis=1)]
+    
