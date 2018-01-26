@@ -31,6 +31,8 @@ class Calibration(object):
         self._coef = None
 
     def fit(self, X, y):
+        if isinstance(X, np.ndarray):
+            X = X.T
         X = normalize(X)
         self._classes = np.unique(y)
         Y = label_binarize(y, self._classes)

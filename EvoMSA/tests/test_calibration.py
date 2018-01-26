@@ -17,15 +17,15 @@ from nose.tools import assert_almost_equals
 import numpy as np
 
 
-def test_calibration_coef():
-    X, y = get_data()
-    evo = evomsa(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=2),
-                 n_jobs=2, probability_calibration=True).fit(X, y)
-    assert evo
-    coef = evo._calibration_coef._coef
-    assert len(coef) == 2
-    for x in coef:
-        assert len(x._coef) == 4
+# def test_calibration_coef():
+#     X, y = get_data()
+#     evo = evomsa(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=2),
+#                  n_jobs=2, probability_calibration=True).fit(X, y)
+#     assert evo
+#     coef = evo._calibration_coef._coef
+#     assert len(coef) == 2
+#     for x in coef:
+#         assert len(x._coef) == 4
 
 
 def test_calibration_predict():
@@ -35,7 +35,7 @@ def test_calibration_predict():
                                   early_stopping_rounds=10), seed=0,
                  n_jobs=2, probability_calibration=True).fit(X, y)
     pr = evo.predict_proba(X)
-    evo._probability_calibration = False
+    evo._evodag_model.models[0]._probability_calibration = None
     pr2 = evo.predict_proba(X)
     assert np.fabs(pr - pr2).sum() > 0
 
@@ -47,10 +47,10 @@ def test_calibration_predict_2classes():
     y = np.array(y)
     evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10,
                                   early_stopping_rounds=10), seed=0,
-                 n_jobs=2, probability_calibration=True).fit(X, y)
+                 n_jobs=1, probability_calibration=True).fit(X, y)
     pr = evo.predict_proba(X)
     [assert_almost_equals(x, 1) for x in pr.sum(axis=1)]
-    evo._probability_calibration = False
+    evo._evodag_model.models[0]._probability_calibration = None
     pr2 = evo.predict_proba(X)
     assert np.fabs(pr - pr2).sum() > 0
     print(pr2[:3])
