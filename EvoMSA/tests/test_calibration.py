@@ -64,8 +64,8 @@ def test_calibration_predict_2classes_single():
     h = dict(NONE='N', NEU='P', N='N', P='P')
     y = [h[x] for x in y]
     y = np.array(y)
-    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10,
-                                  early_stopping_rounds=10), seed=0,
+    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=100,
+                                  early_stopping_rounds=100), seed=0,
                  n_jobs=2).fit(X, y)
     X = evo.transform(X)
     df = evo._evodag_model._decision_function_raw(X)

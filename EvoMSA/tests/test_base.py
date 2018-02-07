@@ -63,7 +63,7 @@ def test_EvoMSA_fit():
     from EvoDAG.model import Ensemble
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
-                 n_jobs=4).fit(X, y)
+                 n_jobs=2).fit(X, y)
     assert evo
     assert isinstance(evo._svc_models[0], SVC)
     assert isinstance(evo._evodag_model, Ensemble)
