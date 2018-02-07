@@ -220,4 +220,13 @@ def test_decision_function():
     assert len(df[0]) == 4
     os.unlink('t1.json')
     os.unlink('t.model')
+
+
+def test_fitness():
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                '-ot.model', '-n2', TWEETS, TWEETS]
+    train(output=True)
+    sys.argv = ['EvoMSA', '--fitness', 't.model']
+    utils()
+    os.unlink('t.model')
     

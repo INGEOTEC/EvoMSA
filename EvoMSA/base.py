@@ -190,10 +190,10 @@ class EvoMSA(object):
             probability_calibration = Calibration
         else:
             probability_calibration = None
-        self._evodag_model = EvoDAGE(n_jobs=self._n_jobs,
-                                     seed=self._seed,
-                                     probability_calibration=probability_calibration,
-                                     **self._evodag_args).fit(D, klass,
+        _ = dict(n_jobs=self._n_jobs, seed=self._seed,
+                 probability_calibration=probability_calibration)
+        self._evodag_args.update(_)
+        self._evodag_model = EvoDAGE(**self._evodag_args).fit(D, klass,
                                                               test_set=test_set)
         if self._logistic_regression is not None:
             self._logistic_regression.fit(self._evodag_model.raw_decision_function(D),

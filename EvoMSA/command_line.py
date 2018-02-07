@@ -115,6 +115,7 @@ class CommandLineTrain(CommandLine):
         evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
         if self.data.evo_kwargs is not None:
             _ = json.loads(self.data.evo_kwargs)
+            _['fitness_function'] = 'macro-F1'
             evo_kwargs.update(_)
         b4msa_kwargs = {}
         if self.data.b4msa_kwargs is not None:
@@ -142,6 +143,8 @@ class CommandLineUtils(CommandLineTrain):
         pa('--b4msa-df', dest='b4msa_df', default=False, action='store_true')
         pa('--transform', dest='transform', default=False, action='store_true')
         pa('-m', '--model', dest='model', default=None, help='Model')
+        pa('--fitness', dest='fitness', default=False,
+           help='Fitness in the validation set', action='store_true')
 
     def transform(self):
         predict_file = self.data.training_set[0]
@@ -156,9 +159,17 @@ class CommandLineUtils(CommandLineTrain):
                 x.update(_)
                 fpt.write(json.dumps(x) + '\n')
 
+    def fitness(self):
+        model_file = self.data.training_set[0]
+        with gzip.open(model_file, 'r') as fpt:
+            evo = pickle.load(fpt)
+        print("Median fitness: %0.4f" % (evo._evodag_model.fitness_vs * -1))
+
     def main(self):
         if self.data.transform:
             return self.transform()
+        elif self.data.fitness:
+            return self.fitness()
         if not self.data.b4msa_df:
             return
         fnames = self.data.training_set
