@@ -68,6 +68,11 @@ class CommandLine(object):
                 [v.__iadd__(w) for v, w in zip(D, d)]
         self._exogenous = np.array(D)
 
+    @staticmethod
+    def load_model(self, fname):
+        with gzip.open(fname, 'r') as fpt:
+            return pickle.load(fpt)
+
 
 class CommandLineTrain(CommandLine):
     def __init__(self):
@@ -149,8 +154,7 @@ class CommandLineUtils(CommandLineTrain):
     def transform(self):
         predict_file = self.data.training_set[0]
         D = [x[self._text] for x in tweet_iterator(predict_file)]
-        with gzip.open(self.data.model, 'r') as fpt:
-            evo = pickle.load(fpt)
+        evo = self.load_model(self.data.model)
         evo.exogenous = self._exogenous
         D = evo.transform(D)
         with open(self.data.output_file, 'w') as fpt:
@@ -161,8 +165,7 @@ class CommandLineUtils(CommandLineTrain):
 
     def fitness(self):
         model_file = self.data.training_set[0]
-        with gzip.open(model_file, 'r') as fpt:
-            evo = pickle.load(fpt)
+        evo = self.load_model(model_file)
         print("Median fitness: %0.4f" % (evo._evodag_model.fitness_vs * -1))
 
     def main(self):
@@ -253,8 +256,7 @@ class CommandLinePredict(CommandLine):
     def main(self):
         predict_file = self.data.predict_file[0]
         D = [x[self._text] for x in tweet_iterator(predict_file)]
-        with gzip.open(self.data.model, 'r') as fpt:
-            evo = pickle.load(fpt)
+        evo = self.load_model(self.data.model)
         evo.exogenous = self._exogenous
         if self.data.raw_outputs:
             return self.raw_outputs(evo, D)
