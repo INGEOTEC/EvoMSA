@@ -60,21 +60,21 @@ class Calibration(object):
         return proba
 
 
-class EnsembleCalibration(object):
-    def __init_(self):
-        self._coef = None
+# class EnsembleCalibration(object):
+#     def __init_(self):
+#         self._coef = None
 
-    def predict_proba(self, X):
-        proba = np.array([m.predict_proba(x) for m, x in zip(self._coef, X)])
-        proba = np.mean(proba, axis=0)
-        proba /= np.sum(proba, axis=1)[:, np.newaxis]
-        proba[np.isnan(proba)] = 1. / self._nclasses
-        return proba
+#     def predict_proba(self, X):
+#         proba = np.array([m.predict_proba(x) for m, x in zip(self._coef, X)])
+#         proba = np.mean(proba, axis=0)
+#         proba /= np.sum(proba, axis=1)[:, np.newaxis]
+#         proba[np.isnan(proba)] = 1. / self._nclasses
+#         return proba
 
-    def fit(self, X, y):
-        self._coef = [Calibration().fit(x, y) for x in X]
-        self._nclasses = self._coef[0]._nclasses
-        return self
+#     def fit(self, X, y):
+#         self._coef = [Calibration().fit(x, y) for x in X]
+#         self._nclasses = self._coef[0]._nclasses
+#         return self
 
 
 def _sigmoid_calibration(df, y, sample_weight=None):
