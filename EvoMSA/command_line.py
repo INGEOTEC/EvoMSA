@@ -69,7 +69,7 @@ class CommandLine(object):
         self._exogenous = np.array(D)
 
     @staticmethod
-    def load_model(self, fname):
+    def load_model(fname):
         with gzip.open(fname, 'r') as fpt:
             return pickle.load(fpt)
 
