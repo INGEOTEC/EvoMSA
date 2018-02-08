@@ -59,7 +59,7 @@ def test_predict():
     y = np.array([x['klass'] for x in tweet_iterator(TWEETS)])
     acc = (y == hy).mean()
     print(acc)
-    assert acc < 1 and acc > 0.8
+    assert acc <= 1 and acc > 0.8
     os.unlink('t1.json')
     os.unlink('t.model')
 
@@ -194,3 +194,39 @@ def test_utils_transform():
     vec = [x['vec'] for x in tweet_iterator('t.json')]
     os.unlink('t.json')
     assert len(vec[0]) == 6
+
+
+def test_raw_outputs():
+    from b4msa.utils import tweet_iterator
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                '-ot.model', '-n4', TWEETS, TWEETS]
+    train(output=True)
+    sys.argv = ['EvoMSA', '--raw-outputs', '-mt.model', '-ot1.json', TWEETS]
+    predict()
+    df = [x['decision_function'] for x in tweet_iterator('t1.json')]
+    assert len(df[0]) == 30 * 4
+    os.unlink('t1.json')
+    os.unlink('t.model')
+
+
+def test_decision_function():
+    from b4msa.utils import tweet_iterator
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                '-ot.model', '-n4', TWEETS, TWEETS]
+    train(output=True)
+    sys.argv = ['EvoMSA', '--decision-function', '-mt.model', '-ot1.json', TWEETS]
+    predict()
+    df = [x['decision_function'] for x in tweet_iterator('t1.json')]
+    assert len(df[0]) == 4
+    os.unlink('t1.json')
+    os.unlink('t.model')
+
+
+def test_fitness():
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                '-ot.model', '-n2', TWEETS, TWEETS]
+    train(output=True)
+    sys.argv = ['EvoMSA', '--fitness', 't.model']
+    utils()
+    os.unlink('t.model')
+    

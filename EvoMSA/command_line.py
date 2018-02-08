@@ -115,6 +115,7 @@ class CommandLineTrain(CommandLine):
         evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
         if self.data.evo_kwargs is not None:
             _ = json.loads(self.data.evo_kwargs)
+            _['fitness_function'] = 'macro-F1'
             evo_kwargs.update(_)
         b4msa_kwargs = {}
         if self.data.b4msa_kwargs is not None:
@@ -142,6 +143,8 @@ class CommandLineUtils(CommandLineTrain):
         pa('--b4msa-df', dest='b4msa_df', default=False, action='store_true')
         pa('--transform', dest='transform', default=False, action='store_true')
         pa('-m', '--model', dest='model', default=None, help='Model')
+        pa('--fitness', dest='fitness', default=False,
+           help='Fitness in the validation set', action='store_true')
 
     def transform(self):
         predict_file = self.data.training_set[0]
@@ -156,9 +159,17 @@ class CommandLineUtils(CommandLineTrain):
                 x.update(_)
                 fpt.write(json.dumps(x) + '\n')
 
+    def fitness(self):
+        model_file = self.data.training_set[0]
+        with gzip.open(model_file, 'r') as fpt:
+            evo = pickle.load(fpt)
+        print("Median fitness: %0.4f" % (evo._evodag_model.fitness_vs * -1))
+
     def main(self):
         if self.data.transform:
             return self.transform()
+        elif self.data.fitness:
+            return self.fitness()
         if not self.data.b4msa_df:
             return
         fnames = self.data.training_set
@@ -214,6 +225,30 @@ class CommandLinePredict(CommandLine):
            default=None, help='File to predict.')
         pa('-m', '--model', dest='model', default=None,
            help='Model')
+        pa('--raw-outputs', dest='raw_outputs', default=False,
+           action='store_true',
+           help='Raw decision function')
+        pa('--decision-function', dest='decision_function', default=False,
+           action='store_true',
+           help='Ensemble decision function')
+
+    def raw_outputs(self, evo, D):
+        predict_file = self.data.predict_file[0]
+        X = evo.raw_decision_function(D)
+        with open(self.data.output_file, 'w') as fpt:
+            for x, df in zip(tweet_iterator(predict_file), X):
+                _ = {self._decision_function: df.tolist()}
+                x.update(_)
+                fpt.write(json.dumps(x) + '\n')
+
+    def decision_function(self, evo, D):
+        predict_file = self.data.predict_file[0]
+        X = evo.decision_function(D)
+        with open(self.data.output_file, 'w') as fpt:
+            for x, df in zip(tweet_iterator(predict_file), X):
+                _ = {self._decision_function: df.tolist()}
+                x.update(_)
+                fpt.write(json.dumps(x) + '\n')
 
     def main(self):
         predict_file = self.data.predict_file[0]
@@ -221,6 +256,10 @@ class CommandLinePredict(CommandLine):
         with gzip.open(self.data.model, 'r') as fpt:
             evo = pickle.load(fpt)
         evo.exogenous = self._exogenous
+        if self.data.raw_outputs:
+            return self.raw_outputs(evo, D)
+        elif self.data.decision_function:
+            return self.decision_function(evo, D)
         pr = evo.predict_proba(D)
         hy = evo._le.inverse_transform(pr.argmax(axis=1))
         with open(self.data.output_file, 'w') as fpt:

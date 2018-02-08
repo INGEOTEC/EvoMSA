@@ -19,6 +19,7 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder
 from EvoDAG.model import EvoDAGE
 from sklearn.linear_model import LogisticRegression
+from .calibration import Calibration
 import numpy as np
 import logging
 from multiprocessing import Pool
@@ -39,7 +40,7 @@ def kfold_decision_function(args):
 class EvoMSA(object):
     def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
-                 logistic_regression_args=None):
+                 logistic_regression_args=None, probability_calibration=False):
         self._use_ts = use_ts
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
@@ -57,11 +58,12 @@ class EvoMSA(object):
         self._le = None
         self._logistic_regression = None
         if logistic_regression:
-            p = dict(random_state=0, class_weight='balanced')
+            p = dict(random_state=self._seed, class_weight='balanced')
             if logistic_regression_args is not None:
                 p.update(logistic_regression_args)
             self._logistic_regression = LogisticRegression(**p)
         self._exogenous = None
+        self._probability_calibration = probability_calibration
 
     def model(self, X):
         if not isinstance(X[0], list):
@@ -105,7 +107,18 @@ class EvoMSA(object):
         if self._logistic_regression is not None:
             X = self._evodag_model.raw_decision_function(X)
             return self._logistic_regression.predict_proba(X)
+        # elif self._probability_calibration:
+        #     df = self._evodag_model._decision_function_raw(X, cpu_cores=self._n_jobs)
+        #     return self._calibration_coef.predict_proba(df)
         return self._evodag_model.predict_proba(X)
+
+    def raw_decision_function(self, X):
+        X = self.transform(X)
+        return self._evodag_model.raw_decision_function(X)
+
+    def decision_function(self, X):
+        X = self.transform(X)
+        return self._evodag_model.decision_function(X)
 
     @property
     def exogenous(self):
@@ -173,14 +186,27 @@ class EvoMSA(object):
             self._le = LabelEncoder()
             self._le.fit(y)
         klass = self._le.transform(y)
-        self._evodag_model = EvoDAGE(n_jobs=self._n_jobs,
-                                     seed=self._seed,
-                                     **self._evodag_args).fit(D, klass,
+        if self._probability_calibration:
+            probability_calibration = Calibration
+        else:
+            probability_calibration = None
+        _ = dict(n_jobs=self._n_jobs, seed=self._seed,
+                 probability_calibration=probability_calibration)
+        self._evodag_args.update(_)
+        self._evodag_model = EvoDAGE(**self._evodag_args).fit(D, klass,
                                                               test_set=test_set)
         if self._logistic_regression is not None:
             self._logistic_regression.fit(self._evodag_model.raw_decision_function(D),
                                           klass)
+        # elif self._probability_calibration:
+        #     self.probability_calibration(X, klass)
         return self
+
+    # def probability_calibration(self, X, y):
+    #     from .calibration import EnsembleCalibration
+    #     X = self.transform(X)
+    #     df = self._evodag_model._decision_function_raw(X, cpu_cores=self._n_jobs)
+    #     self._calibration_coef = EnsembleCalibration().fit(df, y)
 
     @staticmethod
     def tolist(x):
