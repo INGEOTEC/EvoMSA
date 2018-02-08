@@ -37,6 +37,13 @@ def kfold_decision_function(args):
     return ts, c.decision_function([X[x] for x in ts])
 
 
+def transform(args):
+    k, m, t, X = args
+    x = [t[str(_)] for _ in X]
+    d = [EvoMSA.tolist(_) for _ in m.decision_function(x)]
+    return (k, d)
+
+
 class EvoMSA(object):
     def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
@@ -134,7 +141,21 @@ class EvoMSA(object):
             return np.concatenate((d, e), axis=1)
         return d
 
+    def transform_pool(self, X):
+        args = [[i_m[0], i_m[1], t, X] for i_m, t in zip(enumerate(self._svc_models), self._textModel)]
+        p = Pool(self._n_jobs, maxtasksperchild=1)
+        res = [x for x in tqdm(p.imap_unordered(transform, args), total=len(args))]
+        res.sort(key=lambda x: x[0])
+        p.close()
+        res = [x[1] for x in res]
+        D = res[0]
+        [[v.__iadd__(w) for v, w in zip(D, d)] for d in res[1:]]
+        _ = np.array(D)
+        return self.append_exogenous(_)
+
     def transform(self, X, y=None):
+        if y is None and self._n_jobs > 1:
+            return self.transform_pool(X)
         D = None
         for m, t in zip(self._svc_models, self._textModel):
             if m is None:
