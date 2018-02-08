@@ -114,9 +114,6 @@ class EvoMSA(object):
         if self._logistic_regression is not None:
             X = self._evodag_model.raw_decision_function(X)
             return self._logistic_regression.predict_proba(X)
-        # elif self._probability_calibration:
-        #     df = self._evodag_model._decision_function_raw(X, cpu_cores=self._n_jobs)
-        #     return self._calibration_coef.predict_proba(df)
         return self._evodag_model.predict_proba(X)
 
     def raw_decision_function(self, X):
@@ -142,7 +139,7 @@ class EvoMSA(object):
         return d
 
     def transform_pool(self, X):
-        args = [[i_m[0], i_m[1], t, X] for i_m, t in zip(enumerate(self._svc_models), self._textModel)]
+        args = [[i_m[0], i_m[1], t, X] for i_m, t in zip(enumerate(self._svc_models), self._textModel) if i_m[1] is not None]
         p = Pool(self._n_jobs, maxtasksperchild=1)
         res = [x for x in tqdm(p.imap_unordered(transform, args), total=len(args))]
         res.sort(key=lambda x: x[0])
