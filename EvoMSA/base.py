@@ -161,7 +161,7 @@ class EvoMSA(object):
 
     def transform(self, X, y=None):
         if self.n_jobs > 1:
-            if y is None:
+            if y is None or self._svc_models[0] is None:
                 D = self.transform_pool(X, self._svc_models, self._textModel)
             else:
                 D = self.transform_pool(X, self._svc_models[1:], self._textModel[1:])

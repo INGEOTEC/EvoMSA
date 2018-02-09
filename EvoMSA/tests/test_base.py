@@ -106,9 +106,10 @@ def test_EvoMSA_predict():
 def test_EvoMSA_fit3():
     X, y = get_data()
     evo = EvoMSA(use_ts=False, evodag_args=dict(popsize=10, early_stopping_rounds=10),
-                 n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
+                 n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     assert evo
+    print(evo._svc_models, evo._textModel)
     D = evo.transform(X, y)
     print(D)
     assert len(D[0]) == 1
