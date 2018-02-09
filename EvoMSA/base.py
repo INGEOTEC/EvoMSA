@@ -154,9 +154,9 @@ class EvoMSA(object):
             p = Pool(self.n_jobs, maxtasksperchild=1)
             res = [x for x in tqdm(p.imap_unordered(transform, args), total=len(args))]
             res.sort(key=lambda x: x[0])
+            p.close()
         else:
             res = [transform(x) for x in tqdm(args)]
-        p.close()
         res = [x[1] for x in res]
         D = res[0]
         [[v.__iadd__(w) for v, w in zip(D, d)] for d in res[1:]]
