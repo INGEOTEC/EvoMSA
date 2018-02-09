@@ -146,13 +146,16 @@ class EvoMSA(object):
             return np.concatenate((d, e), axis=1)
         return d
 
-    def transform_pool(self, X, models, textModel):
+    def _transform(self, X, models, textModel):
         if len(models) == 0:
             return []
         args = [[i_m[0], i_m[1], t, X] for i_m, t in zip(enumerate(models), textModel) if i_m[1] is not None]
-        p = Pool(self.n_jobs, maxtasksperchild=1)
-        res = [x for x in tqdm(p.imap_unordered(transform, args), total=len(args))]
-        res.sort(key=lambda x: x[0])
+        if self.n_jobs > 1:
+            p = Pool(self.n_jobs, maxtasksperchild=1)
+            res = [x for x in tqdm(p.imap_unordered(transform, args), total=len(args))]
+            res.sort(key=lambda x: x[0])
+        else:
+            res = [transform(x) for x in tqdm(args)]
         p.close()
         res = [x[1] for x in res]
         D = res[0]
@@ -160,32 +163,15 @@ class EvoMSA(object):
         return D
 
     def transform(self, X, y=None):
-        if self.n_jobs > 1:
-            if y is None or self._svc_models[0] is None:
-                D = self.transform_pool(X, self._svc_models, self._textModel)
-            else:
-                D = self.transform_pool(X, self._svc_models[1:], self._textModel[1:])
-                t = self._textModel[0]
-                x = [t[str(_)] for _ in X]
-                d = self.kfold_decision_function(x, y)
-                [v.__iadd__(w) for v, w in zip(d, D)]
-                D = d
+        if y is None or self._svc_models[0] is None:
+            D = self._transform(X, self._svc_models, self._textModel)
         else:
-            D = None
-            for m, t in zip(self._svc_models, self._textModel):
-                if m is None:
-                    y = None
-                    continue
-                x = [t[str(_)] for _ in X]
-                if y is not None:
-                    d = self.kfold_decision_function(x, y)
-                    y = None
-                else:
-                    d = [self.tolist(_) for _ in m.decision_function(x)]
-                if D is None:
-                    D = d
-                else:
-                    [v.__iadd__(w) for v, w in zip(D, d)]
+            D = self._transform(X, self._svc_models[1:], self._textModel[1:])
+            t = self._textModel[0]
+            x = [t[str(_)] for _ in X]
+            d = self.kfold_decision_function(x, y)
+            [v.__iadd__(w) for v, w in zip(d, D)]
+            D = d
         _ = np.array(D)
         return self.append_exogenous(_)
 
