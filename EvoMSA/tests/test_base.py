@@ -72,7 +72,7 @@ def test_EvoMSA_fit():
 def test_EvoMSA_fit2():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
-                 n_jobs=4).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
+                 n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     assert evo
     D = evo.transform(X, y)
@@ -82,7 +82,7 @@ def test_EvoMSA_fit2():
 def test_EvoMSA_evodag_args():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
-                 n_jobs=4).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
+                 n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     assert evo
     D = evo.transform(X, y)
@@ -94,7 +94,7 @@ def test_EvoMSA_predict():
     import numpy as np
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=100, early_stopping_rounds=100),
-                 n_jobs=4).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
+                 n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict(X)
     assert len(hy) == 1000
@@ -118,7 +118,7 @@ def test_EvoMSA_fit3():
 def test_EvoMSA_predict_proba():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=100, early_stopping_rounds=100),
-                 n_jobs=4).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
+                 n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict_proba(X)
     assert len(hy) == 1000
@@ -131,7 +131,7 @@ def test_binary_labels_json():
     h = dict(NONE=0, N=0, NEU=0, P=1)
     y = [h[x] for x in y]
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
-                 n_jobs=4).fit(X, y)
+                 n_jobs=2).fit(X, y)
     hy = evo.predict(X)
     for x in hy:
         print(type(x), str(x))
@@ -143,7 +143,7 @@ def test_EvoMSA_predict_proba_logistic_regression():
     X, y = get_data()
     evo = EvoMSA(logistic_regression=True,
                  evodag_args=dict(popsize=100, early_stopping_rounds=100),
-                 n_jobs=4).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
+                 n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict_proba(X)
     assert len(hy) == 1000
@@ -155,6 +155,6 @@ def test_EvoMSA_logistic_regression_params():
     X, y = get_data()
     evo = EvoMSA(logistic_regression=True, logistic_regression_args=dict(C=10),
                  evodag_args=dict(popsize=100, early_stopping_rounds=100),
-                 n_jobs=4)
+                 n_jobs=2)
     assert evo._logistic_regression.C == 10
 

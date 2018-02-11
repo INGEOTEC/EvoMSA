@@ -17,17 +17,6 @@ from nose.tools import assert_almost_equals
 import numpy as np
 
 
-# def test_calibration_coef():
-#     X, y = get_data()
-#     evo = evomsa(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=2),
-#                  n_jobs=2, probability_calibration=True).fit(X, y)
-#     assert evo
-#     coef = evo._calibration_coef._coef
-#     assert len(coef) == 2
-#     for x in coef:
-#         assert len(x._coef) == 4
-
-
 def test_calibration_predict():
     X, y = get_data()
     y = np.array(y)
