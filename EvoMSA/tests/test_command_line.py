@@ -155,7 +155,7 @@ def test_train_exogenous():
     os.unlink('ex.json')
     print(m.nvar)
     assert m.nvar == 6
-    assert evo._n_jobs == 4
+    assert evo.n_jobs == 2
 
 
 def test_logistic_regression_params():
