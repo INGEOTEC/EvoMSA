@@ -44,6 +44,11 @@ def transform(args):
     return (k, d)
 
 
+def vector_space(args):
+    k, t, X = args
+    return k, [t[str(_)] for _ in X]
+
+
 class EvoMSA(object):
     def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
@@ -94,7 +99,15 @@ class EvoMSA(object):
     def vector_space(self, X):
         if not isinstance(X[0], list):
             X = [X]
-        return [[m[_] for _ in x] for m, x in zip(self._textModel, X)]
+        args = [[i_t[0], i_t[1], x] for i_t, x in zip(enumerate(self._textModel), X)]
+        if self.n_jobs > 1:
+            p = Pool(self.n_jobs, maxtasksperchild=1)
+            res = [x for x in tqdm(p.imap_unordered(vector_space, args), total=len(args))]
+            res.sort(key=lambda x: x[0])
+            p.close()
+        else:
+            res = [vector_space(x) for x in tqdm(args)]
+        return [x[1] for x in res]
 
     def kfold_decision_function(self, X, y):
         hy = [None for x in y]
