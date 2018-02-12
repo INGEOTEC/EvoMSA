@@ -229,4 +229,21 @@ def test_fitness():
     sys.argv = ['EvoMSA', '--fitness', 't.model']
     utils()
     os.unlink('t.model')
+
+
+def test_exogenous_model():
+    from EvoMSA.command_line import CommandLine
+    from EvoMSA.base import EvoMSA
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
+                '-ot.model', '-n2', TWEETS]
+    train()
+    sys.argv = ['EvoMSA', '--exogenous-model', 't.model',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}', '-ot2.model', '-n2', TWEETS]
+    train()
+    evo = CommandLine.load_model('t2.model')
+    assert isinstance(evo, EvoMSA)
+    assert isinstance(evo.exogenous_model, list)
+    assert isinstance(evo.exogenous_model[0], EvoMSA)
+    os.unlink('t.model')
+    os.unlink('t2.model')
     

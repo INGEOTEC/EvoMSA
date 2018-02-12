@@ -92,6 +92,8 @@ class CommandLineTrain(CommandLine):
         pa('-P', '--parameters', dest='parameters', type=str,
            help='B4MSA parameters')
         pa('--no-use-ts', dest='use_ts', default=True, action='store_false')
+        pa('--exogenous-model', help='Exogenous model(s) - pickle.dump with gzip', dest='exogenous_model',
+           default=None, type=str, nargs='*')
 
     def training_set(self):
         cdn = 'File containing the training set.'
@@ -134,6 +136,8 @@ class CommandLineTrain(CommandLine):
                           logistic_regression_args=logistic_regression_kwargs,
                           **kwargs)
         evo.exogenous = self._exogenous
+        if self.data.exogenous_model is not None:
+            evo.exogenous_model = [self.load_model(x) for x in self.data.exogenous_model]
         evo.fit(D, Y, test_set=test_set)
         evo.exogenous = None
         with gzip.open(self.data.output_file, 'w') as fpt:
