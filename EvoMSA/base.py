@@ -75,6 +75,7 @@ class EvoMSA(object):
                 p.update(logistic_regression_args)
             self._logistic_regression = LogisticRegression(**p)
         self._exogenous = None
+        self._exogenous_model = None
         self._probability_calibration = probability_calibration
 
     @property
@@ -146,6 +147,19 @@ class EvoMSA(object):
         return self._evodag_model.decision_function(X)
 
     @property
+    def exogenous_model(self):
+        return self._exogenous_model
+
+    @exogenous_model.setter
+    def exogenous_model(self, v):
+        if isinstance(v, list):
+            for x in v:
+                x.n_jobs = self.n_jobs
+        else:
+            v.n_jobs = self.n_jobs
+        self._exogenous_model = v
+
+    @property
     def exogenous(self):
         return self._exogenous
 
@@ -158,6 +172,17 @@ class EvoMSA(object):
         if e is not None:
             return np.concatenate((d, e), axis=1)
         return d
+
+    def append_exogenous_model(self, D, X):
+        if self.exogenous_model is None:
+            return D
+        ex = self.exogenous_model
+        if not isinstance(ex, list):
+            ex = [ex]
+        L = [D]
+        for x in ex:
+            L.append(x.predict_proba(X))
+        return np.concatenate(L, axis=1)
 
     def _transform(self, X, models, textModel):
         if len(models) == 0:
@@ -186,7 +211,7 @@ class EvoMSA(object):
             [v.__iadd__(w) for v, w in zip(d, D)]
             D = d
         _ = np.array(D)
-        return self.append_exogenous(_)
+        return self.append_exogenous_model(self.append_exogenous(_), X)
 
     def fit_svm(self, X, y):
         n_use_ts = not self._use_ts

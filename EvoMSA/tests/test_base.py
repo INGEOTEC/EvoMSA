@@ -158,3 +158,14 @@ def test_EvoMSA_logistic_regression_params():
                  n_jobs=2)
     assert evo._logistic_regression.C == 10
 
+
+def test_EvoMSA_exogenous_model():
+    X, y = get_data()
+    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
+                   n_jobs=2).fit(X, y)
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
+                 n_jobs=2)
+    evo.exogenous_model = model
+    evo.fit(X, y)
+    D = evo.transform(X)
+    assert D.shape[1] == 8
