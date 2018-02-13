@@ -120,7 +120,7 @@ def test_train_no_use_ts():
 
 def test_train_kw():
     from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '-ot.model', '-n2',
+    sys.argv = ['EvoMSA', '-ot.model', '-n1',
                 '--kw={"logistic_regression": true}',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10}',
                 TWEETS]
