@@ -1,6 +1,4 @@
 language: python
-python:
-  - "3.5"
 
 before_install:
   - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
@@ -19,7 +17,7 @@ before_install:
   - conda install --yes nltk
   - python setup.py build_ext --inplace
 
-script: nosetests --with-coverage --cover-package=EvoMSA
+script: nosetests --verbose --with-coverage --cover-package=EvoMSA
 
 after_success: coveralls || echo "Coveralls upload failed"
 
