@@ -50,7 +50,7 @@ def test_vector_space():
 
 def test_EvoMSA_kfold_decision_function():
     X, y = get_data()
-    evo = EvoMSA()
+    evo = EvoMSA(evodag_args=dict(time_limit=5, n_estimators=5))
     evo.model(X)
     X = evo.vector_space(X)
     D = evo.kfold_decision_function(X[0], y)
@@ -62,7 +62,8 @@ def test_EvoMSA_fit():
     from b4msa.classifier import SVC
     from EvoDAG.model import Ensemble
     X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
+                                  n_estimators=5),
                  n_jobs=2).fit(X, y)
     assert evo
     assert isinstance(evo._svc_models[0], SVC)
@@ -71,7 +72,8 @@ def test_EvoMSA_fit():
 
 def test_EvoMSA_fit2():
     X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
+                                  n_estimators=5),
                  n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     assert evo
@@ -81,7 +83,8 @@ def test_EvoMSA_fit2():
 
 def test_EvoMSA_evodag_args():
     X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
+                                  n_estimators=5),
                  n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     assert evo
@@ -105,7 +108,8 @@ def test_EvoMSA_predict():
 
 def test_EvoMSA_fit3():
     X, y = get_data()
-    evo = EvoMSA(use_ts=False, evodag_args=dict(popsize=10, early_stopping_rounds=10),
+    evo = EvoMSA(use_ts=False, evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
+                                                n_estimators=5),
                  n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     assert evo
@@ -117,7 +121,8 @@ def test_EvoMSA_fit3():
 
 def test_EvoMSA_predict_proba():
     X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=100, early_stopping_rounds=100),
+    evo = EvoMSA(evodag_args=dict(popsize=100, early_stopping_rounds=100, time_limit=5,
+                                  n_estimators=5),
                  n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict_proba(X)
@@ -130,7 +135,8 @@ def test_binary_labels_json():
     X, y = get_data()
     h = dict(NONE=0, N=0, NEU=0, P=1)
     y = [h[x] for x in y]
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
+                                  n_estimators=5),
                  n_jobs=2).fit(X, y)
     hy = evo.predict(X)
     for x in hy:
@@ -142,7 +148,8 @@ def test_binary_labels_json():
 def test_EvoMSA_predict_proba_logistic_regression():
     X, y = get_data()
     evo = EvoMSA(logistic_regression=True,
-                 evodag_args=dict(popsize=100, early_stopping_rounds=100),
+                 evodag_args=dict(popsize=100, early_stopping_rounds=100, time_limit=5,
+                                  n_estimators=5),
                  n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict_proba(X)
@@ -154,7 +161,8 @@ def test_EvoMSA_predict_proba_logistic_regression():
 def test_EvoMSA_logistic_regression_params():
     X, y = get_data()
     evo = EvoMSA(logistic_regression=True, logistic_regression_args=dict(C=10),
-                 evodag_args=dict(popsize=100, early_stopping_rounds=100),
+                 evodag_args=dict(popsize=100, early_stopping_rounds=100, time_limit=5,
+                                  n_estimators=5),
                  n_jobs=2)
     assert evo._logistic_regression.C == 10
 
@@ -163,7 +171,8 @@ def test_EvoMSA_exogenous_model():
     X, y = get_data()
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
                    n_jobs=2).fit(X, y)
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
+                                  n_estimators=5),
                  n_jobs=2)
     evo.exogenous_model = model
     evo.fit(X, y)
