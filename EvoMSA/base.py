@@ -31,8 +31,8 @@ except ImportError:
 
 
 def kfold_decision_function(args):
-    X, y, tr, ts = args
-    c = SVC(model=None)
+    X, y, tr, ts, seed = args
+    c = SVC(model=None, random_state=seed)
     c.fit([X[x] for x in tr], [y[x] for x in tr])
     return ts, c.decision_function([X[x] for x in ts])
 
@@ -115,7 +115,7 @@ class EvoMSA(object):
         args = []
         for tr, ts in KFold(n_splits=self._n_splits,
                             shuffle=True, random_state=self._seed).split(X):
-            args.append([X, y, tr, ts])
+            args.append([X, y, tr, ts, self._seed])
         if self.n_jobs == 1:
             res = [kfold_decision_function(x) for x in tqdm(args, total=len(args))]
         else:
