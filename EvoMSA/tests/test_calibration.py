@@ -17,21 +17,10 @@ from nose.tools import assert_almost_equals
 import numpy as np
 
 
-# def test_calibration_coef():
-#     X, y = get_data()
-#     evo = evomsa(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=2),
-#                  n_jobs=2, probability_calibration=True).fit(X, y)
-#     assert evo
-#     coef = evo._calibration_coef._coef
-#     assert len(coef) == 2
-#     for x in coef:
-#         assert len(x._coef) == 4
-
-
 def test_calibration_predict():
     X, y = get_data()
     y = np.array(y)
-    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10,
+    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10, time_limit=5,
                                   early_stopping_rounds=10), seed=0,
                  n_jobs=2, probability_calibration=True).fit(X, y)
     pr = evo.predict_proba(X)
@@ -45,7 +34,7 @@ def test_calibration_predict_2classes():
     h = dict(NONE='N', NEU='P', N='N', P='P')
     y = [h[x] for x in y]
     y = np.array(y)
-    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10,
+    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10, time_limit=5,
                                   early_stopping_rounds=10), seed=0,
                  n_jobs=1, probability_calibration=True).fit(X, y)
     pr = evo.predict_proba(X)
@@ -64,7 +53,7 @@ def test_calibration_predict_2classes_single():
     h = dict(NONE='N', NEU='P', N='N', P='P')
     y = [h[x] for x in y]
     y = np.array(y)
-    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=100,
+    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=100, time_limit=5,
                                   early_stopping_rounds=100), seed=0,
                  n_jobs=2).fit(X, y)
     X = evo.transform(X)
@@ -80,7 +69,7 @@ def test_calibration_predict_single():
     from EvoMSA.calibration import Calibration
     X, y = get_data()
     y = np.array(y)
-    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10,
+    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10, time_limit=5,
                                   early_stopping_rounds=10), seed=0,
                  n_jobs=2).fit(X, y)
     X = evo.transform(X)

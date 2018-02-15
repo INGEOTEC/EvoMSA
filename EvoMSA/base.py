@@ -37,6 +37,18 @@ def kfold_decision_function(args):
     return ts, c.decision_function([X[x] for x in ts])
 
 
+def transform(args):
+    k, m, t, X = args
+    x = [t[str(_)] for _ in X]
+    d = [EvoMSA.tolist(_) for _ in m.decision_function(x)]
+    return (k, d)
+
+
+def vector_space(args):
+    k, t, X = args
+    return k, [t[str(_)] for _ in X]
+
+
 class EvoMSA(object):
     def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
@@ -63,7 +75,16 @@ class EvoMSA(object):
                 p.update(logistic_regression_args)
             self._logistic_regression = LogisticRegression(**p)
         self._exogenous = None
+        self._exogenous_model = None
         self._probability_calibration = probability_calibration
+
+    @property
+    def n_jobs(self):
+        return self._n_jobs
+
+    @n_jobs.setter
+    def n_jobs(self, v):
+        self._n_jobs = v
 
     def model(self, X):
         if not isinstance(X[0], list):
@@ -79,7 +100,15 @@ class EvoMSA(object):
     def vector_space(self, X):
         if not isinstance(X[0], list):
             X = [X]
-        return [[m[_] for _ in x] for m, x in zip(self._textModel, X)]
+        args = [[i_t[0], i_t[1], x] for i_t, x in zip(enumerate(self._textModel), X)]
+        if self.n_jobs > 1:
+            p = Pool(self.n_jobs, maxtasksperchild=1)
+            res = [x for x in tqdm(p.imap_unordered(vector_space, args), total=len(args))]
+            res.sort(key=lambda x: x[0])
+            p.close()
+        else:
+            res = [vector_space(x) for x in tqdm(args)]
+        return [x[1] for x in res]
 
     def kfold_decision_function(self, X, y):
         hy = [None for x in y]
@@ -87,10 +116,10 @@ class EvoMSA(object):
         for tr, ts in KFold(n_splits=self._n_splits,
                             shuffle=True, random_state=self._seed).split(X):
             args.append([X, y, tr, ts])
-        if self._n_jobs == 1:
+        if self.n_jobs == 1:
             res = [kfold_decision_function(x) for x in tqdm(args, total=len(args))]
         else:
-            p = Pool(self._n_jobs, maxtasksperchild=1)
+            p = Pool(self.n_jobs, maxtasksperchild=1)
             res = [x for x in tqdm(p.imap_unordered(kfold_decision_function, args),
                                    total=len(args))]
             p.close()
@@ -107,9 +136,6 @@ class EvoMSA(object):
         if self._logistic_regression is not None:
             X = self._evodag_model.raw_decision_function(X)
             return self._logistic_regression.predict_proba(X)
-        # elif self._probability_calibration:
-        #     df = self._evodag_model._decision_function_raw(X, cpu_cores=self._n_jobs)
-        #     return self._calibration_coef.predict_proba(df)
         return self._evodag_model.predict_proba(X)
 
     def raw_decision_function(self, X):
@@ -119,6 +145,19 @@ class EvoMSA(object):
     def decision_function(self, X):
         X = self.transform(X)
         return self._evodag_model.decision_function(X)
+
+    @property
+    def exogenous_model(self):
+        return self._exogenous_model
+
+    @exogenous_model.setter
+    def exogenous_model(self, v):
+        if isinstance(v, list):
+            for x in v:
+                x.n_jobs = self.n_jobs
+        else:
+            v.n_jobs = self.n_jobs
+        self._exogenous_model = v
 
     @property
     def exogenous(self):
@@ -134,24 +173,45 @@ class EvoMSA(object):
             return np.concatenate((d, e), axis=1)
         return d
 
+    def append_exogenous_model(self, D, X):
+        if self.exogenous_model is None:
+            return D
+        ex = self.exogenous_model
+        if not isinstance(ex, list):
+            ex = [ex]
+        L = [D]
+        for x in ex:
+            L.append(x.predict_proba(X))
+        return np.concatenate(L, axis=1)
+
+    def _transform(self, X, models, textModel):
+        if len(models) == 0:
+            return []
+        args = [[i_m[0], i_m[1], t, X] for i_m, t in zip(enumerate(models), textModel) if i_m[1] is not None]
+        if self.n_jobs > 1:
+            p = Pool(self.n_jobs, maxtasksperchild=1)
+            res = [x for x in tqdm(p.imap_unordered(transform, args), total=len(args))]
+            res.sort(key=lambda x: x[0])
+            p.close()
+        else:
+            res = [transform(x) for x in tqdm(args)]
+        res = [x[1] for x in res]
+        D = res[0]
+        [[v.__iadd__(w) for v, w in zip(D, d)] for d in res[1:]]
+        return D
+
     def transform(self, X, y=None):
-        D = None
-        for m, t in zip(self._svc_models, self._textModel):
-            if m is None:
-                y = None
-                continue
+        if y is None or self._svc_models[0] is None:
+            D = self._transform(X, self._svc_models, self._textModel)
+        else:
+            D = self._transform(X, self._svc_models[1:], self._textModel[1:])
+            t = self._textModel[0]
             x = [t[str(_)] for _ in X]
-            if y is not None:
-                d = self.kfold_decision_function(x, y)
-                y = None
-            else:
-                d = [self.tolist(_) for _ in m.decision_function(x)]
-            if D is None:
-                D = d
-            else:
-                [v.__iadd__(w) for v, w in zip(D, d)]
+            d = self.kfold_decision_function(x, y)
+            [v.__iadd__(w) for v, w in zip(d, D)]
+            D = d
         _ = np.array(D)
-        return self.append_exogenous(_)
+        return self.append_exogenous_model(self.append_exogenous(_), X)
 
     def fit_svm(self, X, y):
         n_use_ts = not self._use_ts
@@ -190,7 +250,7 @@ class EvoMSA(object):
             probability_calibration = Calibration
         else:
             probability_calibration = None
-        _ = dict(n_jobs=self._n_jobs, seed=self._seed,
+        _ = dict(n_jobs=self.n_jobs, seed=self._seed,
                  probability_calibration=probability_calibration)
         self._evodag_args.update(_)
         self._evodag_model = EvoDAGE(**self._evodag_args).fit(D, klass,
@@ -198,15 +258,7 @@ class EvoMSA(object):
         if self._logistic_regression is not None:
             self._logistic_regression.fit(self._evodag_model.raw_decision_function(D),
                                           klass)
-        # elif self._probability_calibration:
-        #     self.probability_calibration(X, klass)
         return self
-
-    # def probability_calibration(self, X, y):
-    #     from .calibration import EnsembleCalibration
-    #     X = self.transform(X)
-    #     df = self._evodag_model._decision_function_raw(X, cpu_cores=self._n_jobs)
-    #     self._calibration_coef = EnsembleCalibration().fit(df, y)
 
     @staticmethod
     def tolist(x):
