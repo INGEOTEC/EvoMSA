@@ -14,21 +14,14 @@ before_install:
   - chmod 755 miniconda.sh
   - ./miniconda.sh -b
   - export PATH=/home/travis/miniconda3/bin:$PATH
-  - pip install coverage
-  - pip install coveralls
-  - conda install --yes numpy
-  - conda install --yes scipy
-  - conda install --yes scikit-learn
-  - conda install --yes -c ingeotec b4msa
-  - conda install --yes -c mgraffg EvoDAG
-  - conda install --yes nose
-  - conda install --yes gensim
-  - conda install --yes nltk
-  - python setup.py build_ext --inplace
+  - conda update --yes conda
+  - conda install --yes pip conda-build jinja2 binstar
 
-script: nosetests --verbose --with-coverage --cover-package=EvoMSA
+script: conda build conda-recipe --quiet
 
-after_success: coveralls || echo "Coveralls upload failed"
+after_success:
+  - coveralls || echo "Coveralls upload failed"
+  - if [ $TRAVIS_BRANCH = 'master' ]; binstar -t $BINSTAR_TOKEN upload --force *.tar.bz2
 
 notifications:
     email:
