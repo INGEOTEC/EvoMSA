@@ -179,3 +179,19 @@ def test_EvoMSA_exogenous_model():
     evo.fit(X, y)
     D = evo.transform(X)
     assert D.shape[1] == 8
+
+
+def test_EvoMSA_deterministic():
+    import numpy as np
+    X, y = get_data()
+    model1 = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=5),
+                    n_jobs=2).fit(X, y)
+    model2 = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=5),
+                    n_jobs=2).fit(X, y)
+    assert np.fabs(model1._evodag_D - model2._evodag_D).sum() == 0
+    hy1 = model1.predict_proba(X)
+    hy2 = model2.predict_proba(X)
+    print(hy1[:4])
+    print(hy2[:4])
+    assert np.fabs(hy1 - hy2).sum() == 0
+    

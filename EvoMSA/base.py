@@ -225,7 +225,7 @@ class EvoMSA(object):
                 svc_models.append(None)
                 n_use_ts = False
                 continue
-            c = SVC(model=None)
+            c = SVC(model=None, random_state=self._seed)
             c.fit(x, y0)
             svc_models.append(c)
         self._svc_models = svc_models
@@ -253,6 +253,7 @@ class EvoMSA(object):
         _ = dict(n_jobs=self.n_jobs, seed=self._seed,
                  probability_calibration=probability_calibration)
         self._evodag_args.update(_)
+        self._evodag_D = D
         self._evodag_model = EvoDAGE(**self._evodag_args).fit(D, klass,
                                                               test_set=test_set)
         if self._logistic_regression is not None:
