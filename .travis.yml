@@ -2,7 +2,6 @@ language: python
 
 env:
   matrix:
-    - python=3.5  CONDA_PY=35  CONDA_NPY=18
     - python=3.6  CONDA_PY=36  CONDA_NPY=18
 
   global:

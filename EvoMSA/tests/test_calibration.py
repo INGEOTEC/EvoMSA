@@ -69,7 +69,7 @@ def test_calibration_predict_single():
     from EvoMSA.calibration import Calibration
     X, y = get_data()
     y = np.array(y)
-    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10, time_limit=5,
+    evo = evomsa(evodag_args=dict(n_estimators=3, popsize=10, time_limit=15,
                                   early_stopping_rounds=10), seed=0,
                  n_jobs=2).fit(X, y)
     X = evo.transform(X)
