@@ -24,12 +24,13 @@ test:
         - nltk
         - b4msa
         - evodag
+        - coverage
 
     imports:
         - EvoMSA
 
     commands:
-        - nosetests --exe EvoMSA
+        - nosetests --verbose --with-coverage --cover-package=EvoMSA -exe EvoMSA
         - EvoMSA-predict --help
         - EvoMSA-train --help
 

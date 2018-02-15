@@ -188,6 +188,8 @@ def test_EvoMSA_deterministic():
                     n_jobs=2).fit(X, y)
     model2 = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=5),
                     n_jobs=2).fit(X, y)
+    r = np.fabs(model1._evodag_D - model2._evodag_D)
+    print(r[r != 0])
     assert np.fabs(model1._evodag_D - model2._evodag_D).sum() == 0
     hy1 = model1.predict_proba(X)
     hy2 = model2.predict_proba(X)
