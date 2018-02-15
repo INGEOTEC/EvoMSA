@@ -16,6 +16,9 @@ before_install:
   - export PATH=/home/travis/miniconda3/bin:$PATH
   - conda update --yes conda
   - conda install --yes pip conda-build jinja2 binstar
+  - conda config --append channels ingeotec  
+  - conda config --append channels mgraffg
+  
 
 script: conda build conda-recipe --quiet
 
