@@ -243,4 +243,12 @@ def test_exogenous_model():
     assert isinstance(evo.exogenous_model[0], EvoMSA)
     os.unlink('t.model')
     os.unlink('t2.model')
-    
+
+
+def test_max_lines():
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}', '-ot.model', '-n2', TWEETS]
+    train()
+    sys.argv = ['EvoMSA', '-mt.model', '--max-lines', '500', '-ot.json', TWEETS]
+    predict()
+    os.unlink('t.model')
+    os.unlink('t.json')

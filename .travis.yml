@@ -15,15 +15,15 @@ before_install:
   - export PATH=/home/travis/miniconda3/bin:$PATH
   - conda update --yes conda
   - conda install --yes pip conda-build jinja2 binstar
+  - pip install coveralls
   - conda config --append channels ingeotec  
   - conda config --append channels mgraffg
-  
 
 script: conda build conda-recipe --quiet
 
 after_success:
   - coveralls || echo "Coveralls upload failed"
-  - if [ $TRAVIS_BRANCH = 'master' ]; binstar -t $BINSTAR_TOKEN upload --force *.tar.bz2
+  - python continuous-integration/binstar-push.py
 
 notifications:
     email:

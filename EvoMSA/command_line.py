@@ -238,10 +238,17 @@ class CommandLinePredict(CommandLine):
         pa('--decision-function', dest='decision_function', default=False,
            action='store_true',
            help='Ensemble decision function')
+        pa('--max-lines', dest='max_lines', default=10000, type=int,
+           help='Maximum number of lines to predict in an instance')
 
     def raw_outputs(self, evo, D):
         predict_file = self.data.predict_file[0]
-        X = evo.raw_decision_function(D)
+        pr = []
+        max_lines = self.data.max_lines
+        while len(D):
+            pr.append(evo.raw_decision_function(D[:max_lines]))
+            del D[:max_lines]
+        X = np.concatenate(pr)
         with open(self.data.output_file, 'w') as fpt:
             for x, df in zip(tweet_iterator(predict_file), X):
                 _ = {self._decision_function: df.tolist()}
@@ -250,7 +257,12 @@ class CommandLinePredict(CommandLine):
 
     def decision_function(self, evo, D):
         predict_file = self.data.predict_file[0]
-        X = evo.decision_function(D)
+        pr = []
+        max_lines = self.data.max_lines
+        while len(D):
+            pr.append(evo.decision_function(D[:max_lines]))
+            del D[:max_lines]
+        X = np.concatenate(pr)
         with open(self.data.output_file, 'w') as fpt:
             for x, df in zip(tweet_iterator(predict_file), X):
                 _ = {self._decision_function: df.tolist()}
@@ -266,7 +278,12 @@ class CommandLinePredict(CommandLine):
             return self.raw_outputs(evo, D)
         elif self.data.decision_function:
             return self.decision_function(evo, D)
-        pr = evo.predict_proba(D)
+        max_lines = self.data.max_lines
+        pr = []
+        while len(D):
+            pr.append(evo.predict_proba(D[:max_lines]))
+            del D[:max_lines]
+        pr = np.concatenate(pr)
         hy = evo._le.inverse_transform(pr.argmax(axis=1))
         with open(self.data.output_file, 'w') as fpt:
             for x, y, df in zip(tweet_iterator(predict_file), hy, pr):
