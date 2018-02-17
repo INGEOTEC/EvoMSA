@@ -30,7 +30,7 @@ test:
         - EvoMSA
 
     commands:
-        - nosetests --verbose --with-coverage --cover-package=EvoMSA -exe EvoMSA
+        - nosetests --verbose -exe EvoMSA
         - EvoMSA-predict --help
         - EvoMSA-train --help
 
