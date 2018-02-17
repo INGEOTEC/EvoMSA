@@ -96,8 +96,8 @@ def test_EvoMSA_evodag_args():
 def test_EvoMSA_predict():
     import numpy as np
     X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=10,
-                                  n_estimators=5),
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15,
+                                  n_estimators=10),
                  n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict(X)
