@@ -31,8 +31,8 @@ except ImportError:
 
 
 def kfold_decision_function(args):
-    X, y, tr, ts = args
-    c = SVC(model=None)
+    X, y, tr, ts, seed = args
+    c = SVC(model=None, random_state=seed)
     c.fit([X[x] for x in tr], [y[x] for x in tr])
     return ts, c.decision_function([X[x] for x in ts])
 
@@ -115,7 +115,7 @@ class EvoMSA(object):
         args = []
         for tr, ts in KFold(n_splits=self._n_splits,
                             shuffle=True, random_state=self._seed).split(X):
-            args.append([X, y, tr, ts])
+            args.append([X, y, tr, ts, self._seed])
         if self.n_jobs == 1:
             res = [kfold_decision_function(x) for x in tqdm(args, total=len(args))]
         else:
@@ -225,7 +225,7 @@ class EvoMSA(object):
                 svc_models.append(None)
                 n_use_ts = False
                 continue
-            c = SVC(model=None)
+            c = SVC(model=None, random_state=self._seed)
             c.fit(x, y0)
             svc_models.append(c)
         self._svc_models = svc_models
@@ -238,7 +238,8 @@ class EvoMSA(object):
             X = X[0]
         D = self.transform(X, y)
         if test_set is not None:
-            test_set = self.transform(test_set)
+            if isinstance(test_set, list):
+                test_set = self.transform(test_set)
         svc_models = self._svc_models
         if svc_models[0] is not None:
             self._le = svc_models[0].le
@@ -253,6 +254,7 @@ class EvoMSA(object):
         _ = dict(n_jobs=self.n_jobs, seed=self._seed,
                  probability_calibration=probability_calibration)
         self._evodag_args.update(_)
+        self._evodag_D = D
         self._evodag_model = EvoDAGE(**self._evodag_args).fit(D, klass,
                                                               test_set=test_set)
         if self._logistic_regression is not None:

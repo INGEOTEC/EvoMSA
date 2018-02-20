@@ -141,7 +141,6 @@ def test_train_exogenous():
             x['decision_function'] = x['q_voc_ratio']
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA', '-ot.model', '-n2',
-                '--kw={"logistic_regression": true}',
                 '--exogenous', 'ex.json', 'ex.json',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 TWEETS]
@@ -150,7 +149,6 @@ def test_train_exogenous():
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
-    assert evo._logistic_regression is not None
     m = evo._evodag_model.models[0]
     os.unlink('ex.json')
     print(m.nvar)
@@ -181,7 +179,6 @@ def test_utils_transform():
             x['decision_function'] = x['q_voc_ratio']
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA', '-ot.model', '-n2', '--no-use-ts',
-                '--kw={"logistic_regression": true}',
                 '--exogenous', 'ex.json', 'ex.json',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 TWEETS, TWEETS]
@@ -246,4 +243,23 @@ def test_exogenous_model():
     assert isinstance(evo.exogenous_model[0], EvoMSA)
     os.unlink('t.model')
     os.unlink('t2.model')
-    
+
+
+def test_max_lines():
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}', '-ot.model', '-n2', TWEETS]
+    train()
+    sys.argv = ['EvoMSA', '-mt.model', '--max-lines', '500', '-ot.json', TWEETS]
+    predict()
+    os.unlink('t.model')
+    os.unlink('t.json')
+
+
+def test_evo_test_set_shuffle():
+    from EvoMSA.base import EvoMSA
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                '-ot.model', '--test_set', 'shuffle', '-n2', TWEETS]
+    train(output=True)
+    with gzip.open('t.model', 'r') as fpt:
+        evo = pickle.load(fpt)
+    assert isinstance(evo, EvoMSA)
+    os.unlink('t.model')

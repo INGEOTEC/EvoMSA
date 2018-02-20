@@ -96,14 +96,15 @@ def test_EvoMSA_evodag_args():
 def test_EvoMSA_predict():
     import numpy as np
     X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=100, early_stopping_rounds=1000),
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15,
+                                  n_estimators=10),
                  n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict(X)
     assert len(hy) == 1000
     print((np.array(y) == hy).mean(), hy)
     print(evo.predict_proba(X))
-    assert (np.array(y) == hy).mean() > 0.9
+    assert (np.array(y) == hy).mean() > 0.8
 
 
 def test_EvoMSA_fit3():
@@ -178,3 +179,20 @@ def test_EvoMSA_exogenous_model():
     evo.fit(X, y)
     D = evo.transform(X)
     assert D.shape[1] == 8
+
+
+# def test_EvoMSA_deterministic():
+#     import numpy as np
+#     X, y = get_data()
+#     model1 = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=5),
+#                     n_jobs=2).fit(X, y)
+#     model2 = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=5),
+#                     n_jobs=2).fit(X, y)
+#     r = np.fabs(model1._evodag_D - model2._evodag_D)
+#     print(r[r != 0])
+#     assert np.fabs(model1._evodag_D - model2._evodag_D).sum() == 0
+#     hy1 = model1.predict_proba(X)
+#     hy2 = model2.predict_proba(X)
+#     print(hy1[:4])
+#     print(hy2[:4])
+#     assert np.fabs(hy1 - hy2).sum() == 0

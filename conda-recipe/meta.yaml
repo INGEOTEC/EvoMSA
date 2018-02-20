@@ -1,6 +1,6 @@
 package:
   name: evomsa
-  version: "0.9"
+  version: "0.10"
 
 requirements:
   build:
@@ -24,12 +24,13 @@ test:
         - nltk
         - b4msa
         - evodag
+        - coverage
 
     imports:
         - EvoMSA
 
     commands:
-        - nosetests --exe EvoMSA
+        - nosetests --verbose -exe EvoMSA
         - EvoMSA-predict --help
         - EvoMSA-train --help
 
