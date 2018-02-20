@@ -238,7 +238,8 @@ class EvoMSA(object):
             X = X[0]
         D = self.transform(X, y)
         if test_set is not None:
-            test_set = self.transform(test_set)
+            if isinstance(test_set, list):
+                test_set = self.transform(test_set)
         svc_models = self._svc_models
         if svc_models[0] is not None:
             self._le = svc_models[0].le

@@ -252,3 +252,14 @@ def test_max_lines():
     predict()
     os.unlink('t.model')
     os.unlink('t.json')
+
+
+def test_evo_test_set_shuffle():
+    from EvoMSA.base import EvoMSA
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                '-ot.model', '--test_set', 'shuffle', '-n2', TWEETS]
+    train(output=True)
+    with gzip.open('t.model', 'r') as fpt:
+        evo = pickle.load(fpt)
+    assert isinstance(evo, EvoMSA)
+    os.unlink('t.model')

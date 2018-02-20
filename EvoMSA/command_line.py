@@ -112,7 +112,10 @@ class CommandLineTrain(CommandLine):
             D.append([x[0] for x in _])
             Y.append([x[1] for x in _])
         if self.data.test_set is not None:
-            test_set = [x[self._text] for x in tweet_iterator(self.data.test_set)]
+            if os.path.isfile(self.data.test_set):
+                test_set = [x[self._text] for x in tweet_iterator(self.data.test_set)]
+            else:
+                test_set = self.data.test_set
         else:
             test_set = None
         kwargs = dict(use_ts=self.data.use_ts, n_jobs=self.data.n_jobs)
