@@ -122,10 +122,9 @@ class CommandLineTrain(CommandLine):
         if self.data.kwargs is not None:
             _ = json.loads(self.data.kwargs)
             kwargs.update(_)
-        evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
+        evo_kwargs = dict(tmpdir=self.data.output_file + '_dir', fitness_function='macro-F1')
         if self.data.evo_kwargs is not None:
             _ = json.loads(self.data.evo_kwargs)
-            _['fitness_function'] = 'macro-F1'
             evo_kwargs.update(_)
         b4msa_kwargs = {}
         if self.data.b4msa_kwargs is not None:

@@ -56,7 +56,7 @@ def vector_space(args):
 
 
 class EvoMSA(object):
-    def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(),
+    def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1'),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
                  logistic_regression_args=None, probability_calibration=False):
         self._use_ts = use_ts
