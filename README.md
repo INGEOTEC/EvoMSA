@@ -1,8 +1,14 @@
 [![Build Status](https://travis-ci.org/INGEOTEC/EvoMSA.svg?branch=master)](https://travis-ci.org/INGEOTEC/EvoMSA)
+[![Build Status](https://travis-ci.org/INGEOTEC/EvoMSA.svg?branch=develop)](https://travis-ci.org/INGEOTEC/EvoMSA)
 [![Build status](https://ci.appveyor.com/api/projects/status/wg01w00evm7pb8po?svg=true)](https://ci.appveyor.com/project/mgraffg/evomsa)
-[![Anaconda-Server Badge](https://anaconda.org/ingeotec/evomsa/badges/version.svg)](https://anaconda.org/ingeotec/evomsa)
-[![Anaconda-Server Badge](https://anaconda.org/ingeotec/evomsa/badges/installer/conda.svg)](https://anaconda.org/ingeotec/evomsa)
+[![Build status](https://ci.appveyor.com/api/projects/status/wg01w00evm7pb8po/branch/master?svg=true)](https://ci.appveyor.com/project/mgraffg/evomsa/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/INGEOTEC/EvoMSA/badge.svg?branch=master)](https://coveralls.io/github/INGEOTEC/EvoMSA?branch=master)
+[![Anaconda-Server Badge](https://anaconda.org/ingeotec/evomsa/badges/version.svg)](https://anaconda.org/ingeotec/evomsa)
+[![Anaconda-Server Badge](https://anaconda.org/ingeotec/evomsa/badges/latest_release_date.svg)](https://anaconda.org/ingeotec/evomsa)
+[![Anaconda-Server Badge](https://anaconda.org/ingeotec/evomsa/badges/platforms.svg)](https://anaconda.org/ingeotec/evomsa)
+[![Anaconda-Server Badge](https://anaconda.org/ingeotec/evomsa/badges/installer/conda.svg)](https://anaconda.org/ingeotec/evomsa)
+[![PyPI version](https://badge.fury.io/py/EvoMSA.svg)](https://badge.fury.io/py/EvoMSA)
+[![Anaconda-Server Badge](https://anaconda.org/ingeotec/evomsa/badges/license.svg)](https://anaconda.org/ingeotec/evomsa)
 
 # EvoMSA
 Sentiment Analysis System based on B4MSA and EvoDAG
