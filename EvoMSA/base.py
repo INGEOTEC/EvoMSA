@@ -34,13 +34,19 @@ def kfold_decision_function(args):
     X, y, tr, ts, seed = args
     c = SVC(model=None, random_state=seed)
     c.fit([X[x] for x in tr], [y[x] for x in tr])
-    return ts, c.decision_function([X[x] for x in ts])
+    _ = c.decision_function([X[x] for x in ts])
+    _[_ > 1] = 1
+    _[_ < -1] = -1
+    return ts, _
 
 
 def transform(args):
     k, m, t, X = args
     x = [t[str(_)] for _ in X]
-    d = [EvoMSA.tolist(_) for _ in m.decision_function(x)]
+    df = m.decision_function(x)
+    df[df > 1] = 1
+    df[df < -1] = -1
+    d = [EvoMSA.tolist(_) for _ in df]
     return (k, d)
 
 
