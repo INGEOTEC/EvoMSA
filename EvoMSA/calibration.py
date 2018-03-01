@@ -30,6 +30,15 @@ class Calibration(object):
     def __init__(self):
         self._coef = None
 
+    def weight(self, y):
+        zero = (y == 0).sum()
+        one = (y == 1).sum()
+        tot = zero + one
+        r = np.zeros_like(y)
+        r[y == 0] = tot / (2 * zero)
+        r[y == 1] = tot / (2 * one)
+        return r
+
     def fit(self, X, y):
         if isinstance(X, np.ndarray):
             X = X.T
@@ -38,9 +47,9 @@ class Calibration(object):
         Y = label_binarize(y, self._classes)
         self._nclasses = self._classes.shape[0]
         if self._nclasses > 2:
-            _ = [_sigmoid_calibration(x, k) for x, k in zip(X.T, Y.T)]
+            _ = [_sigmoid_calibration(x, k, sample_weight=self.weight(k)) for x, k in zip(X.T, Y.T)]
         else:
-            _ = _sigmoid_calibration(X[:, 1], Y[:, 0])
+            _ = _sigmoid_calibration(X[:, 1], Y[:, 0], sample_weight=self.weight(Y[:, 0]))
         self._coef = _
         return self
 
@@ -58,23 +67,6 @@ class Calibration(object):
         proba = np.array(_).T
         proba[np.isnan(proba)] = 1. / self._nclasses
         return proba
-
-
-# class EnsembleCalibration(object):
-#     def __init_(self):
-#         self._coef = None
-
-#     def predict_proba(self, X):
-#         proba = np.array([m.predict_proba(x) for m, x in zip(self._coef, X)])
-#         proba = np.mean(proba, axis=0)
-#         proba /= np.sum(proba, axis=1)[:, np.newaxis]
-#         proba[np.isnan(proba)] = 1. / self._nclasses
-#         return proba
-
-#     def fit(self, X, y):
-#         self._coef = [Calibration().fit(x, y) for x in X]
-#         self._nclasses = self._coef[0]._nclasses
-#         return self
 
 
 def _sigmoid_calibration(df, y, sample_weight=None):
