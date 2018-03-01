@@ -80,3 +80,12 @@ def test_calibration_predict_single():
     assert proba.shape[1] == 4
     [assert_almost_equals(x, 1) for x in proba.sum(axis=1)]
     
+
+def test_calibration_weight():
+    from EvoMSA.calibration import Calibration
+    y = np.concatenate((np.zeros(10), np.ones(20)))
+    c = Calibration()
+    w = c.weight(y)
+    assert (w[y == 0]).sum() == (w[y == 1]).sum()
+    
+    

@@ -34,13 +34,19 @@ def kfold_decision_function(args):
     X, y, tr, ts, seed = args
     c = SVC(model=None, random_state=seed)
     c.fit([X[x] for x in tr], [y[x] for x in tr])
-    return ts, c.decision_function([X[x] for x in ts])
+    _ = c.decision_function([X[x] for x in ts])
+    _[_ > 1] = 1
+    _[_ < -1] = -1
+    return ts, _
 
 
 def transform(args):
     k, m, t, X = args
     x = [t[str(_)] for _ in X]
-    d = [EvoMSA.tolist(_) for _ in m.decision_function(x)]
+    df = m.decision_function(x)
+    df[df > 1] = 1
+    df[df < -1] = -1
+    d = [EvoMSA.tolist(_) for _ in df]
     return (k, d)
 
 
@@ -50,7 +56,7 @@ def vector_space(args):
 
 
 class EvoMSA(object):
-    def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(),
+    def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1'),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
                  logistic_regression_args=None, probability_calibration=False):
         self._use_ts = use_ts
