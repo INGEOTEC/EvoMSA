@@ -11,6 +11,7 @@ from math import log
 from scipy.optimize import fmin_bfgs
 from sklearn.preprocessing import label_binarize
 from SparseArray import SparseArray
+from sklearn.linear_model import LogisticRegression
 
 
 def sp2array(d):
@@ -26,6 +27,24 @@ def normalize(df):
     return df
 
 
+class CalibrationLR(object):
+    def __init__(self):
+        self._model = None
+
+    def fit(self, X, y):
+        if isinstance(X, np.ndarray):
+            X = X.T
+        X = normalize(X)
+        self._model = LogisticRegression(penalty='l1', class_weight='balanced',
+                                         solver='saga',
+                                         random_state=0, multi_class='multinomial').fit(X, y)
+        return self
+
+    def predict_proba(self, X):
+        X = normalize(X)
+        return self._model.predict_proba(X)
+
+    
 class Calibration(object):
     def __init__(self):
         self._coef = None

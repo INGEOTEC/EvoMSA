@@ -19,7 +19,7 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder
 from EvoDAG.model import EvoDAGE
 from sklearn.linear_model import LogisticRegression
-from .calibration import Calibration
+from .calibration import CalibrationLR
 import numpy as np
 import logging
 from multiprocessing import Pool
@@ -254,7 +254,7 @@ class EvoMSA(object):
             self._le.fit(y)
         klass = self._le.transform(y)
         if self._probability_calibration:
-            probability_calibration = Calibration
+            probability_calibration = CalibrationLR
         else:
             probability_calibration = None
         _ = dict(n_jobs=self.n_jobs, seed=self._seed,
