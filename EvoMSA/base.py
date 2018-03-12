@@ -56,18 +56,40 @@ def vector_space(args):
     return k, [t[str(_)] for _ in X]
 
 
-class Identity(object):
+class BaseTextModel(object):
     def __init__(self, corpus, **kwargs):
         pass
 
     def __getitem__(self, x):
+        pass
+
+
+class Identity(BaseTextModel):
+    def __getitem__(self, x):
         return x
+
+
+class BaseClassifier(object):
+    def __init__(self, random_state=0):
+        pass
+
+    def fit(self, X, y):
+        pass
+
+
+class B4MSATextModel(TextModel, BaseTextModel):
+    pass
+
+
+class B4MSAClassifier(SVC, BaseClassifier):
+    def __init__(self, random_state=0):
+        SVC.__init__(self, model=None, random_state=random_state)
 
 
 class EvoMSA(object):
     def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1'),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
-                 models=None,
+                 models=[['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier']],
                  logistic_regression_args=None, probability_calibration=False):
         self._use_ts = use_ts
         if b4msa_params is None:
@@ -116,9 +138,14 @@ class EvoMSA(object):
         for m in models:
             if isinstance(m, list):
                 textmodel, classifier = m
-                self._models.append([self.get_class(textmodel), self.get_class(classifier)])
+                tm = self.get_class(textmodel)
+                cl = self.get_class(classifier)
             else:
-                self._models.append([Identity, self.get_class(m)])
+                tm = Identity
+                cl = self.get_class(m)
+            assert issubclass(tm, BaseTextModel)
+            assert issubclass(cl, BaseClassifier)
+            self._models.append([tm, cl])
 
     @property
     def n_jobs(self):
@@ -136,21 +163,19 @@ class EvoMSA(object):
         self._logger.info("Starting TextModel")
         self._logger.info(str(kwargs))
         for x in X:
-            m.append(TextModel(x, **kwargs))
-        if self.models is not None:
-            x = X[0]
-            for t, c in self.models:
-                m.append(t(x, **kwargs))
+            for tm, cl in self.models:
+                m.append(tm(x, **kwargs))
         self._textModel = m
 
     def vector_space(self, X):
         if not isinstance(X[0], list):
             X = [X]
-        if len(X) < len(self._textModel):
-            X = [x for x in X]
-            for _ in range(len(self._textModel) - len(X)):
-                X.append(X[0])
-        args = [[i_t[0], i_t[1], x] for i_t, x in zip(enumerate(self._textModel), X)]
+        args = []
+        i = 0
+        for x in X:
+            for t in self._textModel:
+                args.append((i, t, x))
+                i += 1
         if self.n_jobs > 1:
             p = Pool(self.n_jobs, maxtasksperchild=1)
             res = [x for x in tqdm(p.imap_unordered(vector_space, args), total=len(args))]
@@ -270,14 +295,16 @@ class EvoMSA(object):
         if not isinstance(y[0], list):
             y = [y]
         svc_models = []
-        for t, x, y0 in zip(self._textModel, Xvs, y):
-            if n_use_ts:
-                svc_models.append(None)
-                n_use_ts = False
-                continue
-            c = SVC(model=None, random_state=self._seed)
-            c.fit(x, y0)
-            svc_models.append(c)
+        for y0 in y:
+            for x, tm, tm_cl in zip(Xvs, self._textModel, self.models):
+                cl = tm_cl[1]
+                if n_use_ts:
+                    svc_models.append(None)
+                    n_use_ts = False
+                    continue
+                c = cl(random_state=self._seed)
+                c.fit(x, y0)
+                svc_models.append(c)
         self._svc_models = svc_models
 
     def fit(self, X, y, test_set=None):

@@ -41,11 +41,14 @@ def test_TextModel():
 
 def test_vector_space():
     X, y = get_data()
-    evo = EvoMSA()
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
+                 models=[['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier'],
+                         'EvoMSA.bernulli.Bernulli'])
     evo.model(X)
+    a = X[0]
     X = evo.vector_space(X)
-    assert len(X[0]) == 1000
-    assert len(X[0][0][0]) == 2
+    assert X[1][0] == a
+    assert X[0][0][0][0] == 0
 
 
 def test_EvoMSA_kfold_decision_function():
@@ -181,16 +184,42 @@ def test_EvoMSA_exogenous_model():
     assert D.shape[1] == 8
 
 
-def test_EvoMSA_models():
+def test_EvoMSA_model():
     X, y = get_data()
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
-                   models=[['b4msa.textmodel.TextModel', 'b4msa.classifier.SVC'],
+                   models=[['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier'],
                            'EvoMSA.bernulli.Bernulli'],
-                   n_jobs=2).fit(X, y)
-    print(model.models)
+                   n_jobs=2)
+    assert len(model.models) == 2
+    model.model(X)
+    assert len(model._textModel) == 2
     print(model._textModel)
+
+
+def test_EvoMSA_fit_svm():
+    from sklearn.preprocessing import LabelEncoder
+    X, y = get_data()
+    from EvoMSA.base import B4MSAClassifier
+    from EvoMSA.bernulli import Bernulli
+    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                    n_estimators=3),
+                   models=[['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier'],
+                           'EvoMSA.bernulli.Bernulli'],
+                   n_jobs=2)
+    le = LabelEncoder().fit(y)
+    y = le.transform(y)
+    model.fit_svm(X, y)
+    print(model._svc_models)
     assert len(model._svc_models) == 2
+    for ins, klass in zip(model._svc_models, [B4MSAClassifier, Bernulli]):
+        assert isinstance(ins, klass)
+
+ 
+    # model.fit_svm(X, y)
+    # print(model.models)
+    # print(model._textModel)
+    # assert len(model._svc_models) == 2
 
 
 # def test_EvoMSA_deterministic():

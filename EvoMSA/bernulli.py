@@ -14,6 +14,7 @@
 
 from b4msa.utils import tweet_iterator
 from b4msa.textmodel import TextModel
+from .base import BaseClassifier
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
@@ -55,8 +56,8 @@ class Corpus(object):
         return tokens
 
 
-class Bernulli(object):
-    def __init__(self):
+class Bernulli(BaseClassifier):
+    def __init__(self, random_state=0):
         self._corpus = Corpus()
 
     @property
