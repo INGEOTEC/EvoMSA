@@ -185,7 +185,8 @@ def test_EvoMSA_models():
     X, y = get_data()
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
-                   models='EvoMSA.bernulli.Bernulli',
+                   models=[['b4msa.textmodel.TextModel', 'b4msa.classifier.SVC'],
+                           'EvoMSA.bernulli.Bernulli'],
                    n_jobs=2).fit(X, y)
     print(model.models)
     print(model._textModel)

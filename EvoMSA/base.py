@@ -116,7 +116,7 @@ class EvoMSA(object):
         for m in models:
             if isinstance(m, list):
                 textmodel, classifier = m
-                self._models.append(self.get_class(textmodel), self.get_class(classifier))
+                self._models.append([self.get_class(textmodel), self.get_class(classifier)])
             else:
                 self._models.append([Identity, self.get_class(m)])
 
