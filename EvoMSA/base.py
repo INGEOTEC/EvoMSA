@@ -18,6 +18,7 @@ from b4msa.classifier import SVC
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder
 from EvoDAG.model import EvoDAGE
+import importlib
 from sklearn.linear_model import LogisticRegression
 from .calibration import CalibrationLR
 import numpy as np
@@ -55,9 +56,18 @@ def vector_space(args):
     return k, [t[str(_)] for _ in X]
 
 
+class Identity(object):
+    def __init__(self, corpus, **kwargs):
+        pass
+
+    def __getitem__(self, x):
+        return x
+
+
 class EvoMSA(object):
     def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1'),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
+                 models=None,
                  logistic_regression_args=None, probability_calibration=False):
         self._use_ts = use_ts
         if b4msa_params is None:
@@ -83,6 +93,32 @@ class EvoMSA(object):
         self._exogenous = None
         self._exogenous_model = None
         self._probability_calibration = probability_calibration
+        self.models = models
+
+    def get_class(self, m):
+        if isinstance(m, str):
+            a = m.split('.')
+            p = importlib.import_module('.'.join(a[:-1]))
+            return getattr(p, a[-1])
+        return m
+
+    @property
+    def models(self):
+        return self._models
+
+    @models.setter
+    def models(self, models):
+        if models is None:
+            return
+        if not isinstance(models, list):
+            models = [models]
+        self._models = []
+        for m in models:
+            if isinstance(m, list):
+                textmodel, classifier = m
+                self._models.append(self.get_class(textmodel), self.get_class(classifier))
+            else:
+                self._models.append([Identity, self.get_class(m)])
 
     @property
     def n_jobs(self):
@@ -101,11 +137,19 @@ class EvoMSA(object):
         self._logger.info(str(kwargs))
         for x in X:
             m.append(TextModel(x, **kwargs))
+        if self.models is not None:
+            x = X[0]
+            for t, c in self.models:
+                m.append(t(x, **kwargs))
         self._textModel = m
 
     def vector_space(self, X):
         if not isinstance(X[0], list):
             X = [X]
+        if len(X) < len(self._textModel):
+            X = [x for x in X]
+            for _ in range(len(self._textModel) - len(X)):
+                X.append(X[0])
         args = [[i_t[0], i_t[1], x] for i_t, x in zip(enumerate(self._textModel), X)]
         if self.n_jobs > 1:
             p = Pool(self.n_jobs, maxtasksperchild=1)

@@ -181,6 +181,17 @@ def test_EvoMSA_exogenous_model():
     assert D.shape[1] == 8
 
 
+def test_EvoMSA_models():
+    X, y = get_data()
+    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                    n_estimators=3),
+                   models='EvoMSA.bernulli.Bernulli',
+                   n_jobs=2).fit(X, y)
+    print(model.models)
+    print(model._textModel)
+    assert len(model._svc_models) == 2
+
+
 # def test_EvoMSA_deterministic():
 #     import numpy as np
 #     X, y = get_data()
