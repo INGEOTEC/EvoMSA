@@ -228,7 +228,6 @@ def test_EvoMSA_fit_svm():
 
 
 def test_EvoMSA_transform():
-    import numpy as np
     from sklearn.preprocessing import LabelEncoder
     X, y = get_data()
     Xn = [X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]]
