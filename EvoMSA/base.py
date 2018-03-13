@@ -179,8 +179,12 @@ class EvoMSA(object):
             X = [X]
         args = []
         i = 0
+        k = 0
+        nmodels = len(self.models)
         for x in X:
-            for t in self._textModel:
+            for _ in range(nmodels):
+                t = self._textModel[k]
+                k += 1
                 args.append((i, t, x))
                 i += 1
         if self.n_jobs > 1:
@@ -303,9 +307,13 @@ class EvoMSA(object):
         if not isinstance(y[0], list):
             y = [y]
         svc_models = []
+        k = 0
+        nmodels = len(self.models)
         for y0 in y:
-            for x, tm, tm_cl in zip(Xvs, self._textModel, self.models):
-                cl = tm_cl[1]
+            for j in range(nmodels):
+                x = Xvs[k]
+                cl = self.models[j][1]
+                k += 1
                 c = cl(random_state=self._seed)
                 c.fit(x, y0)
                 svc_models.append(c)
@@ -318,12 +326,12 @@ class EvoMSA(object):
             for y0 in y:
                 _ = LabelEncoder().fit(y0)
                 le.append(_)
-                Y.append(_.transform(y0))
+                Y.append(_.transform(y0).tolist())
             self._le = le[0]
             y = Y
         else:
             self._le = LabelEncoder().fit(y)
-            y = self._le.transform(y)
+            y = self._le.transform(y).tolist()
         self.fit_svm(X, y)
         if isinstance(y[0], list):
             y = y[0]
@@ -341,6 +349,7 @@ class EvoMSA(object):
                  probability_calibration=probability_calibration)
         self._evodag_args.update(_)
         self._evodag_D = D
+        print(D, y)
         self._evodag_model = EvoDAGE(**self._evodag_args).fit(D, y,
                                                               test_set=test_set)
         if self._logistic_regression is not None:

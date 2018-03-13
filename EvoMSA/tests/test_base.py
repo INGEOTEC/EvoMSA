@@ -107,9 +107,10 @@ def test_EvoMSA_evodag_args():
 def test_EvoMSA_predict():
     import numpy as np
     X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15,
-                                  n_estimators=10),
-                 n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
+                 models=['EvoMSA.bernulli.Bernulli',
+                         ['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier']],
+                 n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict(X)
     assert len(hy) == 1000
