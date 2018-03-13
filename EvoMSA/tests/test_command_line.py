@@ -249,3 +249,21 @@ def test_evo_test_set_shuffle():
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
+
+
+def test_predict_numbers():
+    from b4msa.utils import tweet_iterator
+    from sklearn.preprocessing import LabelEncoder
+    import json
+    d = [x for x in tweet_iterator(TWEETS)]
+    le = LabelEncoder().fit([x['klass'] for x in d])
+    y = le.transform([x['klass'] for x in d]).tolist()
+    with open('ex.json', 'w') as fpt:
+        for x, y0 in zip(d, y):
+            x['klass'] = y0
+            fpt.write(json.dumps(x) + '\n')
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}', '--kw={"models": ["EvoMSA.bernulli.Bernulli"]}',
+                '-ot.model', '-n1', 'ex.json']
+    train(output=True)
+    sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
+    predict()

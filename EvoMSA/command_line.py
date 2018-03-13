@@ -288,7 +288,7 @@ class CommandLinePredict(CommandLine):
             pr.append(evo.predict_proba(D[:max_lines]))
             del D[:max_lines]
         pr = np.concatenate(pr)
-        hy = evo._le.inverse_transform(pr.argmax(axis=1))
+        hy = evo._le.inverse_transform(pr.argmax(axis=1)).tolist()
         with open(self.data.output_file, 'w') as fpt:
             for x, y, df in zip(tweet_iterator(predict_file), hy, pr):
                 _ = {self._klass: y, self._decision_function: df.tolist()}
