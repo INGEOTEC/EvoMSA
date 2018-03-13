@@ -13,14 +13,13 @@
 # limitations under the License.
 import os
 from b4msa.command_line import load_json
-from b4msa.textmodel import TextModel
-from b4msa.classifier import SVC
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder
 from EvoDAG.model import EvoDAGE
 import importlib
 from sklearn.linear_model import LogisticRegression
 from .calibration import CalibrationLR
+from .model import Identity, BaseTextModel, BaseClassifier
 import numpy as np
 import logging
 from multiprocessing import Pool
@@ -52,52 +51,10 @@ def vector_space(args):
     return k, [t[_] for _ in X]
 
 
-class BaseTextModel(object):
-    def __init__(self, corpus, **kwargs):
-        pass
-
-    def __getitem__(self, x):
-        pass
-
-
-class Identity(BaseTextModel):
-    def __getitem__(self, x):
-        return x
-
-
-class BaseClassifier(object):
-    def __init__(self, random_state=0):
-        pass
-
-    def fit(self, X, y):
-        pass
-
-    def decision_function(self, X):
-        pass
-
-
-class B4MSATextModel(TextModel, BaseTextModel):
-    def __getitem__(self, x):
-        if x is None:
-            x = ''
-        return TextModel.__getitem__(self, str(x))
-
-
-class B4MSAClassifier(SVC, BaseClassifier):
-    def __init__(self, random_state=0):
-        SVC.__init__(self, model=None, random_state=random_state)
-
-    def decision_function(self, X):
-        _ = SVC.decision_function(self, X)
-        _[_ > 1] = 1
-        _[_ < -1] = -1
-        return _
-
-
 class EvoMSA(object):
     def __init__(self, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1'),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
-                 models=[['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier']],
+                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier']],
                  logistic_regression_args=None, probability_calibration=False):
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
@@ -162,57 +119,6 @@ class EvoMSA(object):
     def n_jobs(self, v):
         self._n_jobs = v
 
-    def model(self, X):
-        if not isinstance(X[0], list):
-            X = [X]
-        m = []
-        kwargs = self._b4msa_args
-        self._logger.info("Starting TextModel")
-        self._logger.info(str(kwargs))
-        for x in X:
-            for tm, cl in self.models:
-                m.append(tm(x, **kwargs))
-        self._textModel = m
-
-    def vector_space(self, X):
-        if not isinstance(X[0], list):
-            X = [X]
-        args = []
-        i = 0
-        k = 0
-        nmodels = len(self.models)
-        for x in X:
-            for _ in range(nmodels):
-                t = self._textModel[k]
-                k += 1
-                args.append((i, t, x))
-                i += 1
-        if self.n_jobs > 1:
-            p = Pool(self.n_jobs, maxtasksperchild=1)
-            res = [x for x in tqdm(p.imap_unordered(vector_space, args), total=len(args))]
-            res.sort(key=lambda x: x[0])
-            p.close()
-        else:
-            res = [vector_space(x) for x in tqdm(args)]
-        return [x[1] for x in res]
-
-    def kfold_decision_function(self, cl, X, y):
-        hy = [None for x in y]
-        args = []
-        for tr, ts in KFold(n_splits=self._n_splits,
-                            shuffle=True, random_state=self._seed).split(X):
-            args.append([cl, X, y, tr, ts, self._seed])
-        if self.n_jobs == 1:
-            res = [kfold_decision_function(x) for x in tqdm(args, total=len(args))]
-        else:
-            p = Pool(self.n_jobs, maxtasksperchild=1)
-            res = [x for x in tqdm(p.imap_unordered(kfold_decision_function, args),
-                                   total=len(args))]
-            p.close()
-        for ts, df in res:
-            [hy.__setitem__(k, self.tolist(v)) for k, v in zip(ts, df)]
-        return hy
-
     def predict(self, X):
         pr = self.predict_proba(X)
         return self._le.inverse_transform(pr.argmax(axis=1))
@@ -270,6 +176,57 @@ class EvoMSA(object):
             L.append(x.predict_proba(X))
         return np.concatenate(L, axis=1)
 
+    def model(self, X):
+        if not isinstance(X[0], list):
+            X = [X]
+        m = []
+        kwargs = self._b4msa_args
+        self._logger.info("Starting TextModel")
+        self._logger.info(str(kwargs))
+        for x in X:
+            for tm, cl in self.models:
+                m.append(tm(x, **kwargs))
+        self._textModel = m
+
+    def vector_space(self, X):
+        if not isinstance(X[0], list):
+            X = [X]
+        args = []
+        i = 0
+        k = 0
+        nmodels = len(self.models)
+        for x in X:
+            for _ in range(nmodels):
+                t = self._textModel[k]
+                k += 1
+                args.append((i, t, x))
+                i += 1
+        if self.n_jobs > 1:
+            p = Pool(self.n_jobs, maxtasksperchild=1)
+            res = [x for x in tqdm(p.imap_unordered(vector_space, args), total=len(args))]
+            res.sort(key=lambda x: x[0])
+            p.close()
+        else:
+            res = [vector_space(x) for x in tqdm(args)]
+        return [x[1] for x in res]
+
+    def kfold_decision_function(self, cl, X, y):
+        hy = [None for x in y]
+        args = []
+        for tr, ts in KFold(n_splits=self._n_splits,
+                            shuffle=True, random_state=self._seed).split(X):
+            args.append([cl, X, y, tr, ts, self._seed])
+        if self.n_jobs == 1:
+            res = [kfold_decision_function(x) for x in tqdm(args, total=len(args))]
+        else:
+            p = Pool(self.n_jobs, maxtasksperchild=1)
+            res = [x for x in tqdm(p.imap_unordered(kfold_decision_function, args),
+                                   total=len(args))]
+            p.close()
+        for ts, df in res:
+            [hy.__setitem__(k, self.tolist(v)) for k, v in zip(ts, df)]
+        return hy
+    
     def _transform(self, X, models, textModel):
         if len(models) == 0:
             return []

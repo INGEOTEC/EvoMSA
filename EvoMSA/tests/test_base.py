@@ -42,7 +42,7 @@ def test_TextModel():
 def test_vector_space():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
-                 models=[['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier'],
+                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
                          'EvoMSA.bernulli.Bernulli'])
     evo.model(X)
     a = X[0]
@@ -57,7 +57,7 @@ def test_EvoMSA_kfold_decision_function():
     le = LabelEncoder().fit(y)
     y = le.transform(y)
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
-                 models=[['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier'],
+                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
                          'EvoMSA.bernulli.Bernulli'])
     evo.model(X)
     X = evo.vector_space(X)
@@ -74,7 +74,7 @@ def test_EvoMSA_fit():
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
                                   n_estimators=5),
                  models=['EvoMSA.bernulli.Bernulli',
-                         ['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier']],
+                         ['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier']],
                  n_jobs=2).fit(X, y)
     assert evo
     assert isinstance(evo._svc_models[0], Bernulli)
@@ -108,7 +108,22 @@ def test_EvoMSA_predict():
     import numpy as np
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
-                 models=[['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier']],
+                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier']],
+                 n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
+                               [y, [x for x in y if x in ['P', 'N']]])
+    hy = evo.predict(X)
+    assert len(hy) == 1000
+    print((np.array(y) == hy).mean(), hy)
+    print(evo.predict_proba(X))
+    print(evo._evodag_model.fitness_vs)
+    assert (np.array(y) == hy).mean() > 0.8
+
+
+def test_EvoMSA_bernulli_predict():
+    import numpy as np
+    X, y = get_data()
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
+                 models=['EvoMSA.bernulli.Bernulli'],
                  n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict(X)
@@ -184,7 +199,7 @@ def test_EvoMSA_model():
     X, y = get_data()
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
-                   models=[['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier'],
+                   models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
                            'EvoMSA.bernulli.Bernulli'],
                    n_jobs=2)
     assert len(model.models) == 2
@@ -196,11 +211,11 @@ def test_EvoMSA_model():
 def test_EvoMSA_fit_svm():
     from sklearn.preprocessing import LabelEncoder
     X, y = get_data()
-    from EvoMSA.base import B4MSAClassifier
+    from EvoMSA.model import B4MSAClassifier
     from EvoMSA.bernulli import Bernulli
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
-                   models=[['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier'],
+                   models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
                            'EvoMSA.bernulli.Bernulli'],
                    n_jobs=2)
     le = LabelEncoder().fit(y)

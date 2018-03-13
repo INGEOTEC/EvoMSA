@@ -291,7 +291,7 @@ class CommandLinePredict(CommandLine):
         hy = evo._le.inverse_transform(pr.argmax(axis=1))
         with open(self.data.output_file, 'w') as fpt:
             for x, y, df in zip(tweet_iterator(predict_file), hy, pr):
-                _ = {self._klass: str(y), self._decision_function: df.tolist()}
+                _ = {self._klass: y, self._decision_function: df.tolist()}
                 x.update(_)
                 fpt.write(json.dumps(x) + '\n')
 
