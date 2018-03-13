@@ -173,7 +173,11 @@ class EvoMSA(object):
             ex = [ex]
         L = [D]
         for x in ex:
-            L.append(x.predict_proba(X))
+            _ = x.predict_proba(X)
+            df = _ * 2 - 1
+            df[df > 1] = 1
+            df[df < -1] = -1
+            L.append(df)
         return np.concatenate(L, axis=1)
 
     def model(self, X):
