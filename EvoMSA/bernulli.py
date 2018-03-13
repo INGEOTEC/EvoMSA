@@ -78,16 +78,23 @@ class Bernulli(BaseClassifier):
         return self
 
     def predict(self, X):
-        return np.argmax(self.decision_function(X), axis=1)
+        return np.argmax(self.decision_function_raw(X), axis=1)
+
+    def decision_function(self, X):
+        _ = self.predict_proba(X)
+        df = _ * 2 - 1
+        df[df > 1] = 1
+        df[df < -1] = -1
+        return df
 
     def predict_proba(self, X):
-        X = self.decision_function(X)
+        X = self.decision_function_raw(X)
         pr = np.exp(X)
         den = pr.sum(axis=1)
         _ = pr / np.atleast_2d(den).T
-        return _ * 2 - 1
+        return _
 
-    def decision_function(self, X):
+    def decision_function_raw(self, X):
         c = self._corpus
         wj = self._wj
         vj = self._vj

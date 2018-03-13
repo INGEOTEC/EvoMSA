@@ -52,24 +52,32 @@ def test_vector_space():
 
 
 def test_EvoMSA_kfold_decision_function():
+    from sklearn.preprocessing import LabelEncoder
     X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(time_limit=5, n_estimators=5))
+    le = LabelEncoder().fit(y)
+    y = le.transform(y)
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
+                 models=[['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier'],
+                         'EvoMSA.bernulli.Bernulli'])
     evo.model(X)
     X = evo.vector_space(X)
-    D = evo.kfold_decision_function(X[0], y)
+    cl = evo.models[1][1]
+    D = evo.kfold_decision_function(cl, X[1], y)
     assert len(D[0]) == 4
     assert isinstance(D[0], list)
 
 
 def test_EvoMSA_fit():
-    from b4msa.classifier import SVC
+    from EvoMSA.bernulli import Bernulli
     from EvoDAG.model import Ensemble
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
                                   n_estimators=5),
+                 models=['EvoMSA.bernulli.Bernulli',
+                         ['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier']],
                  n_jobs=2).fit(X, y)
     assert evo
-    assert isinstance(evo._svc_models[0], SVC)
+    assert isinstance(evo._svc_models[0], Bernulli)
     assert isinstance(evo._evodag_model, Ensemble)
 
 
@@ -108,19 +116,6 @@ def test_EvoMSA_predict():
     print((np.array(y) == hy).mean(), hy)
     print(evo.predict_proba(X))
     assert (np.array(y) == hy).mean() > 0.8
-
-
-def test_EvoMSA_fit3():
-    X, y = get_data()
-    evo = EvoMSA(use_ts=False, evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
-                                                n_estimators=5),
-                 n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
-                               [y, [x for x in y if x in ['P', 'N']]])
-    assert evo
-    print(evo._svc_models, evo._textModel)
-    D = evo.transform(X, y)
-    print(D)
-    assert len(D[0]) == 1
 
 
 def test_EvoMSA_predict_proba():
@@ -214,26 +209,3 @@ def test_EvoMSA_fit_svm():
     assert len(model._svc_models) == 2
     for ins, klass in zip(model._svc_models, [B4MSAClassifier, Bernulli]):
         assert isinstance(ins, klass)
-
- 
-    # model.fit_svm(X, y)
-    # print(model.models)
-    # print(model._textModel)
-    # assert len(model._svc_models) == 2
-
-
-# def test_EvoMSA_deterministic():
-#     import numpy as np
-#     X, y = get_data()
-#     model1 = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=5),
-#                     n_jobs=2).fit(X, y)
-#     model2 = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=5),
-#                     n_jobs=2).fit(X, y)
-#     r = np.fabs(model1._evodag_D - model2._evodag_D)
-#     print(r[r != 0])
-#     assert np.fabs(model1._evodag_D - model2._evodag_D).sum() == 0
-#     hy1 = model1.predict_proba(X)
-#     hy2 = model2.predict_proba(X)
-#     print(hy1[:4])
-#     print(hy2[:4])
-#     assert np.fabs(hy1 - hy2).sum() == 0

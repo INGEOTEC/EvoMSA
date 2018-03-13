@@ -31,7 +31,6 @@ def test_train():
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
-    assert evo._use_ts
 
 
 def test_evo_kwargs():
@@ -105,19 +104,6 @@ def test_utils_b4msa_df():
     os.unlink('model.json')
 
 
-def test_train_no_use_ts():
-    from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '--no-use-ts', '-ot.model', '-n2',
-                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                TWEETS, TWEETS]
-    train(output=True)
-    with gzip.open('t.model', 'r') as fpt:
-        evo = pickle.load(fpt)
-    assert isinstance(evo, EvoMSA)
-    os.unlink('t.model')
-    assert not evo._use_ts
-
-
 def test_train_kw():
     from EvoMSA.base import EvoMSA
     sys.argv = ['EvoMSA', '-ot.model', '-n1',
@@ -178,8 +164,7 @@ def test_utils_transform():
         for x in tweet_iterator(TWEETS):
             x['decision_function'] = x['q_voc_ratio']
             fpt.write(json.dumps(x) + '\n')
-    sys.argv = ['EvoMSA', '-ot.model', '-n2', '--no-use-ts',
-                '--exogenous', 'ex.json', 'ex.json',
+    sys.argv = ['EvoMSA', '-ot.model', '-n2', '--exogenous', 'ex.json', 'ex.json',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 TWEETS, TWEETS]
     train(output=True)
@@ -190,7 +175,8 @@ def test_utils_transform():
     os.unlink('t.model')
     vec = [x['vec'] for x in tweet_iterator('t.json')]
     os.unlink('t.json')
-    assert len(vec[0]) == 6
+    print(len(vec[0]))
+    assert len(vec[0]) == 10
 
 
 def test_raw_outputs():

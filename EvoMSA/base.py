@@ -32,28 +32,24 @@ except ImportError:
 
 
 def kfold_decision_function(args):
-    X, y, tr, ts, seed = args
-    c = SVC(model=None, random_state=seed)
+    cl, X, y, tr, ts, seed = args
+    c = cl(random_state=seed)
     c.fit([X[x] for x in tr], [y[x] for x in tr])
     _ = c.decision_function([X[x] for x in ts])
-    _[_ > 1] = 1
-    _[_ < -1] = -1
     return ts, _
 
 
 def transform(args):
     k, m, t, X = args
-    x = [t[str(_)] for _ in X]
+    x = [t[_] for _ in X]
     df = m.decision_function(x)
-    df[df > 1] = 1
-    df[df < -1] = -1
     d = [EvoMSA.tolist(_) for _ in df]
     return (k, d)
 
 
 def vector_space(args):
     k, t, X = args
-    return k, [t[str(_)] for _ in X]
+    return k, [t[_] for _ in X]
 
 
 class BaseTextModel(object):
@@ -76,22 +72,33 @@ class BaseClassifier(object):
     def fit(self, X, y):
         pass
 
+    def decision_function(self, X):
+        pass
+
 
 class B4MSATextModel(TextModel, BaseTextModel):
-    pass
+    def __getitem__(self, x):
+        if x is None:
+            x = ''
+        return TextModel.__getitem__(self, str(x))
 
 
 class B4MSAClassifier(SVC, BaseClassifier):
     def __init__(self, random_state=0):
         SVC.__init__(self, model=None, random_state=random_state)
 
+    def decision_function(self, X):
+        _ = SVC.decision_function(self, X)
+        _[_ > 1] = 1
+        _[_ < -1] = -1
+        return _
+
 
 class EvoMSA(object):
-    def __init__(self, use_ts=True, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1'),
+    def __init__(self, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1'),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
                  models=[['EvoMSA.base.B4MSATextModel', 'EvoMSA.base.B4MSAClassifier']],
                  logistic_regression_args=None, probability_calibration=False):
-        self._use_ts = use_ts
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
                                         'conf', 'default_parameters.json')
@@ -185,12 +192,12 @@ class EvoMSA(object):
             res = [vector_space(x) for x in tqdm(args)]
         return [x[1] for x in res]
 
-    def kfold_decision_function(self, X, y):
+    def kfold_decision_function(self, cl, X, y):
         hy = [None for x in y]
         args = []
         for tr, ts in KFold(n_splits=self._n_splits,
                             shuffle=True, random_state=self._seed).split(X):
-            args.append([X, y, tr, ts, self._seed])
+            args.append([cl, X, y, tr, ts, self._seed])
         if self.n_jobs == 1:
             res = [kfold_decision_function(x) for x in tqdm(args, total=len(args))]
         else:
@@ -279,17 +286,18 @@ class EvoMSA(object):
         if y is None or self._svc_models[0] is None:
             D = self._transform(X, self._svc_models, self._textModel)
         else:
-            D = self._transform(X, self._svc_models[1:], self._textModel[1:])
-            t = self._textModel[0]
-            x = [t[str(_)] for _ in X]
-            d = self.kfold_decision_function(x, y)
-            [v.__iadd__(w) for v, w in zip(d, D)]
+            cnt = len(self.models)
+            D = self._transform(X, self._svc_models[cnt:], self._textModel[cnt:])
+            for t_cl, t in zip(self.models, self._textModel):
+                cl = t_cl[1]
+                x = [t[_] for _ in X]
+                d = self.kfold_decision_function(cl, x, y)
+                [v.__iadd__(w) for v, w in zip(d, D)]
             D = d
         _ = np.array(D)
         return self.append_exogenous_model(self.append_exogenous(_), X)
 
     def fit_svm(self, X, y):
-        n_use_ts = not self._use_ts
         self.model(X)
         Xvs = self.vector_space(X)
         if not isinstance(y[0], list):
@@ -298,16 +306,24 @@ class EvoMSA(object):
         for y0 in y:
             for x, tm, tm_cl in zip(Xvs, self._textModel, self.models):
                 cl = tm_cl[1]
-                if n_use_ts:
-                    svc_models.append(None)
-                    n_use_ts = False
-                    continue
                 c = cl(random_state=self._seed)
                 c.fit(x, y0)
                 svc_models.append(c)
         self._svc_models = svc_models
 
     def fit(self, X, y, test_set=None):
+        if isinstance(y[0], list):
+            le = []
+            Y = []
+            for y0 in y:
+                _ = LabelEncoder().fit(y0)
+                le.append(_)
+                Y.append(_.transform(y0))
+            self._le = le[0]
+            y = Y
+        else:
+            self._le = LabelEncoder().fit(y)
+            y = self._le.transform(y)
         self.fit_svm(X, y)
         if isinstance(y[0], list):
             y = y[0]
@@ -317,13 +333,6 @@ class EvoMSA(object):
         if test_set is not None:
             if isinstance(test_set, list):
                 test_set = self.transform(test_set)
-        svc_models = self._svc_models
-        if svc_models[0] is not None:
-            self._le = svc_models[0].le
-        else:
-            self._le = LabelEncoder()
-            self._le.fit(y)
-        klass = self._le.transform(y)
         if self._probability_calibration:
             probability_calibration = CalibrationLR
         else:
@@ -332,11 +341,10 @@ class EvoMSA(object):
                  probability_calibration=probability_calibration)
         self._evodag_args.update(_)
         self._evodag_D = D
-        self._evodag_model = EvoDAGE(**self._evodag_args).fit(D, klass,
+        self._evodag_model = EvoDAGE(**self._evodag_args).fit(D, y,
                                                               test_set=test_set)
         if self._logistic_regression is not None:
-            self._logistic_regression.fit(self._evodag_model.raw_decision_function(D),
-                                          klass)
+            self._logistic_regression.fit(self._evodag_model.raw_decision_function(D), y)
         return self
 
     @staticmethod

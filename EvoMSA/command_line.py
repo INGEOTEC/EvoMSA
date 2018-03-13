@@ -91,7 +91,6 @@ class CommandLineTrain(CommandLine):
            help='Test set to do transductive learning')
         pa('-P', '--parameters', dest='parameters', type=str,
            help='B4MSA parameters')
-        pa('--no-use-ts', dest='use_ts', default=True, action='store_false')
         pa('--exogenous-model', help='Exogenous model(s) - pickle.dump with gzip', dest='exogenous_model',
            default=None, type=str, nargs='*')
 
@@ -118,7 +117,7 @@ class CommandLineTrain(CommandLine):
                 test_set = self.data.test_set
         else:
             test_set = None
-        kwargs = dict(use_ts=self.data.use_ts, n_jobs=self.data.n_jobs)
+        kwargs = dict(n_jobs=self.data.n_jobs)
         if self.data.kwargs is not None:
             _ = json.loads(self.data.kwargs)
             kwargs.update(_)
