@@ -108,7 +108,7 @@ def test_EvoMSA_predict():
     import numpy as np
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
-                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier']],
+                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'], "EvoMSA.bernulli.Bernulli"],
                  n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict(X)
@@ -225,3 +225,25 @@ def test_EvoMSA_fit_svm():
     assert len(model._svc_models) == 2
     for ins, klass in zip(model._svc_models, [B4MSAClassifier, Bernulli]):
         assert isinstance(ins, klass)
+
+
+def test_EvoMSA_transform():
+    import numpy as np
+    from sklearn.preprocessing import LabelEncoder
+    X, y = get_data()
+    Xn = [X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]]
+    Y = [y, [x for x in y if x in ['P', 'N']]]
+    Yn = []
+    for y0 in Y:
+        _ = LabelEncoder().fit(y0)
+        Yn.append(_.transform(y0).tolist())
+    X = Xn
+    y = Yn
+    for m, shape in zip([[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'], 'EvoMSA.bernulli.Bernulli'],
+                         ['EvoMSA.bernulli.Bernulli']], [11, 6]):
+        evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
+                     models=m,
+                     n_jobs=1)
+        evo.fit_svm(X, y)
+        D = evo.transform(X[0], y[0])
+        D.shape[1] == shape

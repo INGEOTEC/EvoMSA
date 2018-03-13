@@ -258,7 +258,7 @@ class EvoMSA(object):
                 x = [t[_] for _ in X]
                 d = self.kfold_decision_function(cl, x, y)
                 [v.__iadd__(w) for v, w in zip(d, D)]
-            D = d
+                D = d
         _ = np.array(D)
         return self.append_exogenous_model(self.append_exogenous(_), X)
 
