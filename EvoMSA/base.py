@@ -262,10 +262,9 @@ class EvoMSA(object):
                     Di = d
                 else:
                     [v.__iadd__(w) for v, w in zip(Di, d)]
-        if len(D):
-            _ = np.concatenate((D, Di), axis=1)
-        else:
-            _ = np.array(Di)
+            [v.__iadd__(w) for v, w in zip(Di, D)]
+            D = Di
+        _ = np.array(D)
         return self.append_exogenous_model(self.append_exogenous(_), X)
 
     def fit_svm(self, X, y):
