@@ -348,8 +348,7 @@ class EvoMSA(object):
         _ = dict(n_jobs=self.n_jobs, seed=self._seed,
                  probability_calibration=probability_calibration)
         self._evodag_args.update(_)
-        self._evodag_D = D
-        print(D, y)
+        y = np.array(y)
         self._evodag_model = EvoDAGE(**self._evodag_args).fit(D, y,
                                                               test_set=test_set)
         if self._logistic_regression is not None:
