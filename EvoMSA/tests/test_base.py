@@ -43,11 +43,9 @@ def test_vector_space():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
                  models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
-                         'EvoMSA.bernulli.Bernulli'])
+                         ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
     evo.model(X)
-    a = X[0]
     X = evo.vector_space(X)
-    assert X[1][0] == a
     assert X[0][0][0][0] == 0
 
 
@@ -58,7 +56,7 @@ def test_EvoMSA_kfold_decision_function():
     y = le.transform(y)
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
                  models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
-                         'EvoMSA.bernulli.Bernulli'])
+                         ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
     evo.model(X)
     X = evo.vector_space(X)
     cl = evo.models[1][1]
@@ -68,12 +66,12 @@ def test_EvoMSA_kfold_decision_function():
 
 
 def test_EvoMSA_fit():
-    from EvoMSA.bernulli import Bernulli
+    from EvoMSA.model import Bernulli
     from EvoDAG.model import Ensemble
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
                                   n_estimators=5),
-                 models=['EvoMSA.bernulli.Bernulli',
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli'],
                          ['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier']],
                  n_jobs=2).fit(X, y)
     assert evo
@@ -108,7 +106,8 @@ def test_EvoMSA_predict():
     import numpy as np
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
-                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'], "EvoMSA.bernulli.Bernulli"],
+                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
+                         ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                  n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict(X)
@@ -123,7 +122,7 @@ def test_EvoMSA_bernulli_predict():
     import numpy as np
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
-                 models=['EvoMSA.bernulli.Bernulli'],
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                  n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict(X)
@@ -200,7 +199,7 @@ def test_EvoMSA_model():
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
                    models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
-                           'EvoMSA.bernulli.Bernulli'],
+                           ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                    n_jobs=2)
     assert len(model.models) == 2
     model.model(X)
@@ -212,11 +211,11 @@ def test_EvoMSA_fit_svm():
     from sklearn.preprocessing import LabelEncoder
     X, y = get_data()
     from EvoMSA.model import B4MSAClassifier
-    from EvoMSA.bernulli import Bernulli
+    from EvoMSA.model import Bernulli
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
                    models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
-                           'EvoMSA.bernulli.Bernulli'],
+                           ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                    n_jobs=2)
     le = LabelEncoder().fit(y)
     y = le.transform(y)
@@ -238,8 +237,9 @@ def test_EvoMSA_transform():
         Yn.append(_.transform(y0).tolist())
     X = Xn
     y = Yn
-    for m, shape in zip([[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'], 'EvoMSA.bernulli.Bernulli'],
-                         ['EvoMSA.bernulli.Bernulli']], [11, 6]):
+    for m, shape in zip([[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
+                          ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                         [['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']]], [11, 6]):
         evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
                      models=m,
                      n_jobs=1)
