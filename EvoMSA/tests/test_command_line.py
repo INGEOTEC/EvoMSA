@@ -262,7 +262,8 @@ def test_predict_numbers():
         for x, y0 in zip(d, y):
             x['klass'] = y0
             fpt.write(json.dumps(x) + '\n')
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}', '--kw={"models": ["EvoMSA.bernulli.Bernulli"]}',
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]]}',
                 '-ot.model', '-n1', 'ex.json']
     train(output=True)
     sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
