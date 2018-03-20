@@ -150,3 +150,29 @@ class Bernulli(BaseClassifier):
             hy.append(_)
         return np.array(hy)
 
+
+class Multinomial(Bernulli):
+    def fit(self, X, klass):
+        self._num_terms = max([max([_[0] for _ in x]) for x in X]) + 1
+        klasses = np.unique(klass)
+        pr = np.zeros((klasses.shape[0], self.num_terms))
+        for i, k in zip(X, klass):
+            pr[k, np.array([_[0] for _ in i])] += 1
+        den = pr.sum(axis=1)
+        self._log_xj = np.log((1 + pr) / np.atleast_2d(self.num_terms + den).T)
+        return self
+        
+    def decision_function_raw(self, X):
+        xj = self._log_xj
+        if not isinstance(X, list):
+            X = [X]
+        hy = []
+        for d in X:
+            x = np.zeros(self.num_terms)
+            index = [_[0] for _ in d if _[0] < self._num_terms]
+            if len(index):
+                x[np.array(index)] = 1
+            _ = (xj * x).sum(axis=1)
+            hy.append(_)
+        return np.array(hy)
+    
