@@ -75,12 +75,6 @@ class Corpus(BaseTextModel):
     def num_terms(self):
         return self._num_terms
 
-    def vec(self, d):
-        v = np.zeros(self.num_terms)
-        for i, x in self.__getitem__(d):
-            v[i] = x
-        return v
-
     def __getitem__(self, d):
         tokens = []
         for t in self._textModel.tokenize(d):
