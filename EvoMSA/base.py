@@ -55,7 +55,7 @@ class EvoMSA(object):
     def __init__(self, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1'),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
                  models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier']],
-                 evodag_class="EvoDAG.model EvoDAGE", logistic_regression_args=None, probability_calibration=False):
+                 evodag_class="EvoDAG.model.EvoDAGE", logistic_regression_args=None, probability_calibration=False):
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
                                         'conf', 'default_parameters.json')
