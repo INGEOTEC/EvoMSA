@@ -258,3 +258,14 @@ def test_EvoMSA_evodag_class():
                    n_jobs=2).fit(X, y)
     assert isinstance(model._evodag_model, NearestCentroid)
         
+
+def test_EvoMSA_multinomial():
+    from EvoMSA.model import Multinomial
+    X, y = get_data()
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
+                                  n_estimators=5),
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Multinomial']],
+                 n_jobs=1).fit(X, y)
+    assert evo
+    assert isinstance(evo._svc_models[0], Multinomial)
+    
