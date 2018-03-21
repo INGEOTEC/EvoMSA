@@ -31,7 +31,6 @@ def test_train():
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
-    assert evo._use_ts
 
 
 def test_evo_kwargs():
@@ -105,19 +104,6 @@ def test_utils_b4msa_df():
     os.unlink('model.json')
 
 
-def test_train_no_use_ts():
-    from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '--no-use-ts', '-ot.model', '-n2',
-                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                TWEETS, TWEETS]
-    train(output=True)
-    with gzip.open('t.model', 'r') as fpt:
-        evo = pickle.load(fpt)
-    assert isinstance(evo, EvoMSA)
-    os.unlink('t.model')
-    assert not evo._use_ts
-
-
 def test_train_kw():
     from EvoMSA.base import EvoMSA
     sys.argv = ['EvoMSA', '-ot.model', '-n1',
@@ -178,8 +164,7 @@ def test_utils_transform():
         for x in tweet_iterator(TWEETS):
             x['decision_function'] = x['q_voc_ratio']
             fpt.write(json.dumps(x) + '\n')
-    sys.argv = ['EvoMSA', '-ot.model', '-n2', '--no-use-ts',
-                '--exogenous', 'ex.json', 'ex.json',
+    sys.argv = ['EvoMSA', '-ot.model', '-n2', '--exogenous', 'ex.json', 'ex.json',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 TWEETS, TWEETS]
     train(output=True)
@@ -190,7 +175,8 @@ def test_utils_transform():
     os.unlink('t.model')
     vec = [x['vec'] for x in tweet_iterator('t.json')]
     os.unlink('t.json')
-    assert len(vec[0]) == 6
+    print(len(vec[0]))
+    assert len(vec[0]) == 10
 
 
 def test_raw_outputs():
@@ -263,3 +249,22 @@ def test_evo_test_set_shuffle():
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
+
+
+def test_predict_numbers():
+    from b4msa.utils import tweet_iterator
+    from sklearn.preprocessing import LabelEncoder
+    import json
+    d = [x for x in tweet_iterator(TWEETS)]
+    le = LabelEncoder().fit([x['klass'] for x in d])
+    y = le.transform([x['klass'] for x in d]).tolist()
+    with open('ex.json', 'w') as fpt:
+        for x, y0 in zip(d, y):
+            x['klass'] = y0
+            fpt.write(json.dumps(x) + '\n')
+    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]]}',
+                '-ot.model', '-n1', 'ex.json']
+    train(output=True)
+    sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
+    predict()
