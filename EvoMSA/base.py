@@ -55,7 +55,7 @@ class EvoMSA(object):
     def __init__(self, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1'),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
                  models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier']],
-                 logistic_regression_args=None, probability_calibration=False):
+                 evodag_class="EvoDAG.model EvoDAGE", logistic_regression_args=None, probability_calibration=False):
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
                                         'conf', 'default_parameters.json')
@@ -80,6 +80,7 @@ class EvoMSA(object):
         self._exogenous_model = None
         self._probability_calibration = probability_calibration
         self.models = models
+        self._evodag_class = self.get_class(evodag_class)
 
     def get_class(self, m):
         if isinstance(m, str):
@@ -315,8 +316,11 @@ class EvoMSA(object):
                  probability_calibration=probability_calibration)
         self._evodag_args.update(_)
         y = np.array(y)
-        self._evodag_model = EvoDAGE(**self._evodag_args).fit(D, y,
-                                                              test_set=test_set)
+        try:
+            _ = self._evodag_class(**self._evodag_args).fit(D, y, test_set=test_set)
+            self._evodag_model = _
+        except TypeError:
+            self._evodag_model = self._evodag_class().fit(D, y)
         if self._logistic_regression is not None:
             self._logistic_regression.fit(self._evodag_model.raw_decision_function(D), y)
         return self

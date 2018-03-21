@@ -246,3 +246,15 @@ def test_EvoMSA_transform():
         evo.fit_svm(X, y)
         D = evo.transform(X[0], y[0])
         D.shape[1] == shape
+
+
+def test_EvoMSA_evodag_class():
+    from sklearn.neighbors import NearestCentroid
+    X, y = get_data()
+    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                    n_estimators=3),
+                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                   evodag_class="sklearn.neighbors.NearestCentroid",
+                   n_jobs=2).fit(X, y)
+    assert isinstance(model._evodag_model, NearestCentroid)
+        
