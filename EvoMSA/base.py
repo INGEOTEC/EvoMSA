@@ -134,7 +134,7 @@ class EvoMSA(object):
         except AttributeError:
             index = self._evodag_model.predict(X)
             res = np.zeros((index.shape[0], self._le.classes_.shape[0]))
-            res[index] = 1
+            res[np.arange(index.shape[0]), index] = 1
             return res
 
     def raw_decision_function(self, X):

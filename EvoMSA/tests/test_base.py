@@ -250,6 +250,7 @@ def test_EvoMSA_transform():
 
 def test_EvoMSA_evodag_class():
     from sklearn.neighbors import NearestCentroid
+    import numpy as np
     X, y = get_data()
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
@@ -257,7 +258,12 @@ def test_EvoMSA_evodag_class():
                    evodag_class="sklearn.neighbors.NearestCentroid",
                    n_jobs=2).fit(X, y)
     assert isinstance(model._evodag_model, NearestCentroid)
-        
+    cl = model.predict(X)
+    hy = model.predict_proba(X)
+    cl2 = model._le.inverse_transform(hy.argmax(axis=1))
+    print(cl, cl2)
+    assert np.all(cl == cl2)
+
 
 def test_EvoMSA_multinomial():
     from EvoMSA.model import Multinomial
