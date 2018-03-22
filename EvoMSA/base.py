@@ -129,7 +129,13 @@ class EvoMSA(object):
         if self._logistic_regression is not None:
             X = self._evodag_model.raw_decision_function(X)
             return self._logistic_regression.predict_proba(X)
-        return self._evodag_model.predict_proba(X)
+        try:
+            return self._evodag_model.predict_proba(X)
+        except AttributeError:
+            index = self._evodag_model.predict(X)
+            res = np.zeros((index.shape[0], self._le.classes_.shape[0]))
+            res[index] = 1
+            return res
 
     def raw_decision_function(self, X):
         X = self.transform(X)

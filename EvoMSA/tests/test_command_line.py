@@ -268,3 +268,23 @@ def test_predict_numbers():
     train(output=True)
     sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
     predict()
+
+
+def test_predict_NearestCentroid():
+    from b4msa.utils import tweet_iterator
+    from sklearn.preprocessing import LabelEncoder
+    import json
+    d = [x for x in tweet_iterator(TWEETS)]
+    le = LabelEncoder().fit([x['klass'] for x in d])
+    y = le.transform([x['klass'] for x in d]).tolist()
+    with open('ex.json', 'w') as fpt:
+        for x, y0 in zip(d, y):
+            x['klass'] = y0
+            fpt.write(json.dumps(x) + '\n')
+    sys.argv = ['EvoMSA',
+                '--kw={"evodag_class": "sklearn.neighbors.NearestCentroid", "models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]]}',
+                '-ot.model', '-n1', 'ex.json']
+    train(output=True)
+    sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
+    predict()
+    
