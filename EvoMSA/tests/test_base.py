@@ -274,4 +274,17 @@ def test_EvoMSA_multinomial():
                  n_jobs=1).fit(X, y)
     assert evo
     assert isinstance(evo._svc_models[0], Multinomial)
+
+
+def test_EvoMSA_empty_string():
+    from EvoMSA.model import Multinomial
+    X, y = get_data()
+    X.append("")
+    y.append("NONE")
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
+                                  n_estimators=5),
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Multinomial']],
+                 n_jobs=1).fit(X, y)
+    assert evo
+    assert isinstance(evo._svc_models[0], Multinomial)
     

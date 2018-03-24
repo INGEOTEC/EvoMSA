@@ -101,11 +101,13 @@ class Bernulli(BaseClassifier):
         return self._num_terms
 
     def fit(self, X, klass):
-        self._num_terms = max([max([_[0] for _ in x]) for x in X]) + 1
+        self._num_terms = max([max([_[0] for _ in x]) for x in X if len(x)]) + 1
         klasses = np.unique(klass)
         pr = np.zeros((klasses.shape[0], self.num_terms))
         for i, k in zip(X, klass):
-            pr[k, np.array([_[0] for _ in i])] += 1
+            index = np.array([_[0] for _ in i])
+            if index.shape[0] > 0:
+                pr[k, index] += 1
         _ = np.atleast_2d(self.num_terms + np.array([(klass == _k).sum() for _k in klasses])).T
         pr = (1 + pr) / _
         self._wj = np.log(pr)
@@ -147,11 +149,13 @@ class Bernulli(BaseClassifier):
 
 class Multinomial(Bernulli):
     def fit(self, X, klass):
-        self._num_terms = max([max([_[0] for _ in x]) for x in X]) + 1
+        self._num_terms = max([max([_[0] for _ in x]) for x in X if len(x)]) + 1
         klasses = np.unique(klass)
         pr = np.zeros((klasses.shape[0], self.num_terms))
         for i, k in zip(X, klass):
-            pr[k, np.array([_[0] for _ in i])] += 1
+            index = np.array([_[0] for _ in i])
+            if index.shape[0] > 0:
+                pr[k, index] += 1
         den = pr.sum(axis=1)
         self._log_xj = np.log((1 + pr) / np.atleast_2d(self.num_terms + den).T)
         return self
