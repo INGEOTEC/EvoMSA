@@ -311,9 +311,10 @@ class CommandLinePerformance(CommandLine):
         self._p = p
         self._alpha = alpha
         for m, _p, _alpha, mu in zip(self.data.model, p, alpha, D.mean(axis=0)):
-            print("%0.4f" % mu, m)
+            cdn = ''
             if np.isfinite(_alpha):
-                print(" *")
+                cdn = " *"
+            print("%0.4f" % mu, m, cdn)
 
     @staticmethod
     def compute_p(syss):
