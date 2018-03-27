@@ -21,7 +21,27 @@ import pickle
 import json
 import os
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
 from scipy.stats import wilcoxon
+from multiprocessing import Pool
+try:
+    from tqdm import tqdm
+except ImportError:
+    def tqdm(x, **kwargs):
+        return x
+
+
+class Identity(object):
+    def transform(self, x):
+        return x
+
+
+def fitness_vs(k_model):
+    k, model = k_model
+    if model == '-':
+        return k, '-'
+    model = CommandLine.load_model(model)
+    return k, np.mean([x.fitness_vs for x in model._evodag_model.models])
 
 
 class CommandLine(object):
@@ -300,13 +320,49 @@ class CommandLinePredict(CommandLine):
 class CommandLinePerformance(CommandLine):
     def __init__(self):
         super(CommandLinePerformance, self).__init__()
+        g = self.parser.add_mutually_exclusive_group(required=True)
         pa = self.parser.add_argument
-        pa('-m', '--model', help='Model(s) - pickle.dump with gzip', dest='model',
+        pa('predictions', nargs='*', default=None)
+        ga = g.add_argument
+        ga('-m', '--model', help='Model(s) - pickle.dump with gzip', dest='model',
            default=None, type=str, nargs='*')
+        ga('-y', help='Output measured', dest='output', default=None, type=str)
+
+    def output(self):
+        y = [x[self._klass] for x in tweet_iterator(self.data.output)]
+        le = None
+        if len([isinstance(x, str) for x in y]):
+            le = LabelEncoder().fit(y)
+            y = le.transform(y)
+            
+        print(y)
 
     def main(self):
-        models = [self.load_model(d) for d in self.data.model]
-        D = np.array([[x.fitness_vs for x in m._evodag_model.models] for m in models]).T
+        if self.data.output is not None:
+            return self.output()
+        if len([x for x in self.data.model if x == '-']):
+            if self.data.n_jobs > 1:
+                p = Pool(self.data.n_jobs)
+                args = [(k, x) for k, x in enumerate(self.data.model)]
+                res = [x for x in tqdm(p.imap_unordered(fitness_vs, args), total=len(args))]
+                res.sort(key=lambda x: x[0])
+                p.close()
+            else:
+                res = [fitness_vs(x) for x in tqdm(args)]
+            D = []
+            I = []
+            for _, x in res:
+                if x == '-':
+                    D.append(I)
+                    I = []
+                    continue
+                I.append(x)
+            if len(I):
+                D.append(I)
+            D = np.array(D).T
+        else:
+            models = [self.load_model(d) for d in self.data.model]
+            D = np.array([[x.fitness_vs for x in m._evodag_model.models] for m in models]).T
         p, alpha = self.compute_p(D)
         self._p = p
         self._alpha = alpha

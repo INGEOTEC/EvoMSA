@@ -301,4 +301,36 @@ def test_performance_validation_set():
     sys.argv = ['EvoMSA', '-m'] + ['t-%s.model' % seed for seed in range(3)]
     m = performance(output=True)
     assert len(m._p) == 3
-    assert False
+
+
+def test_performance_validation_set2():
+    import os
+    from EvoMSA.command_line import performance
+    for seed in range(10):
+        if os.path.isfile('t-%s.model' % seed):
+            continue
+        sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 3}',
+                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '--test_set', 'shuffle', '-n2', TWEETS]
+        train(output=True)
+    sys.argv = ['EvoMSA', '-n2', '-m'] + ['t-%s.model' % seed for seed in range(5)] + ['-'] + ['t-%s.model' % seed for seed in range(5, 10)]
+    m = performance(output=True)
+    assert len(m._p) == 2
+
+
+def test_performance_public_set():
+    import os
+    from EvoMSA.command_line import performance
+    for seed in range(10):
+        if os.path.isfile('t-%s.model' % seed):
+            continue
+        sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 3}',
+                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '--test_set', 'shuffle', '-n2', TWEETS]
+        train(output=True)
+    for seed in range(10):
+        if os.path.isfile('t-%s.predict' % seed):
+            continue
+        sys.argv = ['EvoMSA', '-mt-%s.model' % seed, '-ot-%s.predict' % seed, TWEETS]
+        predict()
+    sys.argv = ['EvoMSA', '-n2', '-y', TWEETS] + ['t-%s.predict' % seed for seed in range(5)] + ['-'] + ['t-%s.predict' % seed for seed in range(5, 10)]
+    m = performance(output=True)
+    # assert len(m._p) == 2
