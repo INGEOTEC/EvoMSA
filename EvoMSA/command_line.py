@@ -21,6 +21,7 @@ import pickle
 import json
 import os
 import numpy as np
+from scipy.stats import wilcoxon
 
 
 class CommandLine(object):
@@ -296,6 +297,48 @@ class CommandLinePredict(CommandLine):
                 fpt.write(json.dumps(x) + '\n')
 
 
+class CommandLinePerformance(CommandLine):
+    def __init__(self):
+        super(CommandLinePerformance, self).__init__()
+        pa = self.parser.add_argument
+        pa('-m', '--model', help='Model(s) - pickle.dump with gzip', dest='model',
+           default=None, type=str, nargs='*')
+
+    def main(self):
+        models = [self.load_model(d) for d in self.data.model]
+        D = np.array([[x.fitness_vs for x in m._evodag_model.models] for m in models]).T
+        p, alpha = self.compute_p(D)
+        self._p = p
+        self._alpha = alpha
+        for m, _p, _alpha, mu in zip(self.data.model, p, alpha, D.mean(axis=0)):
+            print("%0.4f" % mu, m)
+            if np.isfinite(_alpha):
+                print(" *")
+
+    @staticmethod
+    def compute_p(syss):
+        p = []
+        mu = syss.mean(axis=0)
+        best = mu.argmax()
+        for i in range(syss.shape[1]):
+            if i == best:
+                p.append(np.inf)
+                continue
+            try:
+                pv = wilcoxon(syss[:, best], syss[:, i])[1]
+                p.append(pv)
+            except ValueError:
+                p.append(np.inf)
+        ps = np.argsort(p)
+        alpha = [np.inf for _ in ps]
+        for r, i in enumerate(ps):
+            alpha_c = (0.05 / (ps.shape[0] + 1 - (r + 1)))
+            if p[i] > alpha_c:
+                break
+            alpha[i] = alpha_c
+        return p, alpha
+
+
 def train(output=False):
     c = CommandLineTrain()
     c.parse_args()
@@ -315,4 +358,13 @@ def utils(output=False):
     c.parse_args()
     if output:
         return c
+
+
+def performance(output=False):
+    c = CommandLinePerformance()
+    c.parse_args()
+    if output:
+        return c
+
+
 

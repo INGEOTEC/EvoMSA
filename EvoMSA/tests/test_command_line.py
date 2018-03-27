@@ -287,4 +287,17 @@ def test_predict_NearestCentroid():
     train(output=True)
     sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
     predict()
-    
+
+
+def test_performance_validation_set():
+    import os
+    from EvoMSA.command_line import performance
+    for seed in range(3):
+        if os.path.isfile('t-%s.model' % seed):
+            continue
+        sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '--test_set', 'shuffle', '-n2', TWEETS]
+        train(output=True)
+    sys.argv = ['EvoMSA', '-m'] + ['t-%s.model' % seed for seed in range(3)]
+    m = performance(output=True)
+    assert len(m._p) == 3
