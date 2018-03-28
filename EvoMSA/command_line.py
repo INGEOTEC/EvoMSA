@@ -334,16 +334,15 @@ class CommandLinePerformance(CommandLine):
         if len([isinstance(x, str) for x in y]):
             le = LabelEncoder().fit(y)
             y = le.transform(y)
-            
         print(y)
 
     def main(self):
         if self.data.output is not None:
             return self.output()
         if len([x for x in self.data.model if x == '-']):
+            args = [(k, x) for k, x in enumerate(self.data.model)]            
             if self.data.n_jobs > 1:
-                p = Pool(self.data.n_jobs)
-                args = [(k, x) for k, x in enumerate(self.data.model)]
+                p = Pool(self.data.n_jobs)    
                 res = [x for x in tqdm(p.imap_unordered(fitness_vs, args), total=len(args))]
                 res.sort(key=lambda x: x[0])
                 p.close()
