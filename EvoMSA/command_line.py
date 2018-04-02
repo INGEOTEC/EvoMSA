@@ -16,7 +16,7 @@ import logging
 import EvoMSA
 from EvoMSA import base
 from b4msa.utils import tweet_iterator
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score
 import gzip
 import pickle
 import json
@@ -330,10 +330,13 @@ class CommandLinePerformance(CommandLine):
         ga = g.add_argument
         ga('-m', '--model', help='Model(s) - pickle.dump with gzip', dest='model',
            default=None, type=str, nargs='*')
-        ga('--score', help='Score - default macroF1', dest='score',
+        pa('--score', help='Score - default macroF1', dest='score',
            default='macroF1', type=str)
         ga('-y', help='Output measured', dest='output', default=None, type=str)
         self._macroF1 = lambda x, y: f1_score(x, y, average='macro')
+        self._macroRecall = lambda x, y: recall_score(x, y, average='macro')
+        self._macroPrecision = lambda x, y: precision_score(x, y, average='macro')
+        self._accuracy = lambda x, y: accuracy_score(x, y)
 
     def output(self):
         y = [x[self._klass] for x in tweet_iterator(self.data.output)]

@@ -331,6 +331,8 @@ def test_performance_public_set():
             continue
         sys.argv = ['EvoMSA', '-mt-%s.model' % seed, '-ot-%s.predict' % seed, TWEETS]
         predict()
-    sys.argv = ['EvoMSA', '-n2', '-y', TWEETS] + ['t-%s.predict' % seed for seed in range(5)] + ['-'] + ['t-%s.predict' % seed for seed in range(5, 10)]
-    m = performance(output=True)
-    assert len(m._p) == 2
+    for score in ['macroF1', 'macroRecall', 'macroPrecision', 'accuracy']:
+        sys.argv = ['EvoMSA', '--score', score, '-n2', '-y', TWEETS] + ['t-%s.predict' % seed for seed in range(5)] + ['-'] + ['t-%s.predict' % seed for seed in range(5, 10)]
+        m = performance(output=True)
+        assert len(m._p) == 2
+    
