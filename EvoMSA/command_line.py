@@ -16,6 +16,7 @@ import logging
 import EvoMSA
 from EvoMSA import base
 from b4msa.utils import tweet_iterator
+from sklearn.metrics import f1_score
 import gzip
 import pickle
 import json
@@ -329,7 +330,10 @@ class CommandLinePerformance(CommandLine):
         ga = g.add_argument
         ga('-m', '--model', help='Model(s) - pickle.dump with gzip', dest='model',
            default=None, type=str, nargs='*')
+        ga('--score', help='Score - default macroF1', dest='score',
+           default='macroF1', type=str)
         ga('-y', help='Output measured', dest='output', default=None, type=str)
+        self._macroF1 = lambda x, y: f1_score(x, y, average='macro')
 
     def output(self):
         y = [x[self._klass] for x in tweet_iterator(self.data.output)]
@@ -338,6 +342,7 @@ class CommandLinePerformance(CommandLine):
         else:
             le = Identity()
         le.fit(y)
+        perf = getattr(self, "_%s" % self.data.score)
         y = le.transform(y)
         D = []
         I = []
@@ -346,10 +351,19 @@ class CommandLinePerformance(CommandLine):
                 D.append(I)
                 I = []
                 continue
-            I.append(le.transform([x[self._klass] for x in tweet_iterator(fname)]))
+            hy = le.transform([x[self._klass] for x in tweet_iterator(fname)])
+            I.append(perf(y, hy))
         if len(I):
             D.append(I)
-        print(len(D))
+        D = np.array(D).T
+        p, alpha = self.compute_p(D)
+        self._p = p
+        self._alpha = alpha
+        for _p, _alpha, mu in zip(p, alpha, D.mean(axis=0)):
+            cdn = ''
+            if np.isfinite(_alpha):
+                cdn = " *"
+            print("%0.4f" % mu, cdn)
 
     def main(self):
         if self.data.output is not None:
