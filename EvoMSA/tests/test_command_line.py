@@ -333,4 +333,5 @@ def test_performance_public_set():
         predict()
     sys.argv = ['EvoMSA', '-n2', '-y', TWEETS] + ['t-%s.predict' % seed for seed in range(5)] + ['-'] + ['t-%s.predict' % seed for seed in range(5, 10)]
     m = performance(output=True)
+    assert False
     # assert len(m._p) == 2

@@ -32,6 +32,9 @@ except ImportError:
 
 
 class Identity(object):
+    def fit(self, y):
+        return y
+
     def transform(self, x):
         return x
 
@@ -330,19 +333,31 @@ class CommandLinePerformance(CommandLine):
 
     def output(self):
         y = [x[self._klass] for x in tweet_iterator(self.data.output)]
-        le = None
         if len([isinstance(x, str) for x in y]):
-            le = LabelEncoder().fit(y)
-            y = le.transform(y)
-        print(y)
+            le = LabelEncoder()
+        else:
+            le = Identity()
+        le.fit(y)
+        y = le.transform(y)
+        D = []
+        I = []
+        for fname in self.data.predictions:
+            if fname == '-':
+                D.append(I)
+                I = []
+                continue
+            I.append(le.transform([x[self._klass] for x in tweet_iterator(fname)]))
+        if len(I):
+            D.append(I)
+        print(len(D))
 
     def main(self):
         if self.data.output is not None:
             return self.output()
         if len([x for x in self.data.model if x == '-']):
-            args = [(k, x) for k, x in enumerate(self.data.model)]            
+            args = [(k, x) for k, x in enumerate(self.data.model)]
             if self.data.n_jobs > 1:
-                p = Pool(self.data.n_jobs)    
+                p = Pool(self.data.n_jobs)
                 res = [x for x in tqdm(p.imap_unordered(fitness_vs, args), total=len(args))]
                 res.sort(key=lambda x: x[0])
                 p.close()
