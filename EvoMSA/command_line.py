@@ -17,6 +17,7 @@ import EvoMSA
 from EvoMSA import base
 from b4msa.utils import tweet_iterator
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score
+from scipy.stats import pearsonr
 import gzip
 import pickle
 import json
@@ -32,14 +33,22 @@ except ImportError:
         return x
 
 
-class Identity(object):
+class LabelEncoderWrapper(object):
+    def __init__(self):
+        self._m = {}
+
     def fit(self, y):
-        return y
+        try:
+            n = [int(x) for x in y]
+        except ValueError:
+            return LabelEncoder().fit(y)
+        self._m = {v: k for k, v in enumerate(np.unique(n))}
+        return self
 
-    def transform(self, x):
-        return x
-
-
+    def transform(self, y):
+        return np.array([self._m[int(x)] for x in y])
+    
+        
 def fitness_vs(k_model):
     k, model = k_model
     if model == '-':
@@ -337,14 +346,11 @@ class CommandLinePerformance(CommandLine):
         self._macroRecall = lambda x, y: recall_score(x, y, average='macro')
         self._macroPrecision = lambda x, y: precision_score(x, y, average='macro')
         self._accuracy = lambda x, y: accuracy_score(x, y)
+        self._pearsonr = lambda x, y: pearsonr(x, y)[0]
 
     def output(self):
         y = [x[self._klass] for x in tweet_iterator(self.data.output)]
-        if len([isinstance(x, str) for x in y]):
-            le = LabelEncoder()
-        else:
-            le = Identity()
-        le.fit(y)
+        le = LabelEncoderWrapper().fit(y)
         perf = getattr(self, "_%s" % self.data.score)
         y = le.transform(y)
         D = []
