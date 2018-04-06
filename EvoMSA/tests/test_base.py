@@ -287,4 +287,16 @@ def test_EvoMSA_empty_string():
                  n_jobs=1).fit(X, y)
     assert evo
     assert isinstance(evo._svc_models[0], Multinomial)
-    
+
+
+def test_label_encoder():
+    import numpy as np
+    from EvoMSA.base import LabelEncoderWrapper
+    from b4msa.utils import tweet_iterator
+    y = [2, 2, -1, 0, 0]
+    l = LabelEncoderWrapper().fit(y)
+    print(l._m)
+    yy = l.transform(y)
+    assert np.all(np.array([2, 2, 0, 1, 1]) == yy)
+    y = [x['klass'] for x in tweet_iterator(TWEETS)]
+    l = LabelEncoderWrapper().fit(y)

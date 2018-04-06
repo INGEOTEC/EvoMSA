@@ -33,22 +33,6 @@ except ImportError:
         return x
 
 
-class LabelEncoderWrapper(object):
-    def __init__(self):
-        self._m = {}
-
-    def fit(self, y):
-        try:
-            n = [int(x) for x in y]
-        except ValueError:
-            return LabelEncoder().fit(y)
-        self._m = {v: k for k, v in enumerate(np.unique(n))}
-        return self
-
-    def transform(self, y):
-        return np.array([self._m[int(x)] for x in y])
-    
-        
 def fitness_vs(k_model):
     k, model = k_model
     if model == '-':
@@ -350,7 +334,7 @@ class CommandLinePerformance(CommandLine):
 
     def output(self):
         y = [x[self._klass] for x in tweet_iterator(self.data.output)]
-        le = LabelEncoderWrapper().fit(y)
+        le = base.LabelEncoderWrapper().fit(y)
         perf = getattr(self, "_%s" % self.data.score)
         y = le.transform(y)
         D = []

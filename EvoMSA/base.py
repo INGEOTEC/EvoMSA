@@ -15,7 +15,6 @@ import os
 from b4msa.command_line import load_json
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder
-from EvoDAG.model import EvoDAGE
 import importlib
 from sklearn.linear_model import LogisticRegression
 from .calibration import CalibrationLR
@@ -30,6 +29,22 @@ except ImportError:
         return x
 
 
+class LabelEncoderWrapper(object):
+    def __init__(self):
+        self._m = {}
+
+    def fit(self, y):
+        try:
+            n = [int(x) for x in y]
+        except ValueError:
+            return LabelEncoder().fit(y)
+        self._m = {v: k for k, v in enumerate(np.unique(n))}
+        return self
+
+    def transform(self, y):
+        return np.array([self._m[int(x)] for x in y])
+
+    
 def kfold_decision_function(args):
     cl, X, y, tr, ts, seed = args
     c = cl(random_state=seed)
@@ -297,13 +312,13 @@ class EvoMSA(object):
             le = []
             Y = []
             for y0 in y:
-                _ = LabelEncoder().fit(y0)
+                _ = LabelEncoderWrapper().fit(y0)
                 le.append(_)
                 Y.append(_.transform(y0).tolist())
             self._le = le[0]
             y = Y
         else:
-            self._le = LabelEncoder().fit(y)
+            self._le = LabelEncoderWrapper().fit(y)
             y = self._le.transform(y).tolist()
         self.fit_svm(X, y)
         if isinstance(y[0], list):

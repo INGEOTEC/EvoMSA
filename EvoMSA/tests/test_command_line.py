@@ -335,16 +335,3 @@ def test_performance_public_set():
         sys.argv = ['EvoMSA', '--score', score, '-n2', '-y', TWEETS] + ['t-%s.predict' % seed for seed in range(5)] + ['-'] + ['t-%s.predict' % seed for seed in range(5, 10)]
         m = performance(output=True)
         assert len(m._p) == 2
-
-
-def test_label_encoder():
-    import numpy as np
-    from EvoMSA.command_line import LabelEncoderWrapper
-    from b4msa.utils import tweet_iterator
-    y = [2, 2, -1, 0, 0]
-    l = LabelEncoderWrapper().fit(y)
-    print(l._m)
-    yy = l.transform(y)
-    assert np.all(np.array([2, 2, 0, 1, 1]) == yy)
-    y = [x['klass'] for x in tweet_iterator(TWEETS)]
-    l = LabelEncoderWrapper().fit(y)
