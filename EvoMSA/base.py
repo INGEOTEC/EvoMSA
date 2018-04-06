@@ -38,13 +38,18 @@ class LabelEncoderWrapper(object):
             n = [int(x) for x in y]
         except ValueError:
             return LabelEncoder().fit(y)
-        self._m = {v: k for k, v in enumerate(np.unique(n))}
+        self.classes_ = np.unique(n)
+        self._m = {v: k for k, v in enumerate(self.classes_)}
+        self._inv = {v: k for k, v in self._m.items()}
         return self
 
     def transform(self, y):
         return np.array([self._m[int(x)] for x in y])
 
-    
+    def inverse_transform(self, y):
+        return np.array([self._inv[int(x)] for x in y])
+
+
 def kfold_decision_function(args):
     cl, X, y, tr, ts, seed = args
     c = cl(random_state=seed)
