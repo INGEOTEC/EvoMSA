@@ -17,6 +17,7 @@ import EvoMSA
 from EvoMSA import base
 from b4msa.utils import tweet_iterator
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score
+from scipy.stats import pearsonr
 import gzip
 import pickle
 import json
@@ -29,14 +30,6 @@ try:
     from tqdm import tqdm
 except ImportError:
     def tqdm(x, **kwargs):
-        return x
-
-
-class Identity(object):
-    def fit(self, y):
-        return y
-
-    def transform(self, x):
         return x
 
 
@@ -337,14 +330,11 @@ class CommandLinePerformance(CommandLine):
         self._macroRecall = lambda x, y: recall_score(x, y, average='macro')
         self._macroPrecision = lambda x, y: precision_score(x, y, average='macro')
         self._accuracy = lambda x, y: accuracy_score(x, y)
+        self._pearsonr = lambda x, y: pearsonr(x, y)[0]
 
     def output(self):
         y = [x[self._klass] for x in tweet_iterator(self.data.output)]
-        if len([isinstance(x, str) for x in y]):
-            le = LabelEncoder()
-        else:
-            le = Identity()
-        le.fit(y)
+        le = base.LabelEncoderWrapper().fit(y)
         perf = getattr(self, "_%s" % self.data.score)
         y = le.transform(y)
         D = []

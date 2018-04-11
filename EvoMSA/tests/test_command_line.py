@@ -335,6 +335,7 @@ def test_performance_public_set():
         sys.argv = ['EvoMSA', '--score', score, '-n2', '-y', TWEETS] + ['t-%s.predict' % seed for seed in range(5)] + ['-'] + ['t-%s.predict' % seed for seed in range(5, 10)]
         m = performance(output=True)
         assert len(m._p) == 2
+<<<<<<< HEAD
 
 
 def test_bug_int_klass():
@@ -359,3 +360,5 @@ def test_bug_int_klass():
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
+=======
+>>>>>>> 4e6a371a299e670bb82ecce977bbd00bccb3655f
