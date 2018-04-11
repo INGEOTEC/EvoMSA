@@ -335,30 +335,3 @@ def test_performance_public_set():
         sys.argv = ['EvoMSA', '--score', score, '-n2', '-y', TWEETS] + ['t-%s.predict' % seed for seed in range(5)] + ['-'] + ['t-%s.predict' % seed for seed in range(5, 10)]
         m = performance(output=True)
         assert len(m._p) == 2
-<<<<<<< HEAD
-
-
-def test_bug_int_klass():
-    from EvoMSA.base import EvoMSA
-    from b4msa.utils import tweet_iterator
-    import json
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                '-oex.model', '-n2', TWEETS]
-    train(output=True)
-    
-    with open('t.json', 'w') as fpt:
-        for x in tweet_iterator(TWEETS):
-            if x['klass'] == "N":
-                x['klass'] = "0"
-            else:
-                x['klass'] = "1"
-            fpt.write(json.dumps(x) + '\n')
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                '-ot.model', '--exogenous-model', 'ex.model', '-n2', 't.json']
-    train(output=True)
-    with gzip.open('t.model', 'r') as fpt:
-        evo = pickle.load(fpt)
-    assert isinstance(evo, EvoMSA)
-    os.unlink('t.model')
-=======
->>>>>>> 4e6a371a299e670bb82ecce977bbd00bccb3655f
