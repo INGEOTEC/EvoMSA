@@ -86,7 +86,7 @@ class CommandLine(object):
             return
         D = None
         for fname in self.data.exogenous:
-            d = [base.EvoMSA.tolist(x['decision_function']) for x in tweet_iterator(fname)]
+            d = [base.EvoMSA.tolist(x[self._decision_function]) for x in tweet_iterator(fname)]
             if D is None:
                 D = d
             else:
