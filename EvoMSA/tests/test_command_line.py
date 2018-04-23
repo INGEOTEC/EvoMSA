@@ -335,3 +335,19 @@ def test_performance_public_set():
         sys.argv = ['EvoMSA', '--score', score, '-n2', '-y', TWEETS] + ['t-%s.predict' % seed for seed in range(5)] + ['-'] + ['t-%s.predict' % seed for seed in range(5, 10)]
         m = performance(output=True)
         assert len(m._p) == 2
+
+ 
+def test_list_of_text():
+    import os
+    import json
+    from EvoMSA.command_line import train
+    from b4msa.utils import tweet_iterator
+    with open('t.json', 'w') as fpt:
+        for x in tweet_iterator(TWEETS):
+            x['text'] = [x['text'], x['text']]
+            fpt.write(json.dumps(x) + '\n')
+    sys.argv = ['EvoMSA', '-ot.model', '-n2',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                't.json']
+    train()
+    os.unlink('t.json')

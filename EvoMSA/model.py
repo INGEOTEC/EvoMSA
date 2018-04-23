@@ -23,6 +23,9 @@ class BaseTextModel(object):
     def __getitem__(self, x):
         pass
 
+    def tokenize(self, text):
+        pass
+
 
 class Identity(BaseTextModel):
     def __getitem__(self, x):
@@ -41,6 +44,15 @@ class BaseClassifier(object):
 
 
 class B4MSATextModel(TextModel, BaseTextModel):
+    def tokenize(self, text):
+        if isinstance(text, (list, tuple)):
+            tokens = []
+            for _text in text:
+                tokens.extend(TextModel.tokenize(self, _text))
+            return tokens
+        else:
+            return TextModel.tokenize(self, text)
+
     def __getitem__(self, x):
         if x is None:
             x = ''
