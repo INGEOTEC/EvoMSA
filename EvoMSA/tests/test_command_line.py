@@ -347,6 +347,7 @@ def test_list_of_text():
             x['text'] = [x['text'], x['text']]
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA', '-ot.model', '-n2',
+                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"], ["EvoMSA.model.B4MSATextModel", "EvoMSA.model.B4MSAClassifier"]]}',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 't.json']
     train()

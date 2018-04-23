@@ -87,9 +87,18 @@ class Corpus(BaseTextModel):
     def num_terms(self):
         return self._num_terms
 
+    def tokenize(self, text):
+        if isinstance(text, (list, tuple)):
+            tokens = []
+            for _text in text:
+                tokens.extend(self._textModel.tokenize(_text))
+            return tokens
+        else:
+            return self._textModel.tokenize(text)
+
     def __getitem__(self, d):
         tokens = []
-        for t in self._textModel.tokenize(d):
+        for t in self.tokenize(d):
             try:
                 index, k = self._m[t]
                 if self._training:
