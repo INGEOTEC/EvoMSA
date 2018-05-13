@@ -82,11 +82,15 @@ class B4MSAClassifier(SVC, BaseClassifier):
 
 class Corpus(BaseTextModel):
     def __init__(self, corpus, **kwargs):
+        self._text = os.getenv('TEXT', default='text')
         self._m = {}
         self._num_terms = 0
         self._training = True
         self._textModel = TextModel([''], token_list=[-1])
         self.fit(corpus)
+
+    def get_text(self, text):
+        return text[self._text]
 
     def fit(self, c):
         r = [self.__getitem__(x) for x in c]
@@ -98,6 +102,8 @@ class Corpus(BaseTextModel):
         return self._num_terms
 
     def tokenize(self, text):
+        if isinstance(text, dict):
+            text = self.get_text(text)
         if isinstance(text, (list, tuple)):
             tokens = []
             for _text in text:
@@ -190,7 +196,7 @@ class Multinomial(Bernulli):
         den = pr.sum(axis=1)
         self._log_xj = np.log((1 + pr) / np.atleast_2d(self.num_terms + den).T)
         return self
-        
+
     def decision_function_raw(self, X):
         xj = self._log_xj
         if not isinstance(X, list):
