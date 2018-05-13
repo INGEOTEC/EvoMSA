@@ -14,6 +14,7 @@
 import numpy as np
 from b4msa.textmodel import TextModel
 from b4msa.classifier import SVC
+import os
 
 
 class BaseTextModel(object):
@@ -44,7 +45,16 @@ class BaseClassifier(object):
 
 
 class B4MSATextModel(TextModel, BaseTextModel):
+    def __init__(self, *args, **kwargs):
+        self._text = os.getenv('TEXT', default='text')
+        TextModel.__init__(self, *args, **kwargs)
+
+    def get_text(self, text):
+        return text[self._text]
+
     def tokenize(self, text):
+        if isinstance(text, dict):
+            text = self.get_text(text)
         if isinstance(text, (list, tuple)):
             tokens = []
             for _text in text:

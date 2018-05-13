@@ -23,7 +23,6 @@ import pickle
 import json
 import os
 import numpy as np
-from sklearn.preprocessing import LabelEncoder
 from scipy.stats import wilcoxon
 from multiprocessing import Pool
 try:
@@ -125,12 +124,12 @@ class CommandLineTrain(CommandLine):
         D = []
         Y = []
         for fname in fnames:
-            _ = [[x[self._text], x[self._klass]] for x in tweet_iterator(fname)]
+            _ = [[x, x[self._klass]] for x in tweet_iterator(fname)]
             D.append([x[0] for x in _])
             Y.append([x[1] for x in _])
         if self.data.test_set is not None:
             if os.path.isfile(self.data.test_set):
-                test_set = [x[self._text] for x in tweet_iterator(self.data.test_set)]
+                test_set = [x for x in tweet_iterator(self.data.test_set)]
             else:
                 test_set = self.data.test_set
         else:
@@ -176,7 +175,7 @@ class CommandLineUtils(CommandLineTrain):
 
     def transform(self):
         predict_file = self.data.training_set[0]
-        D = [x[self._text] for x in tweet_iterator(predict_file)]
+        D = [x for x in tweet_iterator(predict_file)]
         evo = self.load_model(self.data.model)
         evo.exogenous = self._exogenous
         D = evo.transform(D)
@@ -204,12 +203,12 @@ class CommandLineUtils(CommandLineTrain):
         D = []
         Y = []
         for fname in fnames:
-            _ = [[x[self._text], x[self._klass]] for x in tweet_iterator(fname)]
+            _ = [[x, x[self._klass]] for x in tweet_iterator(fname)]
             D.append([x[0] for x in _])
             Y.append([x[1] for x in _])
         self._logger.info('Reading test_set %s' % self.data.test_set)
         if self.data.test_set is not None:
-            test_set = [x[self._text] for x in tweet_iterator(self.data.test_set)]
+            test_set = [x for x in tweet_iterator(self.data.test_set)]
         else:
             test_set = None
         kwargs = dict(n_jobs=self.data.n_jobs)
@@ -293,7 +292,7 @@ class CommandLinePredict(CommandLine):
 
     def main(self):
         predict_file = self.data.predict_file[0]
-        D = [x[self._text] for x in tweet_iterator(predict_file)]
+        D = [x for x in tweet_iterator(predict_file)]
         evo = self.load_model(self.data.model)
         evo.exogenous = self._exogenous
         if self.data.raw_outputs:
