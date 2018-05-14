@@ -301,6 +301,8 @@ def test_performance_validation_set():
     sys.argv = ['EvoMSA', '-m'] + ['t-%s.model' % seed for seed in range(3)]
     m = performance(output=True)
     assert len(m._p) == 3
+    sys.argv = ['EvoMSA', '-n1', '-m'] + ['t-%s.model' % seed for seed in range(3)]
+    m = performance(output=True)
 
 
 def test_performance_validation_set2():
