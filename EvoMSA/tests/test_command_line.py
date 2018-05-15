@@ -296,8 +296,8 @@ def test_performance_validation_set():
         if os.path.isfile('t-%s.model' % seed):
             continue
         sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '--test_set', 'shuffle', '-n2', TWEETS]
-        train(output=True)
+                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '-n1', TWEETS]
+        train()
     sys.argv = ['EvoMSA', '-m'] + ['t-%s.model' % seed for seed in range(3)]
     m = performance(output=True)
     assert len(m._p) == 3
@@ -307,13 +307,14 @@ def test_performance_validation_set():
 def test_performance_validation_set2():
     import os
     from EvoMSA.command_line import performance
-    for seed in range(10):
+    for seed in range(4):
+        print('haciendo', seed)
         if os.path.isfile('t-%s.model' % seed):
             continue
         sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 3}',
-                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '--test_set', 'shuffle', '-n2', TWEETS]
-        train(output=True)
-    sys.argv = ['EvoMSA', '-n2', '-m'] + ['t-%s.model' % seed for seed in range(5)] + ['-'] + ['t-%s.model' % seed for seed in range(5, 10)]
+                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '-n1', TWEETS]
+        train()
+    sys.argv = ['EvoMSA', '-n2', '-m'] + ['t-%s.model' % seed for seed in range(2)] + ['-'] + ['t-%s.model' % seed for seed in range(2, 4)]
     m = performance(output=True)
     assert len(m._p) == 2
 
@@ -321,19 +322,19 @@ def test_performance_validation_set2():
 def test_performance_public_set():
     import os
     from EvoMSA.command_line import performance
-    for seed in range(10):
+    for seed in range(4):
         if os.path.isfile('t-%s.model' % seed):
             continue
         sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 3}',
-                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '--test_set', 'shuffle', '-n2', TWEETS]
+                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '-n1', TWEETS]
         train(output=True)
-    for seed in range(10):
+    for seed in range(4):
         if os.path.isfile('t-%s.predict' % seed):
             continue
         sys.argv = ['EvoMSA', '-mt-%s.model' % seed, '-ot-%s.predict' % seed, TWEETS]
         predict()
     for score in ['macroF1', 'macroRecall', 'macroPrecision', 'accuracy']:
-        sys.argv = ['EvoMSA', '--score', score, '-n2', '-y', TWEETS] + ['t-%s.predict' % seed for seed in range(5)] + ['-'] + ['t-%s.predict' % seed for seed in range(5, 10)]
+        sys.argv = ['EvoMSA', '--score', score, '-n2', '-y', TWEETS] + ['t-%s.predict' % seed for seed in range(2)] + ['-'] + ['t-%s.predict' % seed for seed in range(2, 4)]
         m = performance(output=True)
         assert len(m._p) == 2
 
