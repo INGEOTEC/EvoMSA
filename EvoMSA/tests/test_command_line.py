@@ -291,7 +291,7 @@ def test_predict_NearestCentroid():
 
 def test_performance_validation_set():
     import os
-    from EvoMSA.command_line import performance
+    from EvoMSA.command_line import performance, fitness_vs
     for seed in range(3):
         if os.path.isfile('t-%s.model' % seed):
             continue
@@ -301,8 +301,7 @@ def test_performance_validation_set():
     sys.argv = ['EvoMSA', '-m'] + ['t-%s.model' % seed for seed in range(3)]
     m = performance(output=True)
     assert len(m._p) == 3
-    sys.argv = ['EvoMSA', '-n1', '-m'] + ['t-%s.model' % seed for seed in range(3)]
-    m = performance(output=True)
+    fitness_vs((0, 't-0.model'))
 
 
 def test_performance_validation_set2():
