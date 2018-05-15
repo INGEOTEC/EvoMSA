@@ -250,6 +250,7 @@ def test_EvoMSA_transform():
 
 def test_EvoMSA_evodag_class():
     from sklearn.neighbors import NearestCentroid
+    import numpy as np
     X, y = get_data()
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
@@ -257,7 +258,12 @@ def test_EvoMSA_evodag_class():
                    evodag_class="sklearn.neighbors.NearestCentroid",
                    n_jobs=2).fit(X, y)
     assert isinstance(model._evodag_model, NearestCentroid)
-        
+    cl = model.predict(X)
+    hy = model.predict_proba(X)
+    cl2 = model._le.inverse_transform(hy.argmax(axis=1))
+    print(cl, cl2)
+    assert np.all(cl == cl2)
+
 
 def test_EvoMSA_multinomial():
     from EvoMSA.model import Multinomial
@@ -268,4 +274,29 @@ def test_EvoMSA_multinomial():
                  n_jobs=1).fit(X, y)
     assert evo
     assert isinstance(evo._svc_models[0], Multinomial)
-    
+
+
+def test_EvoMSA_empty_string():
+    from EvoMSA.model import Multinomial
+    X, y = get_data()
+    X.append("")
+    y.append("NONE")
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
+                                  n_estimators=5),
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Multinomial']],
+                 n_jobs=1).fit(X, y)
+    assert evo
+    assert isinstance(evo._svc_models[0], Multinomial)
+
+
+def test_label_encoder():
+    import numpy as np
+    from EvoMSA.base import LabelEncoderWrapper
+    from b4msa.utils import tweet_iterator
+    y = [2, 2, -1, 0, 0]
+    l = LabelEncoderWrapper().fit(y)
+    print(l._m)
+    yy = l.transform(y)
+    assert np.all(np.array([2, 2, 0, 1, 1]) == yy)
+    y = [x['klass'] for x in tweet_iterator(TWEETS)]
+    l = LabelEncoderWrapper().fit(y)

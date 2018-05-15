@@ -268,3 +268,89 @@ def test_predict_numbers():
     train(output=True)
     sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
     predict()
+
+
+def test_predict_NearestCentroid():
+    from b4msa.utils import tweet_iterator
+    from sklearn.preprocessing import LabelEncoder
+    import json
+    d = [x for x in tweet_iterator(TWEETS)]
+    le = LabelEncoder().fit([x['klass'] for x in d])
+    y = le.transform([x['klass'] for x in d]).tolist()
+    with open('ex.json', 'w') as fpt:
+        for x, y0 in zip(d, y):
+            x['klass'] = y0
+            fpt.write(json.dumps(x) + '\n')
+    sys.argv = ['EvoMSA',
+                '--kw={"evodag_class": "sklearn.neighbors.NearestCentroid", "models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]]}',
+                '-ot.model', '-n1', 'ex.json']
+    train(output=True)
+    sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
+    predict()
+
+
+def test_performance_validation_set():
+    import os
+    from EvoMSA.command_line import performance, fitness_vs
+    for seed in range(3):
+        if os.path.isfile('t-%s.model' % seed):
+            continue
+        sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '-n1', TWEETS]
+        train()
+    sys.argv = ['EvoMSA', '-m'] + ['t-%s.model' % seed for seed in range(3)]
+    m = performance(output=True)
+    assert len(m._p) == 3
+    fitness_vs((0, 't-0.model'))
+
+
+def test_performance_validation_set2():
+    import os
+    from EvoMSA.command_line import performance
+    for seed in range(4):
+        print('haciendo', seed)
+        if os.path.isfile('t-%s.model' % seed):
+            continue
+        sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 3}',
+                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '-n1', TWEETS]
+        train()
+    sys.argv = ['EvoMSA', '-n2', '-m'] + ['t-%s.model' % seed for seed in range(2)] + ['-'] + ['t-%s.model' % seed for seed in range(2, 4)]
+    m = performance(output=True)
+    assert len(m._p) == 2
+
+
+def test_performance_public_set():
+    import os
+    from EvoMSA.command_line import performance
+    for seed in range(4):
+        if os.path.isfile('t-%s.model' % seed):
+            continue
+        sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 3}',
+                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '-n1', TWEETS]
+        train(output=True)
+    for seed in range(4):
+        if os.path.isfile('t-%s.predict' % seed):
+            continue
+        sys.argv = ['EvoMSA', '-mt-%s.model' % seed, '-ot-%s.predict' % seed, TWEETS]
+        predict()
+    for score in ['macroF1', 'macroRecall', 'macroPrecision', 'accuracy']:
+        sys.argv = ['EvoMSA', '--score', score, '-n2', '-y', TWEETS] + ['t-%s.predict' % seed for seed in range(2)] + ['-'] + ['t-%s.predict' % seed for seed in range(2, 4)]
+        m = performance(output=True)
+        assert len(m._p) == 2
+
+ 
+def test_list_of_text():
+    import os
+    import json
+    from EvoMSA.command_line import train
+    from b4msa.utils import tweet_iterator
+    with open('t.json', 'w') as fpt:
+        for x in tweet_iterator(TWEETS):
+            x['text'] = [x['text'], x['text']]
+            fpt.write(json.dumps(x) + '\n')
+    sys.argv = ['EvoMSA', '-ot.model', '-n2',
+                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"], ["EvoMSA.model.B4MSATextModel", "EvoMSA.model.B4MSAClassifier"]]}',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                't.json']
+    train()
+    os.unlink('t.json')

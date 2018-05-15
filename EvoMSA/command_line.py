@@ -16,11 +16,28 @@ import logging
 import EvoMSA
 from EvoMSA import base
 from b4msa.utils import tweet_iterator
+from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score
+from scipy.stats import pearsonr
 import gzip
 import pickle
 import json
 import os
 import numpy as np
+from scipy.stats import wilcoxon
+from multiprocessing import Pool
+try:
+    from tqdm import tqdm
+except ImportError:
+    def tqdm(x, **kwargs):
+        return x
+
+
+def fitness_vs(k_model):
+    k, model = k_model
+    if model == '-':
+        return k, '-'
+    model = CommandLine.load_model(model)
+    return k, np.mean([x.fitness_vs for x in model._evodag_model.models])
 
 
 class CommandLine(object):
@@ -61,7 +78,7 @@ class CommandLine(object):
             return
         D = None
         for fname in self.data.exogenous:
-            d = [base.EvoMSA.tolist(x['decision_function']) for x in tweet_iterator(fname)]
+            d = [base.EvoMSA.tolist(x[self._decision_function]) for x in tweet_iterator(fname)]
             if D is None:
                 D = d
             else:
@@ -107,12 +124,12 @@ class CommandLineTrain(CommandLine):
         D = []
         Y = []
         for fname in fnames:
-            _ = [[x[self._text], x[self._klass]] for x in tweet_iterator(fname)]
+            _ = [[x, x[self._klass]] for x in tweet_iterator(fname)]
             D.append([x[0] for x in _])
             Y.append([x[1] for x in _])
         if self.data.test_set is not None:
             if os.path.isfile(self.data.test_set):
-                test_set = [x[self._text] for x in tweet_iterator(self.data.test_set)]
+                test_set = [x for x in tweet_iterator(self.data.test_set)]
             else:
                 test_set = self.data.test_set
         else:
@@ -158,7 +175,7 @@ class CommandLineUtils(CommandLineTrain):
 
     def transform(self):
         predict_file = self.data.training_set[0]
-        D = [x[self._text] for x in tweet_iterator(predict_file)]
+        D = [x for x in tweet_iterator(predict_file)]
         evo = self.load_model(self.data.model)
         evo.exogenous = self._exogenous
         D = evo.transform(D)
@@ -186,12 +203,12 @@ class CommandLineUtils(CommandLineTrain):
         D = []
         Y = []
         for fname in fnames:
-            _ = [[x[self._text], x[self._klass]] for x in tweet_iterator(fname)]
+            _ = [[x, x[self._klass]] for x in tweet_iterator(fname)]
             D.append([x[0] for x in _])
             Y.append([x[1] for x in _])
         self._logger.info('Reading test_set %s' % self.data.test_set)
         if self.data.test_set is not None:
-            test_set = [x[self._text] for x in tweet_iterator(self.data.test_set)]
+            test_set = [x for x in tweet_iterator(self.data.test_set)]
         else:
             test_set = None
         kwargs = dict(n_jobs=self.data.n_jobs)
@@ -275,7 +292,7 @@ class CommandLinePredict(CommandLine):
 
     def main(self):
         predict_file = self.data.predict_file[0]
-        D = [x[self._text] for x in tweet_iterator(predict_file)]
+        D = [x for x in tweet_iterator(predict_file)]
         evo = self.load_model(self.data.model)
         evo.exogenous = self._exogenous
         if self.data.raw_outputs:
@@ -294,6 +311,109 @@ class CommandLinePredict(CommandLine):
                 _ = {self._klass: y, self._decision_function: df.tolist()}
                 x.update(_)
                 fpt.write(json.dumps(x) + '\n')
+
+
+class CommandLinePerformance(CommandLine):
+    def __init__(self):
+        super(CommandLinePerformance, self).__init__()
+        g = self.parser.add_mutually_exclusive_group(required=True)
+        pa = self.parser.add_argument
+        pa('predictions', nargs='*', default=None)
+        ga = g.add_argument
+        ga('-m', '--model', help='Model(s) - pickle.dump with gzip', dest='model',
+           default=None, type=str, nargs='*')
+        pa('--score', help='Score - default macroF1', dest='score',
+           default='macroF1', type=str)
+        ga('-y', help='Output measured', dest='output', default=None, type=str)
+        self._macroF1 = lambda x, y: f1_score(x, y, average='macro')
+        self._macroRecall = lambda x, y: recall_score(x, y, average='macro')
+        self._macroPrecision = lambda x, y: precision_score(x, y, average='macro')
+        self._accuracy = lambda x, y: accuracy_score(x, y)
+        self._pearsonr = lambda x, y: pearsonr(x, y)[0]
+
+    def output(self):
+        y = [x[self._klass] for x in tweet_iterator(self.data.output)]
+        le = base.LabelEncoderWrapper().fit(y)
+        perf = getattr(self, "_%s" % self.data.score)
+        y = le.transform(y)
+        D = []
+        I = []
+        for fname in self.data.predictions:
+            if fname == '-':
+                D.append(I)
+                I = []
+                continue
+            hy = le.transform([x[self._klass] for x in tweet_iterator(fname)])
+            I.append(perf(y, hy))
+        if len(I):
+            D.append(I)
+        D = np.array(D).T
+        p, alpha = self.compute_p(D)
+        self._p = p
+        self._alpha = alpha
+        for _p, _alpha, mu in zip(p, alpha, D.mean(axis=0)):
+            cdn = ''
+            if np.isfinite(_alpha):
+                cdn = " *"
+            print("%0.4f" % mu, cdn)
+
+    def main(self):
+        if self.data.output is not None:
+            return self.output()
+        if len([x for x in self.data.model if x == '-']):
+            args = [(k, x) for k, x in enumerate(self.data.model)]
+            if self.data.n_jobs > 1:
+                p = Pool(self.data.n_jobs)
+                res = [x for x in tqdm(p.imap_unordered(fitness_vs, args), total=len(args))]
+                res.sort(key=lambda x: x[0])
+                p.close()
+            else:
+                res = [fitness_vs(x) for x in tqdm(args)]
+            D = []
+            I = []
+            for _, x in res:
+                if x == '-':
+                    D.append(I)
+                    I = []
+                    continue
+                I.append(x)
+            if len(I):
+                D.append(I)
+            D = np.array(D).T
+        else:
+            models = [self.load_model(d) for d in self.data.model]
+            D = np.array([[x.fitness_vs for x in m._evodag_model.models] for m in models]).T
+        p, alpha = self.compute_p(D)
+        self._p = p
+        self._alpha = alpha
+        for m, _p, _alpha, mu in zip(self.data.model, p, alpha, D.mean(axis=0)):
+            cdn = ''
+            if np.isfinite(_alpha):
+                cdn = " *"
+            print("%0.4f" % mu, m, cdn)
+
+    @staticmethod
+    def compute_p(syss):
+        p = []
+        mu = syss.mean(axis=0)
+        best = mu.argmax()
+        for i in range(syss.shape[1]):
+            if i == best:
+                p.append(np.inf)
+                continue
+            try:
+                pv = wilcoxon(syss[:, best], syss[:, i])[1]
+                p.append(pv)
+            except ValueError:
+                p.append(np.inf)
+        ps = np.argsort(p)
+        alpha = [np.inf for _ in ps]
+        for r, i in enumerate(ps):
+            alpha_c = (0.05 / (ps.shape[0] + 1 - (r + 1)))
+            if p[i] > alpha_c:
+                break
+            alpha[i] = alpha_c
+        return p, alpha
 
 
 def train(output=False):
@@ -315,4 +435,13 @@ def utils(output=False):
     c.parse_args()
     if output:
         return c
+
+
+def performance(output=False):
+    c = CommandLinePerformance()
+    c.parse_args()
+    if output:
+        return c
+
+
 

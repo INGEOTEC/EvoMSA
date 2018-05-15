@@ -14,6 +14,7 @@
 import numpy as np
 from b4msa.textmodel import TextModel
 from b4msa.classifier import SVC
+import os
 
 
 class BaseTextModel(object):
@@ -21,6 +22,9 @@ class BaseTextModel(object):
         pass
 
     def __getitem__(self, x):
+        pass
+
+    def tokenize(self, text):
         pass
 
 
@@ -41,6 +45,24 @@ class BaseClassifier(object):
 
 
 class B4MSATextModel(TextModel, BaseTextModel):
+    def __init__(self, *args, **kwargs):
+        self._text = os.getenv('TEXT', default='text')
+        TextModel.__init__(self, *args, **kwargs)
+
+    def get_text(self, text):
+        return text[self._text]
+
+    def tokenize(self, text):
+        if isinstance(text, dict):
+            text = self.get_text(text)
+        if isinstance(text, (list, tuple)):
+            tokens = []
+            for _text in text:
+                tokens.extend(TextModel.tokenize(self, _text))
+            return tokens
+        else:
+            return TextModel.tokenize(self, text)
+
     def __getitem__(self, x):
         if x is None:
             x = ''
@@ -60,11 +82,15 @@ class B4MSAClassifier(SVC, BaseClassifier):
 
 class Corpus(BaseTextModel):
     def __init__(self, corpus, **kwargs):
+        self._text = os.getenv('TEXT', default='text')
         self._m = {}
         self._num_terms = 0
         self._training = True
         self._textModel = TextModel([''], token_list=[-1])
         self.fit(corpus)
+
+    def get_text(self, text):
+        return text[self._text]
 
     def fit(self, c):
         r = [self.__getitem__(x) for x in c]
@@ -75,9 +101,20 @@ class Corpus(BaseTextModel):
     def num_terms(self):
         return self._num_terms
 
+    def tokenize(self, text):
+        if isinstance(text, dict):
+            text = self.get_text(text)
+        if isinstance(text, (list, tuple)):
+            tokens = []
+            for _text in text:
+                tokens.extend(self._textModel.tokenize(_text))
+            return tokens
+        else:
+            return self._textModel.tokenize(text)
+
     def __getitem__(self, d):
         tokens = []
-        for t in self._textModel.tokenize(d):
+        for t in self.tokenize(d):
             try:
                 index, k = self._m[t]
                 if self._training:
@@ -101,11 +138,13 @@ class Bernulli(BaseClassifier):
         return self._num_terms
 
     def fit(self, X, klass):
-        self._num_terms = max([max([_[0] for _ in x]) for x in X]) + 1
+        self._num_terms = max([max([_[0] for _ in x]) for x in X if len(x)]) + 1
         klasses = np.unique(klass)
         pr = np.zeros((klasses.shape[0], self.num_terms))
         for i, k in zip(X, klass):
-            pr[k, np.array([_[0] for _ in i])] += 1
+            index = np.array([_[0] for _ in i])
+            if index.shape[0] > 0:
+                pr[k, index] += 1
         _ = np.atleast_2d(self.num_terms + np.array([(klass == _k).sum() for _k in klasses])).T
         pr = (1 + pr) / _
         self._wj = np.log(pr)
@@ -147,15 +186,17 @@ class Bernulli(BaseClassifier):
 
 class Multinomial(Bernulli):
     def fit(self, X, klass):
-        self._num_terms = max([max([_[0] for _ in x]) for x in X]) + 1
+        self._num_terms = max([max([_[0] for _ in x]) for x in X if len(x)]) + 1
         klasses = np.unique(klass)
         pr = np.zeros((klasses.shape[0], self.num_terms))
         for i, k in zip(X, klass):
-            pr[k, np.array([_[0] for _ in i])] += 1
+            index = np.array([_[0] for _ in i])
+            if index.shape[0] > 0:
+                pr[k, index] += 1
         den = pr.sum(axis=1)
         self._log_xj = np.log((1 + pr) / np.atleast_2d(self.num_terms + den).T)
         return self
-        
+
     def decision_function_raw(self, X):
         xj = self._log_xj
         if not isinstance(X, list):
