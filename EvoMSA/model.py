@@ -63,11 +63,6 @@ class B4MSATextModel(TextModel, BaseTextModel):
         else:
             return TextModel.tokenize(self, text)
 
-    def __getitem__(self, x):
-        if x is None:
-            x = ''
-        return TextModel.__getitem__(self, str(x))
-
 
 class B4MSAClassifier(SVC, BaseClassifier):
     def __init__(self, random_state=0):
