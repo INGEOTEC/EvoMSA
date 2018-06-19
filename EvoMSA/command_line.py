@@ -408,8 +408,9 @@ class CommandLinePerformance(CommandLine):
                 p.append(np.inf)
         ps = np.argsort(p)
         alpha = [np.inf for _ in ps]
-        for r, i in enumerate(ps):
-            alpha_c = (0.05 / (ps.shape[0] + 1 - (r + 1)))
+        m = ps.shape[0] - 1
+        for r, i in enumerate(ps[:-1]):
+            alpha_c = (0.05 / (m + 1 - (r + 1)))
             if p[i] > alpha_c:
                 break
             alpha[i] = alpha_c
