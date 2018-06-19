@@ -15,6 +15,8 @@ import numpy as np
 from b4msa.textmodel import TextModel
 from b4msa.classifier import SVC
 import os
+import pickle
+import gzip
 
 
 class BaseTextModel(object):
@@ -75,6 +77,32 @@ class B4MSAClassifier(SVC, BaseClassifier):
         return _
 
 
+class EmoSpace(BaseTextModel, BaseClassifier):
+    def __init__(self, *args, model=None, **kwargs):
+        if model is None:
+            model = os.path.join(os.path.dirname(__file__), 'models', 'emo-es.b4msa')
+        with gzip.open(model) as fpt:
+            self._textModel, self._classifiers = pickle.load(fpt)
+        self._text = os.getenv('TEXT', default='text')
+
+    def get_text(self, text):
+        key = self._text
+        if isinstance(text, (list, tuple)):
+            return " | ".join([x[key] for x in text])
+        return text[key]
+
+    def decision_function(self, X):
+        tm = self._textModel
+        _ = [tm[self.get_text(x)] for x in X]
+        return np.array([m.decision_function(_) for m in self._classifiers]).T
+
+    def __getitem__(self, x):
+        tm = self._textModel
+        _ = [tm[self.get_text(x)]]
+        _ = np.array([m.decision_function(_) for m in self._classifiers]).flatten()
+        return [[k, v] for k, v in enumerate(_)]
+
+    
 class Corpus(BaseTextModel):
     def __init__(self, corpus, **kwargs):
         self._text = os.getenv('TEXT', default='text')
