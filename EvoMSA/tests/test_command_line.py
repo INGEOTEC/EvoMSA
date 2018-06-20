@@ -354,3 +354,17 @@ def test_list_of_text():
                 't.json']
     train()
     os.unlink('t.json')
+
+
+def test_train_exogenous_model_class():
+    from EvoMSA.base import EvoMSA
+    sys.argv = ['EvoMSA', '-ot.model', '-n2',
+                '--exogenous-model', 'EvoMSA.model.EmoSpace',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                TWEETS]
+    train(output=True)
+    with gzip.open('t.model', 'r') as fpt:
+        evo = pickle.load(fpt)
+    assert isinstance(evo, EvoMSA)
+    os.unlink('t.model')
+    
