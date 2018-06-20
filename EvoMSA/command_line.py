@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
+import importlib
 import logging
 import EvoMSA
 from EvoMSA import base
@@ -86,9 +87,22 @@ class CommandLine(object):
         self._exogenous = np.array(D)
 
     @staticmethod
+    def get_class(m):
+        if isinstance(m, str):
+            a = m.split('.')
+            p = importlib.import_module('.'.join(a[:-1]))
+            return getattr(p, a[-1])
+        return m      
+
+    @staticmethod
     def load_model(fname):
-        with gzip.open(fname, 'r') as fpt:
-            return pickle.load(fpt)
+        if os.path.isfile(fname):
+            with gzip.open(fname, 'r') as fpt:
+                return pickle.load(fpt)
+        else:
+            cls = CommandLine.get_class(fname)
+            ins = cls()
+            return ins
 
 
 class CommandLineTrain(CommandLine):

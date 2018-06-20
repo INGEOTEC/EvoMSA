@@ -78,13 +78,15 @@ class B4MSAClassifier(SVC, BaseClassifier):
 
 
 class EmoSpace(BaseTextModel, BaseClassifier):
-    def __init__(self, *args, model=None, **kwargs):
-        if model is None:
-            model = os.path.join(os.path.dirname(__file__), 'models', 'emo-es.b4msa')
-        with gzip.open(model) as fpt:
-            self._textModel, self._classifiers = pickle.load(fpt)
+    def __init__(self, *args, **kwargs):
+        self._textModel, self._classifiers = self.get_model()
         self._text = os.getenv('TEXT', default='text')
 
+    def get_model(self):
+        model = os.path.join(os.path.dirname(__file__), 'models', 'emo-es.b4msa')
+        with gzip.open(model) as fpt:
+            return pickle.load(fpt)
+        
     def get_text(self, text):
         key = self._text
         if isinstance(text, (list, tuple)):
@@ -95,6 +97,9 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         tm = self._textModel
         _ = [tm[self.get_text(x)] for x in X]
         return np.array([m.decision_function(_) for m in self._classifiers]).T
+
+    def predict_proba(self, X):
+        return self.decision_function(X)
 
     def __getitem__(self, x):
         tm = self._textModel
