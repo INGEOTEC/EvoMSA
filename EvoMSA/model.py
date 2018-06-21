@@ -88,7 +88,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         fname = os.path.join(os.path.dirname(__file__), 'emo-es.b4msa')
         if not os.path.isfile(fname):
             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-es.b4msa",
-                                "emo-es.b4msa")
+                                fname)
         with gzip.open(fname) as fpt:
             return pickle.load(fpt)
         
@@ -120,7 +120,7 @@ class EmoSpaceEn(EmoSpace):
         fname = os.path.join(os.path.dirname(__file__), 'emo-en.b4msa')
         if not os.path.isfile(fname):
             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-en.b4msa",
-                                "emo-en.b4msa")
+                                fname)
         with gzip.open(fname) as fpt:
             return pickle.load(fpt)
 
@@ -132,7 +132,7 @@ class EmoSpaceAr(EmoSpace):
         fname = os.path.join(os.path.dirname(__file__), 'emo-ar.b4msa')
         if not os.path.isfile(fname):
             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-ar.b4msa",
-                                "emo-ar.b4msa")
+                                fname)
         with gzip.open(fname) as fpt:
             return pickle.load(fpt)
 

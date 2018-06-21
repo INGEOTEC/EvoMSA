@@ -22,8 +22,6 @@ def test_corpus():
     a = c['hola hola mundo']
     assert len(a) == 3
     assert a[0] == a[1]
-    v = c.vec('hola hola mundo')
-    assert v.shape[0] == c.num_terms
 
 
 def test_bernulli():
