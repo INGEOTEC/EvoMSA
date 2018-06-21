@@ -201,11 +201,9 @@ class EvoMSA(object):
         L = [D]
         for x in ex:
             _ = x.predict_proba(X)
-            df = _ * 2 - 1
-            df[df > 1] = 1
-            df[df < -1] = -1
-            L.append(df)
-        return np.concatenate(L, axis=1)
+            L.append(_)
+        _ = np.concatenate(L, axis=1)
+        return _
 
     def model(self, X):
         if not isinstance(X[0], list):
