@@ -89,8 +89,8 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         if not os.path.isfile(fname):
             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-es.b4msa",
                                 "emo-es.b4msa")
-        with gzip.open(model) as fpt:
-            return pickle.load(fname)
+        with gzip.open(fname) as fpt:
+            return pickle.load(fpt)
         
     def get_text(self, text):
         key = self._text
@@ -121,8 +121,8 @@ class EmoSpaceEn(EmoSpace):
         if not os.path.isfile(fname):
             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-en.b4msa",
                                 "emo-en.b4msa")
-        with gzip.open(model) as fpt:
-            return pickle.load(fname)
+        with gzip.open(fname) as fpt:
+            return pickle.load(fpt)
 
 
 class EmoSpaceAr(EmoSpace):
@@ -133,8 +133,8 @@ class EmoSpaceAr(EmoSpace):
         if not os.path.isfile(fname):
             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-ar.b4msa",
                                 "emo-ar.b4msa")
-        with gzip.open(model) as fpt:
-            return pickle.load(fname)
+        with gzip.open(fname) as fpt:
+            return pickle.load(fpt)
 
 
 class Corpus(BaseTextModel):
