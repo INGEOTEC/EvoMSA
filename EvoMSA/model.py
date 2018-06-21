@@ -83,9 +83,14 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         self._text = os.getenv('TEXT', default='text')
 
     def get_model(self):
-        model = os.path.join(os.path.dirname(__file__), 'models', 'emo-es.b4msa')
+        import os
+        from urllib import request
+        fname = os.path.join(os.path.dirname(__file__), 'emo-es.b4msa')
+        if not os.path.isfile(fname):
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-es.b4msa",
+                                "emo-es.b4msa")
         with gzip.open(model) as fpt:
-            return pickle.load(fpt)
+            return pickle.load(fname)
         
     def get_text(self, text):
         key = self._text
@@ -107,7 +112,31 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         _ = np.array([m.decision_function(_) for m in self._classifiers]).flatten()
         return [[k, v] for k, v in enumerate(_)]
 
-    
+
+class EmoSpaceEn(EmoSpace):
+    def get_model(self):
+        import os
+        from urllib import request
+        fname = os.path.join(os.path.dirname(__file__), 'emo-en.b4msa')
+        if not os.path.isfile(fname):
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-en.b4msa",
+                                "emo-en.b4msa")
+        with gzip.open(model) as fpt:
+            return pickle.load(fname)
+
+
+class EmoSpaceAr(EmoSpace):
+    def get_model(self):
+        import os
+        from urllib import request
+        fname = os.path.join(os.path.dirname(__file__), 'emo-ar.b4msa')
+        if not os.path.isfile(fname):
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-ar.b4msa",
+                                "emo-ar.b4msa")
+        with gzip.open(model) as fpt:
+            return pickle.load(fname)
+
+
 class Corpus(BaseTextModel):
     def __init__(self, corpus, **kwargs):
         self._text = os.getenv('TEXT', default='text')

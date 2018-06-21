@@ -36,7 +36,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     package_data={'EvoMSA/conf': ['default_parameters.json'],
-                  'EvoMSA/models': ['emo-ar.b4msa', 'emo-en.b4msa', 'emo-es.b4msa'],
                   'EvoMSA/tests': ['tweets.json']},
     install_requires=['B4MSA', 'EvoDAG'],
     entry_points={

@@ -1,5 +1,2 @@
 include EvoMSA/tests/tweets.json 
 include EvoMSA/conf/default_parameters.json
-include EvoMSA/models/emo-ar.b4msa
-include EvoMSA/models/emo-en.b4msa
-include EvoMSA/models/emo-es.b4msa
