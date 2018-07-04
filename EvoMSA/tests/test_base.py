@@ -300,3 +300,32 @@ def test_label_encoder():
     assert np.all(np.array([2, 2, 0, 1, 1]) == yy)
     y = [x['klass'] for x in tweet_iterator(TWEETS)]
     l = LabelEncoderWrapper().fit(y)
+
+
+def test_label_encoder_kwargs():
+    from EvoMSA.base import LabelEncoderWrapper
+    y = [2, 2, -1, 0.3, 0]
+    l = LabelEncoderWrapper(classifier=False).fit(y)
+    print(l._m)
+    yy = l.transform(y)
+    assert yy[-2] == 0.3
+    yy = l.inverse_transform(y)
+    assert yy[-2] == 0.3
+    assert not l.classifier
+
+
+def test_EvoMSA_regression():
+    from EvoMSA.base import LabelEncoderWrapper
+    X, y = get_data()
+    X = [dict(text=x) for x in X]
+    l = LabelEncoderWrapper().fit(y)
+    y = l.transform(y) - 1.5
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                  classifier=False, time_limit=5, n_estimators=2),
+                 classifier=False,
+                 models=[['EvoMSA.model.Identity', 'EvoMSA.model.EmoSpace']],
+                 n_jobs=1).fit(X, y)
+    assert evo
+    df = evo.decision_function(X)
+    print(df.shape)
+    assert df.shape[0] == len(X)

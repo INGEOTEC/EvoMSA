@@ -82,6 +82,9 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         self._textModel, self._classifiers = self.get_model()
         self._text = os.getenv('TEXT', default='text')
 
+    def fit(self, X, y):
+        pass
+
     def get_model(self):
         import os
         from urllib import request

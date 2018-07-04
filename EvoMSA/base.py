@@ -30,10 +30,17 @@ except ImportError:
 
 
 class LabelEncoderWrapper(object):
-    def __init__(self):
+    def __init__(self, classifier=True):
         self._m = {}
+        self._classifier = classifier
+
+    @property
+    def classifier(self):
+        return self._classifier
 
     def fit(self, y):
+        if not self.classifier:
+            return self
         try:
             n = [int(x) for x in y]
         except ValueError:
@@ -44,9 +51,13 @@ class LabelEncoderWrapper(object):
         return self
 
     def transform(self, y):
+        if not self.classifier:
+            return y
         return np.array([self._m[int(x)] for x in y])
 
     def inverse_transform(self, y):
+        if not self.classifier:
+            return y
         return np.array([self._inv[int(x)] for x in y])
 
 
@@ -74,6 +85,7 @@ def vector_space(args):
 class EvoMSA(object):
     def __init__(self, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1'),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
+                 classifier=True,
                  models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier']],
                  evodag_class="EvoDAG.model.EvoDAGE", logistic_regression_args=None, probability_calibration=False):
         if b4msa_params is None:
@@ -91,6 +103,7 @@ class EvoMSA(object):
         self._logger = logging.getLogger('EvoMSA')
         self._le = None
         self._logistic_regression = None
+        self._classifier = classifier
         if logistic_regression:
             p = dict(random_state=self._seed, class_weight='balanced')
             if logistic_regression_args is not None:
@@ -101,6 +114,10 @@ class EvoMSA(object):
         self._probability_calibration = probability_calibration
         self.models = models
         self._evodag_class = self.get_class(evodag_class)
+
+    @property
+    def classifier(self):
+        return self._classifier
 
     def get_class(self, m):
         if isinstance(m, str):
@@ -315,13 +332,13 @@ class EvoMSA(object):
             le = []
             Y = []
             for y0 in y:
-                _ = LabelEncoderWrapper().fit(y0)
+                _ = LabelEncoderWrapper(classifier=self.classifier).fit(y0)
                 le.append(_)
                 Y.append(_.transform(y0).tolist())
             self._le = le[0]
             y = Y
         else:
-            self._le = LabelEncoderWrapper().fit(y)
+            self._le = LabelEncoderWrapper(classifier=self.classifier).fit(y)
             y = self._le.transform(y).tolist()
         self.fit_svm(X, y)
         if isinstance(y[0], list):
