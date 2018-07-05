@@ -321,11 +321,11 @@ def test_EvoMSA_regression():
     l = LabelEncoderWrapper().fit(y)
     y = l.transform(y) - 1.5
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                  classifier=False, time_limit=5, n_estimators=2),
+                                  time_limit=5, n_estimators=2),
                  classifier=False,
                  models=[['EvoMSA.model.Identity', 'EvoMSA.model.EmoSpace']],
                  n_jobs=1).fit(X, y)
     assert evo
     df = evo.decision_function(X)
-    print(df.shape)
-    assert df.shape[0] == len(X)
+    print(df.shape, df.ndim)
+    assert df.shape[0] == len(X) and df.ndim == 1

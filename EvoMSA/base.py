@@ -95,6 +95,8 @@ class EvoMSA(object):
         b4msa_params.update(b4msa_args)
         self._b4msa_args = b4msa_params
         self._evodag_args = evodag_args
+        if not classifier:
+            self._evodag_args.update(dict(classifier=classifier))
         self._n_jobs = n_jobs
         self._n_splits = n_splits
         self._seed = seed
