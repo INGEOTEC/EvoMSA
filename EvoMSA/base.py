@@ -52,7 +52,7 @@ class LabelEncoderWrapper(object):
 
     def transform(self, y):
         if not self.classifier:
-            return y
+            return np.array([float(_) for _ in y])
         return np.array([self._m[int(x)] for x in y])
 
     def inverse_transform(self, y):
