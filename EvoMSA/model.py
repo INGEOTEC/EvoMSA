@@ -95,24 +95,10 @@ class B4MSATextModel(TextModel, BaseTextModel):
             return TextModel.tokenize(self, text)
 
 
-# class B4MSAClassifier(SVC, BaseClassifier):
-#     def __init__(self, random_state=0):
-#         SVC.__init__(self, model=None, random_state=random_state)
-
-#     def decision_function(self, X):
-#         _ = SVC.decision_function(self, X)
-#         _[_ > 1] = 1
-#         _[_ < -1] = -1
-#         return _
-
-
 class EmoSpace(BaseTextModel, BaseClassifier):
     def __init__(self, *args, **kwargs):
         self._textModel, self._classifiers = self.get_model()
         self._text = os.getenv('TEXT', default='text')
-
-    def tonp(self, X):
-        return X
 
     def fit(self, X, y):
         pass
@@ -126,11 +112,11 @@ class EmoSpace(BaseTextModel, BaseClassifier):
                                 fname)
         with gzip.open(fname) as fpt:
             return pickle.load(fpt)
-        
+
     def get_text(self, text):
         key = self._text
         if isinstance(text, (list, tuple)):
-            return " | ".join([x[key] for x in text])
+            return " | ".join([x[key] for x in text])
         return text[key]
 
     def decision_function(self, X):
