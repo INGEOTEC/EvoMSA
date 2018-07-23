@@ -42,11 +42,12 @@ def test_TextModel():
 def test_vector_space():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
-                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
+                 models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
                          ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
     evo.model(X)
+    nrows = len(X)
     X = evo.vector_space(X)
-    assert X[0][0][0][0] == 0
+    assert X[0].shape[0] == nrows
 
 
 def test_EvoMSA_kfold_decision_function():
@@ -55,7 +56,7 @@ def test_EvoMSA_kfold_decision_function():
     le = LabelEncoder().fit(y)
     y = le.transform(y)
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
-                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
+                 models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
                          ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
     evo.model(X)
     X = evo.vector_space(X)
@@ -71,11 +72,11 @@ def test_EvoMSA_fit():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
                                   n_estimators=5),
-                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli'],
-                         ['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier']],
-                 n_jobs=2).fit(X, y)
+                 models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
+                         ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                 n_jobs=1).fit(X, y)
     assert evo
-    assert isinstance(evo._svc_models[0], Bernulli)
+    assert isinstance(evo._svc_models[1], Bernulli)
     assert isinstance(evo._evodag_model, Ensemble)
 
 
@@ -106,7 +107,7 @@ def test_EvoMSA_predict():
     import numpy as np
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
-                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
+                 models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
                          ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                  n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
@@ -198,7 +199,7 @@ def test_EvoMSA_model():
     X, y = get_data()
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
-                   models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
+                   models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
                            ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                    n_jobs=2)
     assert len(model.models) == 2
@@ -214,7 +215,7 @@ def test_EvoMSA_fit_svm():
     from EvoMSA.model import Bernulli
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
-                   models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
+                   models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
                            ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                    n_jobs=2)
     le = LabelEncoder().fit(y)
@@ -237,7 +238,7 @@ def test_EvoMSA_transform():
         Yn.append(_.transform(y0).tolist())
     X = Xn
     y = Yn
-    for m, shape in zip([[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier'],
+    for m, shape in zip([[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
                           ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                          [['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']]], [11, 6]):
         evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),

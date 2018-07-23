@@ -79,3 +79,12 @@ def test_EmoSpaceAr():
     cls = EmoSpaceAr()
     assert cls
 
+
+def test_tonp():
+    from EvoMSA.model import B4MSATextModel
+    from b4msa.utils import tweet_iterator
+    c = B4MSATextModel([x for x in tweet_iterator(TWEETS)])
+    X = [c[x] for x in tweet_iterator(TWEETS)]
+    Xp = c.tonp(X)
+    assert Xp.shape[0] == len(X) and Xp.shape[1] == c.num_terms
+

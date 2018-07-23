@@ -1,6 +1,6 @@
 package:
   name: evomsa
-  version: "0.17"
+  version: "0.19"
 
 requirements:
   build:

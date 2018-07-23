@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-from gensim.matutils import corpus2csc
 from b4msa.textmodel import TextModel
-from b4msa.classifier import SVC
+from scipy.sparse import csr_matrix
 import os
 import pickle
 import gzip
@@ -23,6 +22,29 @@ import gzip
 class BaseTextModel(object):
     def __init__(self, corpus=None, **kwargs):
         pass
+
+    @property
+    def num_terms(self):
+        try:
+            return self._num_terms
+        except AttributeError:
+            self._num_terms = None
+        return None
+
+    def tonp(self, X):
+        data = []
+        row = []
+        col = []
+        for r, x in enumerate(X):
+            col += [_[0] for _ in x]
+            data += [_[1] for _ in x]
+            _ = [r] * len(x)
+            row += _
+        if self.num_terms is None:
+            _ = csr_matrix((data, (row, col)))
+            self._num_terms = _.shape[1]
+            return _
+        return csr_matrix((data, (row, col)), shape=(len(X), self.num_terms))
 
     def __getitem__(self, x):
         pass
@@ -34,7 +56,7 @@ class BaseTextModel(object):
 class BaseClassifier(object):
     def __init__(self, random_state=0):
         pass
-
+    
     def fit(self, X, y):
         return self
 
@@ -73,21 +95,24 @@ class B4MSATextModel(TextModel, BaseTextModel):
             return TextModel.tokenize(self, text)
 
 
-class B4MSAClassifier(SVC, BaseClassifier):
-    def __init__(self, random_state=0):
-        SVC.__init__(self, model=None, random_state=random_state)
+# class B4MSAClassifier(SVC, BaseClassifier):
+#     def __init__(self, random_state=0):
+#         SVC.__init__(self, model=None, random_state=random_state)
 
-    def decision_function(self, X):
-        _ = SVC.decision_function(self, X)
-        _[_ > 1] = 1
-        _[_ < -1] = -1
-        return _
+#     def decision_function(self, X):
+#         _ = SVC.decision_function(self, X)
+#         _[_ > 1] = 1
+#         _[_ < -1] = -1
+#         return _
 
 
 class EmoSpace(BaseTextModel, BaseClassifier):
     def __init__(self, *args, **kwargs):
         self._textModel, self._classifiers = self.get_model()
         self._text = os.getenv('TEXT', default='text')
+
+    def tonp(self, X):
+        return X
 
     def fit(self, X, y):
         pass
@@ -155,6 +180,9 @@ class Corpus(BaseTextModel):
         self._training = True
         self._textModel = TextModel([''], token_list=[-1])
         self.fit(corpus)
+
+    def tonp(self, X):
+        return X
 
     def get_text(self, text):
         return text[self._text]

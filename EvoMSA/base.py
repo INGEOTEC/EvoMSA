@@ -18,7 +18,7 @@ from sklearn.preprocessing import LabelEncoder
 import importlib
 from sklearn.linear_model import LogisticRegression
 from .calibration import CalibrationLR
-from .model import Identity, BaseTextModel, BaseClassifier
+from .model import Identity, BaseTextModel
 import numpy as np
 import logging
 from multiprocessing import Pool
@@ -64,14 +64,19 @@ class LabelEncoderWrapper(object):
 def kfold_decision_function(args):
     cl, X, y, tr, ts, seed = args
     c = cl(random_state=seed)
-    c.fit([X[x] for x in tr], [y[x] for x in tr])
-    _ = c.decision_function([X[x] for x in ts])
+    if isinstance(X, (list, tuple)):
+        c.fit([X[x] for x in tr], [y[x] for x in tr])
+        _ = c.decision_function([X[x] for x in ts])
+    else:
+        y = np.array(y)
+        c.fit(X[tr], y[tr])
+        _ = c.decision_function(X[ts])
     return ts, _
 
 
 def transform(args):
     k, m, t, X = args
-    x = [t[_] for _ in X]
+    x = t.tonp([t[_] for _ in X])
     df = m.decision_function(x)
     d = [EvoMSA.tolist(_) for _ in df]
     return (k, d)
@@ -79,15 +84,18 @@ def transform(args):
 
 def vector_space(args):
     k, t, X = args
-    return k, [t[_] for _ in X]
+    return k, t.tonp([t[_] for _ in X])
 
 
 class EvoMSA(object):
-    def __init__(self, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1'),
+    def __init__(self, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1',
+                                                           random_generations=1000,
+                                                           orthogonal_selection=True),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
                  classifier=True,
-                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier']],
-                 evodag_class="EvoDAG.model.EvoDAGE", logistic_regression_args=None, probability_calibration=False):
+                 models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC']],
+                 evodag_class="EvoDAG.model.EvoDAGE", logistic_regression_args=None,
+                 probability_calibration=False):
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
                                         'conf', 'default_parameters.json')
@@ -148,7 +156,7 @@ class EvoMSA(object):
                 tm = Identity
                 cl = self.get_class(m)
             assert issubclass(tm, BaseTextModel)
-            assert issubclass(cl, BaseClassifier)
+            # assert issubclass(cl, BaseClassifier)
             self._models.append([tm, cl])
 
     @property
@@ -300,7 +308,7 @@ class EvoMSA(object):
             Di = None
             for t_cl, t in zip(self.models, self._textModel):
                 cl = t_cl[1]
-                x = [t[_] for _ in X]
+                x = t.tonp([t[_] for _ in X])
                 d = self.kfold_decision_function(cl, x, y)
                 if Di is None:
                     Di = d
