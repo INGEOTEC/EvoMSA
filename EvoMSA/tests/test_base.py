@@ -211,7 +211,7 @@ def test_EvoMSA_model():
 def test_EvoMSA_fit_svm():
     from sklearn.preprocessing import LabelEncoder
     X, y = get_data()
-    from EvoMSA.model import B4MSAClassifier
+    from sklearn.svm import LinearSVC
     from EvoMSA.model import Bernulli
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
@@ -223,7 +223,7 @@ def test_EvoMSA_fit_svm():
     model.fit_svm(X, y)
     print(model._svc_models)
     assert len(model._svc_models) == 2
-    for ins, klass in zip(model._svc_models, [B4MSAClassifier, Bernulli]):
+    for ins, klass in zip(model._svc_models, [LinearSVC, Bernulli]):
         assert isinstance(ins, klass)
 
 
