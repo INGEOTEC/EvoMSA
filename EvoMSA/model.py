@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+from gensim.matutils import corpus2csc
 from b4msa.textmodel import TextModel
 from b4msa.classifier import SVC
 import os
@@ -20,7 +21,7 @@ import gzip
 
 
 class BaseTextModel(object):
-    def __init__(self, corpus, **kwargs):
+    def __init__(self, corpus=None, **kwargs):
         pass
 
     def __getitem__(self, x):
@@ -30,20 +31,26 @@ class BaseTextModel(object):
         pass
 
 
-class Identity(BaseTextModel):
-    def __getitem__(self, x):
-        return x
-
-
 class BaseClassifier(object):
     def __init__(self, random_state=0):
         pass
 
     def fit(self, X, y):
-        pass
+        return self
 
     def decision_function(self, X):
         pass
+
+
+class Identity(BaseTextModel, BaseClassifier):
+    def __getitem__(self, x):
+        return x
+
+    def decision_function(self, X):
+        return X
+
+    def predict_proba(self, X):
+        return self.decision_function(X)
 
 
 class B4MSATextModel(TextModel, BaseTextModel):

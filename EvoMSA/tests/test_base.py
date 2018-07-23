@@ -329,3 +329,21 @@ def test_EvoMSA_regression():
     df = evo.decision_function(X)
     print(df.shape, df.ndim)
     assert df.shape[0] == len(X) and df.ndim == 1
+
+
+def test_EvoMSA_identity():
+    from EvoMSA.model import Identity
+    import numpy as np
+    X, y = get_data()
+    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                    n_estimators=3),
+                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                   evodag_class="EvoMSA.model.Identity",
+                   n_jobs=2).fit(X, y)
+    assert isinstance(model._evodag_model, Identity)
+    cl = model.predict(X)
+    hy = model.predict_proba(X)
+    cl2 = model._le.inverse_transform(hy.argmax(axis=1))
+    print(cl, cl2)
+    assert np.all(cl == cl2)
+    
