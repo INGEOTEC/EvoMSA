@@ -91,21 +91,21 @@ def test_tonp():
 
 
 def test_AffectiveEs():
-    from EvoMSA.model import AffectiveES
+    from EvoMSA.model import AffectiveEs
     aff = AffectiveEs()
     _ = aff['adoracion XxX fervor vergazo']
     assert len(_) == 3
 
 
 def test_AffectiveEn():
-    from EvoMSA.model import AffectiveEN
+    from EvoMSA.model import AffectiveEn
     aff = AffectiveEn()
     _ = aff['adorably XxX elation vergazo']
     assert len(_) == 2
 
 
 def test_AffectiveAr():
-    from EvoMSA.model import AffectiveAR
+    from EvoMSA.model import AffectiveAr
     aff = AffectiveAr()
     _ = aff['adorably XxX elation vergazo']
     assert len(_) == 0
