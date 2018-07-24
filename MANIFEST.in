@@ -1,2 +1,5 @@
 include EvoMSA/tests/tweets.json 
 include EvoMSA/conf/default_parameters.json
+include EvoMSA/conf/es.affective.words.json
+include EvoMSA/conf/en.affective.words.json
+include EvoMSA/conf/ar.affective.words.json

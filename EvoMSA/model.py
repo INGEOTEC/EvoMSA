@@ -13,6 +13,7 @@
 # limitations under the License.
 import numpy as np
 from b4msa.textmodel import TextModel
+from b4msa.utils import tweet_iterator
 from scipy.sparse import csr_matrix
 import os
 import pickle
@@ -205,6 +206,33 @@ class Corpus(BaseTextModel):
                 self._num_terms += 1
             tokens.append([index, k])
         return tokens
+
+
+class AffectiveAR(Corpus):
+    def __init__(self, *args, **kwargs):
+        fname = os.path.join(os.path.dirname(__file__), 'conf', 'ar.affective.words.json')
+        corpus = []
+        for x in tweet_iterator(fname):
+            corpus += x['words']
+        super(AffectiveAR, self).__init__(corpus)
+
+
+class AffectiveEN(Corpus):
+    def __init__(self, *args, **kwargs):
+        fname = os.path.join(os.path.dirname(__file__), 'conf', 'en.affective.words.json')
+        corpus = []
+        for x in tweet_iterator(fname):
+            corpus += x['words']
+        super(AffectiveEN, self).__init__(corpus)
+
+        
+class AffectiveES(Corpus):
+    def __init__(self, *args, **kwargs):
+        fname = os.path.join(os.path.dirname(__file__), 'conf', 'es.affective.words.json')
+        corpus = []
+        for x in tweet_iterator(fname):
+            corpus += x['words']
+        super(AffectiveES, self).__init__(corpus)
 
 
 class Bernulli(BaseClassifier):
