@@ -317,7 +317,9 @@ class EvoMSA(object):
             [v.__iadd__(w) for v, w in zip(Di, D)]
             D = Di
         _ = np.array(D)
-        return self.append_exogenous_model(self.append_exogenous(_), X)
+        _ = self.append_exogenous_model(self.append_exogenous(_), X)
+        _[~np.isfinite(_)] = 0
+        return _
 
     def fit_svm(self, X, y):
         self.model(X)
