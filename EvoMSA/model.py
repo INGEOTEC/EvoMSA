@@ -209,31 +209,31 @@ class Corpus(BaseTextModel):
         return tokens
 
 
-class AffectiveAR(Corpus):
+class AffectiveAr(Corpus):
     def __init__(self, *args, **kwargs):
         fname = os.path.join(os.path.dirname(__file__), 'conf', 'ar.affective.words.json')
         corpus = []
         for x in tweet_iterator(fname):
             corpus += x['words']
-        super(AffectiveAR, self).__init__(corpus)
+        super(AffectiveAr, self).__init__(corpus)
 
 
-class AffectiveEN(Corpus):
+class AffectiveEn(Corpus):
     def __init__(self, *args, **kwargs):
         fname = os.path.join(os.path.dirname(__file__), 'conf', 'en.affective.words.json')
         corpus = []
         for x in tweet_iterator(fname):
             corpus += x['words']
-        super(AffectiveEN, self).__init__(corpus)
+        super(AffectiveEn, self).__init__(corpus)
 
-        
-class AffectiveES(Corpus):
+
+class AffectiveEs(Corpus):
     def __init__(self, *args, **kwargs):
         fname = os.path.join(os.path.dirname(__file__), 'conf', 'es.affective.words.json')
         corpus = []
         for x in tweet_iterator(fname):
             corpus += x['words']
-        super(AffectiveES, self).__init__(corpus)
+        super(AffectiveEs, self).__init__(corpus)
 
 
 class Bernulli(BaseClassifier):

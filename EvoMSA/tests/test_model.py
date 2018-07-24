@@ -90,23 +90,23 @@ def test_tonp():
     assert Xp.shape[0] == len(X) and Xp.shape[1] == c.num_terms
 
 
-def test_AffectiveES():
+def test_AffectiveEs():
     from EvoMSA.model import AffectiveES
-    aff = AffectiveES()
+    aff = AffectiveEs()
     _ = aff['adoracion XxX fervor vergazo']
     assert len(_) == 3
 
 
-def test_AffectiveEN():
+def test_AffectiveEn():
     from EvoMSA.model import AffectiveEN
-    aff = AffectiveEN()
+    aff = AffectiveEn()
     _ = aff['adorably XxX elation vergazo']
     assert len(_) == 2
 
 
-def test_AffectiveAR():
+def test_AffectiveAr():
     from EvoMSA.model import AffectiveAR
-    aff = AffectiveAR()
+    aff = AffectiveAr()
     _ = aff['adorably XxX elation vergazo']
     assert len(_) == 0
     
