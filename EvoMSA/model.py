@@ -37,9 +37,10 @@ class BaseTextModel(object):
         row = []
         col = []
         for r, x in enumerate(X):
-            col += [_[0] for _ in x]
-            data += [_[1] for _ in x]
-            _ = [r] * len(x)
+            cc = [_[0] for _ in x if np.isfinite(_[1])]
+            col += cc
+            data += [_[1] for _ in x if np.isfinite(_[1])]
+            _ = [r] * len(cc)
             row += _
         if self.num_terms is None:
             _ = csr_matrix((data, (row, col)))
