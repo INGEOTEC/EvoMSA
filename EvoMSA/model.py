@@ -167,9 +167,6 @@ class Corpus(BaseTextModel):
         self._textModel = TextModel([''], token_list=[-1])
         self.fit(corpus)
 
-    def tonp(self, X):
-        return X
-
     def get_text(self, text):
         return text[self._text]
 
@@ -219,11 +216,11 @@ class Bernulli(BaseClassifier):
         return self._num_terms
 
     def fit(self, X, klass):
-        self._num_terms = max([max([_[0] for _ in x]) for x in X if len(x)]) + 1
+        self._num_terms = X.shape[1]
         klasses = np.unique(klass)
         pr = np.zeros((klasses.shape[0], self.num_terms))
         for i, k in zip(X, klass):
-            index = np.array([_[0] for _ in i])
+            index = i.indices
             if index.shape[0] > 0:
                 pr[k, index] += 1
         _ = np.atleast_2d(self.num_terms + np.array([(klass == _k).sum() for _k in klasses])).T
@@ -252,14 +249,12 @@ class Bernulli(BaseClassifier):
     def decision_function_raw(self, X):
         wj = self._wj
         vj = self._vj
-        if not isinstance(X, list):
-            X = [X]
         hy = []
         for d in X:
             x = np.zeros(self.num_terms)
-            index = [_[0] for _ in d if _[0] < self._num_terms]
-            if len(index):
-                x[np.array(index)] = 1
+            index = d.indices
+            if index.shape[0] > 0:
+                x[index] = 1
             _ = ((x * wj) + (1 - x) * vj).sum(axis=1)
             hy.append(_)
         return np.array(hy)
@@ -267,11 +262,11 @@ class Bernulli(BaseClassifier):
 
 class Multinomial(Bernulli):
     def fit(self, X, klass):
-        self._num_terms = max([max([_[0] for _ in x]) for x in X if len(x)]) + 1
+        self._num_terms = X.shape[1]
         klasses = np.unique(klass)
         pr = np.zeros((klasses.shape[0], self.num_terms))
         for i, k in zip(X, klass):
-            index = np.array([_[0] for _ in i])
+            index = i.indices
             if index.shape[0] > 0:
                 pr[k, index] += 1
         den = pr.sum(axis=1)
@@ -280,14 +275,12 @@ class Multinomial(Bernulli):
 
     def decision_function_raw(self, X):
         xj = self._log_xj
-        if not isinstance(X, list):
-            X = [X]
         hy = []
         for d in X:
             x = np.zeros(self.num_terms)
-            index = [_[0] for _ in d if _[0] < self._num_terms]
-            if len(index):
-                x[np.array(index)] = 1
+            index = d.indices
+            if index.shape[0] > 0:
+                x[index] = 1
             _ = (xj * x).sum(axis=1)
             hy.append(_)
         return np.array(hy)

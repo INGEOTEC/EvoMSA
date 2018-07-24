@@ -334,7 +334,10 @@ class EvoMSA(object):
                 x = Xvs[k]
                 cl = self.models[j][1]
                 k += 1
-                c = cl(random_state=self._seed)
+                try:
+                    c = cl(random_state=self._seed)
+                except TypeError:
+                    c = cl()
                 c.fit(x, y0)
                 svc_models.append(c)
         self._svc_models = svc_models

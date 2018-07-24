@@ -30,7 +30,7 @@ def test_bernulli():
     from b4msa.utils import tweet_iterator
     from sklearn.preprocessing import LabelEncoder
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
-    X = [c[x['text']] for x in tweet_iterator(TWEETS)]
+    X = c.tonp([c[x['text']] for x in tweet_iterator(TWEETS)])
     y = [x['klass'] for x in tweet_iterator(TWEETS)]
     le = LabelEncoder().fit(y)
     y = le.transform(y)
@@ -47,13 +47,14 @@ def test_multinomial():
     from b4msa.utils import tweet_iterator
     from sklearn.preprocessing import LabelEncoder
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
-    X = [c[x['text']] for x in tweet_iterator(TWEETS)]
+    X = c.tonp([c[x['text']] for x in tweet_iterator(TWEETS)])
     y = [x['klass'] for x in tweet_iterator(TWEETS)]
     le = LabelEncoder().fit(y)
     y = le.transform(y)
     b = Multinomial()
     b.fit(X, y)
     pr = b.decision_function(X)
+    print(pr.shape[0], pr, b.num_terms)
     assert pr.shape[0] == 1000 and pr.shape[1] == 4
     assert np.all((pr <= 1) & (pr >= -1))
 
