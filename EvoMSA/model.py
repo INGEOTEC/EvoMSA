@@ -316,7 +316,7 @@ class Multinomial(Bernulli):
         return np.array(hy)
 
 
-class ThumbsUpDownEs(ThumbsUpDown):
+class ThumbsUpDownEs(ThumbsUpDown, BaseTextModel):
     def __init__(self, *args, **kwargs):
         """
         Initializes the parameters for specific language
@@ -325,7 +325,7 @@ class ThumbsUpDownEs(ThumbsUpDown):
         super(ThumbsUpDownEs, self).__init__(file_name=fname, lang=_SPANISH, stemming=False)
 
 
-class ThumbsUpDownEn(ThumbsUpDown):
+class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
     def __init__(self, *args, **kwargs):
         """
         Initializes the parameters for specific language
@@ -334,7 +334,7 @@ class ThumbsUpDownEn(ThumbsUpDown):
         super(ThumbsUpDownEn, self).__init__(file_name=fname, lang=_ENGLISH, stemming=False)
 
 
-class ThumbsUpDownAr(ThumbsUpDown):
+class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
     def __init__(self, *args, **kwargs):
         """
         Initializes the parameters for specific language
