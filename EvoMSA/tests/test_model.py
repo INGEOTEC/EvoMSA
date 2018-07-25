@@ -112,21 +112,21 @@ def test_AffectiveAr():
 
 
 def test_ThumbsUpDownEs():
-    from EvoMSA.thumbs_up_down import ThumbsUpDownEs
+    from EvoMSA.model import ThumbsUpDownEs
     thumbs = ThumbsUpDownEs()
     _ = thumbs['adoracion XxX fervor vergazo']
     assert _ == (2, 1)
 
 
 def test_ThumbsUpDownEn():
-    from EvoMSA.thumbs_up_down import ThumbsUpDownEn
+    from EvoMSA.model import ThumbsUpDownEn
     aff = ThumbsUpDownEn()
     _ = aff['adorably XxX elation vergazo']
     assert (2, 0) == _
 
 
 def test_ThumbsUpDownAr():
-    from EvoMSA.thumbs_up_down import ThumbsUpDownAr
+    from EvoMSA.model import ThumbsUpDownAr
     aff = ThumbsUpDownAr()
     _ = aff['adorably XxX elation vergazo']
     assert (0, 0) == _

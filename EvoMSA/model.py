@@ -15,6 +15,7 @@ import numpy as np
 from b4msa.textmodel import TextModel
 from b4msa.utils import tweet_iterator
 from scipy.sparse import csr_matrix
+from EvoMSA.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH
 import os
 import pickle
 import gzip
@@ -313,4 +314,30 @@ class Multinomial(Bernulli):
             _ = (xj * x).sum(axis=1)
             hy.append(_)
         return np.array(hy)
-    
+
+
+class ThumbsUpDownEs(ThumbsUpDown):
+    def __init__(self, *args, **kwargs):
+        """
+        Initializes the parameters for specific language
+        """
+        fname = os.path.join(os.path.dirname(__file__), 'conf', 'es.affective.words.json')
+        super(ThumbsUpDownEs, self).__init__(file_name=fname, lang=_SPANISH, stemming=False)
+
+
+class ThumbsUpDownEn(ThumbsUpDown):
+    def __init__(self, *args, **kwargs):
+        """
+        Initializes the parameters for specific language
+        """
+        fname = os.path.join(os.path.dirname(__file__), 'conf', 'en.affective.words.json')
+        super(ThumbsUpDownEn, self).__init__(file_name=fname, lang=_ENGLISH, stemming=False)
+
+
+class ThumbsUpDownAr(ThumbsUpDown):
+    def __init__(self, *args, **kwargs):
+        """
+        Initializes the parameters for specific language
+        """
+        fname = os.path.join(os.path.dirname(__file__), 'conf', 'ar.affective.words.json')
+        super(ThumbsUpDownAr, self).__init__(file_name=fname, lang=_ARABIC, stemming=False)
