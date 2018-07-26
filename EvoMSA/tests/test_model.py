@@ -130,4 +130,22 @@ def test_ThumbsUpDownAr():
     aff = ThumbsUpDownAr()
     _ = aff['adorably XxX elation vergazo']
     assert (0, 0) == _
-    
+
+
+def test_OutputClassifier():
+    import numpy as np
+    from EvoMSA.model import Corpus, OutputClassifier
+    from b4msa.utils import tweet_iterator
+    from sklearn.preprocessing import LabelEncoder
+    c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
+    X = c.tonp([c[x['text']] for x in tweet_iterator(TWEETS)])
+    y = [x['klass'] for x in tweet_iterator(TWEETS)]
+    le = LabelEncoder().fit(y)
+    y = le.transform(y)
+    b = OutputClassifier(output='xx')
+    assert b._output == 'xx'
+    b.fit(X, y)
+    assert os.path.isfile('xx_train.csv')
+    pr = b.decision_function(X)
+    assert os.path.isfile('xx_test.csv')
+    assert len(open('xx_test.csv').readlines()) == pr.shape[0]

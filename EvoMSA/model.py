@@ -15,6 +15,7 @@ import numpy as np
 from b4msa.textmodel import TextModel
 from b4msa.utils import tweet_iterator
 from scipy.sparse import csr_matrix
+from sklearn.svm import LinearSVC
 from EvoMSA.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH
 import os
 import pickle
@@ -65,6 +66,37 @@ class BaseClassifier(object):
 
     def decision_function(self, X):
         pass
+
+
+class OutputClassifier(object):
+    def __init__(self, random_state=0, output=None):
+        self._output = os.getenv('OUTPUT', output)
+        assert self._output is not None
+        self._random_state = random_state
+
+    def fit(self, X, y):
+        self.m = LinearSVC(random_state=self._random_state).fit(X, y)
+        try:
+            X = np.array(X.todense())
+        except AttributeError:
+            pass
+        with open('%s_train.csv' % self._output, 'w') as fpt:
+            for x, _y in zip(X, y):
+                fpt.write(",".join([str(_) for _ in x]))
+                fpt.write(",%s\n" % str(_y))
+        return self
+
+    def decision_function(self, X):
+        hy = self.m.decision_function(X)
+        try:
+            X = np.array(X.todense())
+        except AttributeError:
+            pass
+        with open('%s_test.csv' % self._output, 'w') as fpt:
+            for x in X:
+                fpt.write(",".join([str(_) for _ in x]))
+                fpt.write("\n")
+        return hy
 
 
 class Identity(BaseTextModel, BaseClassifier):
