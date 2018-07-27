@@ -373,7 +373,8 @@ class EvoMSA(object):
         self._evodag_args.update(_)
         y = np.array(y)
         try:
-            _ = self._evodag_class(**self._evodag_args).fit(D, y, test_set=test_set)
+            _ = self._evodag_class(**self._evodag_args)
+            _.fit(D, y, test_set=test_set)
             self._evodag_model = _
         except TypeError:
             self._evodag_model = self._evodag_class().fit(D, y)
