@@ -135,7 +135,7 @@ def test_train_exogenous():
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
-    m = evo._evodag_model.models[0]
+    m = evo._evodag_model._m.models[0]
     os.unlink('ex.json')
     print(m.nvar)
     assert m.nvar == 6

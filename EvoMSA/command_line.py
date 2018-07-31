@@ -202,7 +202,7 @@ class CommandLineUtils(CommandLineTrain):
     def fitness(self):
         model_file = self.data.training_set[0]
         evo = self.load_model(model_file)
-        print("Median fitness: %0.4f" % (evo._evodag_model.fitness_vs * -1))
+        print("Median fitness: %0.4f" % (evo._evodag_model._m.fitness_vs * -1))
 
     def main(self):
         if self.data.transform:

@@ -68,7 +68,7 @@ def test_EvoMSA_kfold_decision_function():
 
 def test_EvoMSA_fit():
     from EvoMSA.model import Bernulli
-    from EvoDAG.model import Ensemble
+    from EvoDAG.model import EvoDAGE
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
                                   n_estimators=5),
@@ -77,7 +77,7 @@ def test_EvoMSA_fit():
                  n_jobs=1).fit(X, y)
     assert evo
     assert isinstance(evo._svc_models[1], Bernulli)
-    assert isinstance(evo._evodag_model, Ensemble)
+    assert isinstance(evo._evodag_model, EvoDAGE)
 
 
 def test_EvoMSA_fit2():
