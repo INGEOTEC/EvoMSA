@@ -115,7 +115,6 @@ def test_EvoMSA_predict():
     assert len(hy) == 1000
     print((np.array(y) == hy).mean(), hy)
     print(evo.predict_proba(X))
-    print(evo._evodag_model.fitness_vs)
     assert (np.array(y) == hy).mean() > 0.8
 
 
@@ -130,7 +129,6 @@ def test_EvoMSA_bernulli_predict():
     assert len(hy) == 1000
     print((np.array(y) == hy).mean(), hy)
     print(evo.predict_proba(X))
-    print(evo._evodag_model.fitness_vs)
     assert (np.array(y) == hy).mean() > 0.8
 
 

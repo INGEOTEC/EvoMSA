@@ -39,6 +39,7 @@ class BaseTextModel(object):
         row = []
         col = []
         for r, x in enumerate(X):
+            print(x)
             cc = [_[0] for _ in x if np.isfinite(_[1])]
             col += cc
             data += [_[1] for _ in x if np.isfinite(_[1])]
@@ -60,7 +61,7 @@ class BaseTextModel(object):
 class BaseClassifier(object):
     def __init__(self, random_state=0):
         pass
-    
+
     def fit(self, X, y):
         return self
 
@@ -100,6 +101,9 @@ class OutputClassifier(object):
 
 
 class Identity(BaseTextModel, BaseClassifier):
+    def tonp(self, x):
+        return x
+
     def __getitem__(self, x):
         return x
 
@@ -128,6 +132,63 @@ class B4MSATextModel(TextModel, BaseTextModel):
             return tokens
         else:
             return TextModel.tokenize(self, text)
+
+
+class HaSpace(object):
+    def __init__(self, *args, **kwargs):
+        self._model = self.get_model()
+        self._text = os.getenv('TEXT', default='text')
+
+    def fit(self, X, y):
+        X = [self.get_text(x) for x in X]
+        X = self._model.decision_function(X)
+        self._svc = LinearSVC().fit(X, y)
+        return self
+    
+    def decision_function(self, X):
+        X = [self.get_text(x) for x in X]
+        X = self._model.decision_function(X)
+        return self._svc.decision_function(X)
+
+    def get_model(self):
+        import os
+        from urllib import request
+        fname = os.path.join(os.path.dirname(__file__), 'ha-es.model')
+        if not os.path.isfile(fname):
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-es.model",
+                                fname)
+        with gzip.open(fname) as fpt:
+            return pickle.load(fpt)
+
+    def get_text(self, text):
+        key = self._text
+        if isinstance(text, (list, tuple)):
+            return " | ".join([x[key] for x in text])
+        return text[key]
+
+
+class HaSpaceEn(object):
+    def get_model(self):
+        import os
+        from urllib import request
+        fname = os.path.join(os.path.dirname(__file__), 'ha-en.model')
+        if not os.path.isfile(fname):
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-en.model",
+                                fname)
+        with gzip.open(fname) as fpt:
+            return pickle.load(fpt)
+
+
+class HaSpaceAr(object):
+    def get_model(self):
+        import os
+        from urllib import request
+        fname = os.path.join(os.path.dirname(__file__), 'ha-ar.model')
+        if not os.path.isfile(fname):
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-ar.model",
+                                fname)
+        with gzip.open(fname) as fpt:
+            return pickle.load(fpt)
 
 
 class EmoSpace(BaseTextModel, BaseClassifier):

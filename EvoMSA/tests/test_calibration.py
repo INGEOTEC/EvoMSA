@@ -24,7 +24,7 @@ def test_calibration_predict():
                                   early_stopping_rounds=10), seed=0,
                  n_jobs=1, probability_calibration=True).fit(X, y)
     pr = evo.predict_proba(X)
-    evo._evodag_model.models[0]._probability_calibration = None
+    evo._evodag_model._m.models[0]._probability_calibration = None
     pr2 = evo.predict_proba(X)
     assert np.fabs(pr - pr2).sum() > 0
 
@@ -39,7 +39,7 @@ def test_calibration_predict_2classes():
                  n_jobs=1, probability_calibration=True).fit(X, y)
     pr = evo.predict_proba(X)
     [assert_almost_equals(x, 1) for x in pr.sum(axis=1)]
-    evo._evodag_model.models[0]._probability_calibration = None
+    evo._evodag_model._m.models[0]._probability_calibration = None
     pr2 = evo.predict_proba(X)
     assert np.fabs(pr - pr2).sum() > 0
     print(pr2[:3])
@@ -57,7 +57,7 @@ def test_calibration_predict_2classes_single():
                                   early_stopping_rounds=10), seed=0,
                  n_jobs=1).fit(X, y)
     X = evo.transform(X)
-    df = evo._evodag_model._decision_function_raw(X)
+    df = evo._evodag_model._m._decision_function_raw(X)
     y = evo._le.transform(y)
     c = Calibration().fit(df[0], y)
     proba = c.predict_proba(df[0])
@@ -73,7 +73,7 @@ def test_calibration_predict_single():
                                   early_stopping_rounds=10), seed=0,
                  n_jobs=1).fit(X, y)
     X = evo.transform(X)
-    df = evo._evodag_model._decision_function_raw(X)
+    df = evo._evodag_model._m._decision_function_raw(X)
     y = evo._le.transform(y)
     c = Calibration().fit(df[0], y)
     proba = c.predict_proba(df[0])

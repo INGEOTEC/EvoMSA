@@ -133,7 +133,6 @@ def test_ThumbsUpDownAr():
 
 
 def test_OutputClassifier():
-    import numpy as np
     from EvoMSA.model import Corpus, OutputClassifier
     from b4msa.utils import tweet_iterator
     from sklearn.preprocessing import LabelEncoder
@@ -149,3 +148,36 @@ def test_OutputClassifier():
     pr = b.decision_function(X)
     assert os.path.isfile('xx_test.csv')
     assert len(open('xx_test.csv').readlines()) == pr.shape[0]
+
+
+def test_HaSpace():
+    from EvoMSA.model import HaSpace
+    from b4msa.utils import tweet_iterator
+    X = [x for x in tweet_iterator(TWEETS)]
+    y = [x['klass'] for x in X]
+    emo = HaSpace().fit(X, y)
+    Xs = emo.decision_function(X)
+    print(Xs)
+    assert len(Xs) == len(X) and Xs.shape[1] == 4
+
+
+def test_HaSpaceEn():
+    from EvoMSA.model import HaSpaceEn
+    from b4msa.utils import tweet_iterator
+    X = [x for x in tweet_iterator(TWEETS)]
+    y = [x['klass'] for x in X]
+    emo = HaSpaceEn().fit(X, y)
+    Xs = emo.decision_function(X)
+    print(Xs)
+    assert len(Xs) == len(X) and Xs.shape[1] == 4
+
+
+def test_HaSpaceAr():
+    from EvoMSA.model import HaSpaceAr
+    from b4msa.utils import tweet_iterator
+    X = [x for x in tweet_iterator(TWEETS)]
+    y = [x['klass'] for x in X]
+    emo = HaSpaceAr().fit(X, y)
+    Xs = emo.decision_function(X)
+    print(Xs)
+    assert len(Xs) == len(X) and Xs.shape[1] == 4
