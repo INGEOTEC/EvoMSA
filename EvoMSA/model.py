@@ -39,7 +39,6 @@ class BaseTextModel(object):
         row = []
         col = []
         for r, x in enumerate(X):
-            print(x)
             cc = [_[0] for _ in x if np.isfinite(_[1])]
             col += cc
             data += [_[1] for _ in x if np.isfinite(_[1])]
@@ -167,7 +166,7 @@ class HaSpace(object):
         return text[key]
 
 
-class HaSpaceEn(object):
+class HaSpaceEn(HaSpace):
     def get_model(self):
         import os
         from urllib import request
@@ -179,7 +178,7 @@ class HaSpaceEn(object):
             return pickle.load(fpt)
 
 
-class HaSpaceAr(object):
+class HaSpaceAr(HaSpace):
     def get_model(self):
         import os
         from urllib import request
