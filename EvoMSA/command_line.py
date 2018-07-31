@@ -38,7 +38,7 @@ def fitness_vs(k_model):
     if model == '-':
         return k, '-'
     model = CommandLine.load_model(model)
-    return k, np.mean([x.fitness_vs for x in model._evodag_model.models])
+    return k, np.mean([x.fitness_vs for x in model._evodag_model._m.models])
 
 
 class CommandLine(object):
@@ -396,7 +396,7 @@ class CommandLinePerformance(CommandLine):
             D = np.array(D).T
         else:
             models = [self.load_model(d) for d in self.data.model]
-            D = np.array([[x.fitness_vs for x in m._evodag_model.models] for m in models]).T
+            D = np.array([[x.fitness_vs for x in m._evodag_model._m.models] for m in models]).T
         p, alpha = self.compute_p(D)
         self._p = p
         self._alpha = alpha
