@@ -157,7 +157,9 @@ class HaSpace(object):
             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-es.model",
                                 fname)
         with gzip.open(fname) as fpt:
-            return pickle.load(fpt)
+            _ = pickle.load(fpt)
+        _.n_jobs = 1
+        return _
 
     def get_text(self, text):
         key = self._text
@@ -175,7 +177,9 @@ class HaSpaceEn(HaSpace):
             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-en.model",
                                 fname)
         with gzip.open(fname) as fpt:
-            return pickle.load(fpt)
+            _ = pickle.load(fpt)
+        _.n_jobs = 1
+        return _
 
 
 class HaSpaceAr(HaSpace):
@@ -187,7 +191,9 @@ class HaSpaceAr(HaSpace):
             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-ar.model",
                                 fname)
         with gzip.open(fname) as fpt:
-            return pickle.load(fpt)
+            _ = pickle.load(fpt)
+        _.n_jobs = 1
+        return _
 
 
 class EmoSpace(BaseTextModel, BaseClassifier):
