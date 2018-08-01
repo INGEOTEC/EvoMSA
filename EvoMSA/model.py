@@ -139,15 +139,13 @@ class HaSpace(object):
         self._text = os.getenv('TEXT', default='text')
 
     def fit(self, X, y):
-        X = [self.get_text(x) for x in X]
-        X = self._model.decision_function(X)
-        self._svc = LinearSVC().fit(X, y)
-        return self
+        pass
     
     def decision_function(self, X):
         X = [self.get_text(x) for x in X]
         X = self._model.decision_function(X)
-        return self._svc.decision_function(X)
+        X[~np.isfinite(X)] = 0
+        return X
 
     def get_model(self):
         import os

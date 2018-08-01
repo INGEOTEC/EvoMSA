@@ -87,10 +87,18 @@ def vector_space(args):
     return k, t.tonp([t[_] for _ in X])
 
 
+DEFAULT_CL = dict(fitness_function='macro-F1',
+                  random_generations=1000,
+                  orthogonal_selection=True)
+
+
+DEFAULT_R = dict(random_generations=1000,
+                 classifier=True,
+                 orthogonal_selection=True)
+
+
 class EvoMSA(object):
-    def __init__(self, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1',
-                                                           random_generations=1000,
-                                                           orthogonal_selection=True),
+    def __init__(self, b4msa_params=None, evodag_args=dict(),
                  b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
                  classifier=True,
                  models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC']],
@@ -103,8 +111,12 @@ class EvoMSA(object):
         b4msa_params.update(b4msa_args)
         self._b4msa_args = b4msa_params
         self._evodag_args = evodag_args
-        if not classifier:
-            self._evodag_args.update(dict(classifier=classifier))
+        if classifier:
+            _ = DEFAULT_CL.copy()
+        else:
+            _ = DEFAULT_R.copy()
+        _.update(self._evodag_args)
+        self._evodag_args = _
         self._n_jobs = n_jobs
         self._n_splits = n_splits
         self._seed = seed

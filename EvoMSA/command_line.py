@@ -92,7 +92,7 @@ class CommandLine(object):
             a = m.split('.')
             p = importlib.import_module('.'.join(a[:-1]))
             return getattr(p, a[-1])
-        return m      
+        return m
 
     @staticmethod
     def load_model(fname):
@@ -110,20 +110,23 @@ class CommandLineTrain(CommandLine):
         super(CommandLineTrain, self).__init__()
         self.training_set()
         pa = self.parser.add_argument
+        pa('--ieee-cim', dest='ieee_cim', default=None, type=str,
+           help='Model used in Computational Intelligence Magazine avaiable language AR, EN, and ES')
         pa('--kw', dest='kwargs', default=None, type=str,
            help='Parameters in json that overwrite EvoMSA default parameters')
         pa('--evodag-kw', dest='evo_kwargs', default=None, type=str,
            help='Parameters in json that overwrite EvoDAG default parameters')
         pa('--b4msa-kw', dest='b4msa_kwargs', default=None, type=str,
            help='Parameters in json that overwrite B4MSA default parameters')
-        pa('--logistic-regression-kw', dest='logistic_regression_kwargs', default=None, type=str,
+        pa('--logistic-regression-kw', dest='logistic_regression_kwargs',
+           default=None, type=str,
            help='Parameters in json that overwrite Logistic Regression default parameters')
         pa('--test_set', dest='test_set', default=None, type=str,
            help='Test set to do transductive learning')
         pa('-P', '--parameters', dest='parameters', type=str,
            help='B4MSA parameters')
-        pa('--exogenous-model', help='Exogenous model(s) - pickle.dump with gzip', dest='exogenous_model',
-           default=None, type=str, nargs='*')
+        pa('--exogenous-model', help='Exogenous model(s) - pickle.dump with gzip',
+           dest='exogenous_model', default=None, type=str, nargs='*')
 
     def training_set(self):
         cdn = 'File containing the training set.'
@@ -131,7 +134,37 @@ class CommandLineTrain(CommandLine):
         pa('training_set',  nargs='+',
            default=None, help=cdn)
 
+    def params_ieee_cim(self):
+        lang = self.data.ieee_cim.lower()
+        assert lang in ['ar', 'en', 'es']
+        if lang == 'ar':
+            emo = 'EvoMSA.model.EmoSpaceAr'
+            th = 'EvoMSA.model.ThumbsUpDownAr'
+            ha = 'EvoMSA.model.HaSpaceAr'
+        elif lang == 'en':
+            emo = 'EvoMSA.model.EmoSpaceEn'
+            th = 'EvoMSA.model.ThumbsUpDownEn'
+            ha = 'EvoMSA.model.HaSpaceEn'
+        elif lang == 'es':
+            emo = 'EvoMSA.model.EmoSpace'
+            th = 'EvoMSA.model.ThumbsUpDownEs'
+            ha = 'EvoMSA.model.HaSpace'
+        kw = json.loads(self.data.kwargs) if self.data.kwargs is not None else dict()
+        models = kw.get('models', list())
+        h = {":".join(tt_cl) for tt_cl in models}
+        for tt_cl in [['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
+                      [emo, 'sklearn.svm.LinearSVC'],
+                      [th, 'EvoMSA.model.Identity'],
+                      ['EvoMSA.model.Identity', ha]]:
+            if ":".join(tt_cl) in h:
+                continue
+            models.append(tt_cl)
+        kw.update(models=models)
+        self.data.kwargs = json.dumps(kw)
+
     def main(self):
+        if self.data.ieee_cim is not None:
+            self.params_ieee_cim()
         fnames = self.data.training_set
         if not isinstance(fnames, list):
             fnames = [fnames]

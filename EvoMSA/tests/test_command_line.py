@@ -367,4 +367,19 @@ def test_train_exogenous_model_class():
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
+
+
+def test_train_ieee_cim():
+    from EvoMSA.base import EvoMSA
+    sys.argv = ['EvoMSA', '-ot.model', '-n2',
+                '--ieee-cim', 'ES',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                TWEETS]
+    c = train(output=True)
+    assert len(c.data.kwargs['models']) == 4
+
+    with gzip.open('t.model', 'r') as fpt:
+        evo = pickle.load(fpt)
+    assert isinstance(evo, EvoMSA)
+    os.unlink('t.model')
     
