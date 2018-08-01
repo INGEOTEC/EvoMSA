@@ -139,7 +139,7 @@ class HaSpace(object):
         self._text = os.getenv('TEXT', default='text')
 
     def fit(self, X, y):
-        pass
+        return self
     
     def decision_function(self, X):
         X = [self.get_text(x) for x in X]
