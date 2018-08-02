@@ -140,22 +140,21 @@ class CommandLineTrain(CommandLine):
         if lang == 'ar':
             emo = 'EvoMSA.model.EmoSpaceAr'
             th = 'EvoMSA.model.ThumbsUpDownAr'
-            ha = 'EvoMSA.model.HaSpaceAr'
+            # ha = 'EvoMSA.model.HaSpaceAr'
         elif lang == 'en':
             emo = 'EvoMSA.model.EmoSpaceEn'
             th = 'EvoMSA.model.ThumbsUpDownEn'
-            ha = 'EvoMSA.model.HaSpaceEn'
+            # ha = 'EvoMSA.model.HaSpaceEn'
         elif lang == 'es':
             emo = 'EvoMSA.model.EmoSpace'
             th = 'EvoMSA.model.ThumbsUpDownEs'
-            ha = 'EvoMSA.model.HaSpace'
+            # ha = 'EvoMSA.model.HaSpace'
         kw = json.loads(self.data.kwargs) if self.data.kwargs is not None else dict()
         models = kw.get('models', list())
         h = {":".join(tt_cl) for tt_cl in models}
         for tt_cl in [['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
                       [emo, 'sklearn.svm.LinearSVC'],
-                      [th, 'EvoMSA.model.Identity'],
-                      ['EvoMSA.model.Identity', ha]]:
+                      [th, 'EvoMSA.model.Identity']]:
             if ":".join(tt_cl) in h:
                 continue
             models.append(tt_cl)
@@ -425,11 +424,11 @@ class CommandLinePerformance(CommandLine):
                     continue
                 I.append(x)
             if len(I):
-                D.append(I)
+                D.append(np.array(I))
             D = np.array(D).T
         else:
             models = [self.load_model(d) for d in self.data.model]
-            D = np.array([[x.fitness_vs for x in m._evodag_model._m.models] for m in models]).T
+            D = np.array([np.array([x.fitness_vs for x in m._evodag_model._m.models]) for m in models]).T
         print(D, '***')
         p, alpha = self.compute_p(D)
         self._p = p

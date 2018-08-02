@@ -299,10 +299,11 @@ def test_performance_validation_set():
                     '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '-n1', TWEETS]
         train()
     sys.argv = ['EvoMSA', '-m'] + ['t-%s.model' % seed for seed in range(3)]
+    print(fitness_vs((0, 't-0.model')))
     m = performance(output=True)
     assert len(m._p) == 3
-    fitness_vs((0, 't-0.model'))
-
+    assert False
+    
 
 def test_performance_validation_set2():
     import os
@@ -379,7 +380,7 @@ def test_train_ieee_cim():
                 TWEETS]
     c = train(output=True)
     kw = json.loads(c.data.kwargs)
-    assert len(kw['models']) == 5
+    assert len(kw['models']) == 4
     with gzip.open('t.model', 'r') as fpt:
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
