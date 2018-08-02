@@ -93,7 +93,7 @@ DEFAULT_CL = dict(fitness_function='macro-F1',
 
 
 DEFAULT_R = dict(random_generations=1000,
-                 classifier=True,
+                 classifier=False,
                  orthogonal_selection=True)
 
 

@@ -371,13 +371,14 @@ def test_train_exogenous_model_class():
 
 def test_train_ieee_cim():
     from EvoMSA.base import EvoMSA
+    import json
     sys.argv = ['EvoMSA', '-ot.model', '-n2',
                 '--ieee-cim', 'ES',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 TWEETS]
     c = train(output=True)
-    assert len(c.data.kwargs['models']) == 4
-
+    kw = json.loads(c.data.kwargs)
+    assert len(kw['models']) == 4
     with gzip.open('t.model', 'r') as fpt:
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)

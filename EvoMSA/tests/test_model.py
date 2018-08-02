@@ -158,7 +158,7 @@ def test_HaSpace():
     emo = HaSpace().fit(X, y)
     Xs = emo.decision_function(X)
     print(Xs)
-    assert len(Xs) == len(X) and Xs.shape[1] == 4
+    assert len(Xs) == len(X) and Xs.shape[1] == 3
 
 
 def test_HaSpaceEn():
@@ -169,7 +169,7 @@ def test_HaSpaceEn():
     emo = HaSpaceEn().fit(X, y)
     Xs = emo.decision_function(X)
     print(Xs)
-    assert len(Xs) == len(X) and Xs.shape[1] == 4
+    assert len(Xs) == len(X) and Xs.shape[1] == 3
 
 
 def test_HaSpaceAr():
@@ -180,4 +180,4 @@ def test_HaSpaceAr():
     emo = HaSpaceAr().fit(X, y)
     Xs = emo.decision_function(X)
     print(Xs)
-    assert len(Xs) == len(X) and Xs.shape[1] == 4
+    assert len(Xs) == len(X) and Xs.shape[1] == 3
