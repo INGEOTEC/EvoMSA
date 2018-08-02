@@ -333,6 +333,33 @@ class AffectiveEs(Corpus):
         super(AffectiveEs, self).__init__(corpus)
 
 
+class AggressivenessAr(Corpus):
+    def __init__(self, *args, **kwargs):
+        fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.ar')
+        corpus = []
+        for x in tweet_iterator(fname):
+            corpus += x['words']
+        super(AggressivenessAr, self).__init__(corpus)
+
+
+class AggressivenessEn(Corpus):
+    def __init__(self, *args, **kwargs):
+        fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.en')
+        corpus = []
+        for x in tweet_iterator(fname):
+            corpus += x['words']
+        super(AggressivenessEn, self).__init__(corpus)
+
+
+class AggressivenessEs(Corpus):
+    def __init__(self, *args, **kwargs):
+        fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.es')
+        corpus = []
+        for x in tweet_iterator(fname):
+            corpus += x['words']
+        super(AggressivenessEs, self).__init__(corpus)
+        
+
 class Bernulli(BaseClassifier):
     def __init__(self, random_state=0):
         self._num_terms = -1

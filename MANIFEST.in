@@ -3,3 +3,6 @@ include EvoMSA/conf/default_parameters.json
 include EvoMSA/conf/es.affective.words.json
 include EvoMSA/conf/en.affective.words.json
 include EvoMSA/conf/ar.affective.words.json
+include EvoMSA/conf/aggressiveness.es
+include EvoMSA/conf/aggressiveness.en
+include EvoMSA/conf/aggressiveness.ar

@@ -148,6 +148,8 @@ def test_OutputClassifier():
     pr = b.decision_function(X)
     assert os.path.isfile('xx_test.csv')
     assert len(open('xx_test.csv').readlines()) == pr.shape[0]
+    os.unlink('xx_train.csv')
+    os.unlink('xx_test.csv')
 
 
 def test_HaSpace():
@@ -181,3 +183,27 @@ def test_HaSpaceAr():
     Xs = emo.decision_function(X)
     print(Xs)
     assert len(Xs) == len(X) and Xs.shape[1] == 3
+
+
+def test_AggressivenessEs():
+    from EvoMSA.model import AggressivenessEs
+    aff = AggressivenessEs()
+    _ = aff['indio XxX fervor vergazo']
+    assert len(_) == 1
+
+
+def test_AggressivenessEn():
+    from EvoMSA.model import AggressivenessEn
+    aff = AggressivenessEn()
+    _ = aff['cockhead cockjockey adoracion XxX fervor vergazo']
+    print(_)
+    assert len(_) == 2
+
+
+def test_AggressivenessAr():
+    from EvoMSA.model import AggressivenessAr
+    aff = AggressivenessAr()
+    _ = aff['adoracion XxX fervor vergazo']
+    assert len(_) == 0
+    
+
