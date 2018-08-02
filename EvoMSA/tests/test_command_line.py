@@ -302,7 +302,7 @@ def test_performance_validation_set():
     print(fitness_vs((0, 't-0.model')))
     m = performance(output=True)
     assert len(m._p) == 3
-    assert False
+    # assert False
     
 
 def test_performance_validation_set2():
