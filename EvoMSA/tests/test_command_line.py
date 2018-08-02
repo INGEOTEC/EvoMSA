@@ -374,11 +374,12 @@ def test_train_ieee_cim():
     import json
     sys.argv = ['EvoMSA', '-ot.model', '-n2',
                 '--ieee-cim', 'ES',
+                '--kw', '{"models": [["EvoMSA.model.AggressivenessEs", "sklearn.svm.LinearSVC"]]}',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 TWEETS]
     c = train(output=True)
     kw = json.loads(c.data.kwargs)
-    assert len(kw['models']) == 4
+    assert len(kw['models']) == 5
     with gzip.open('t.model', 'r') as fpt:
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
