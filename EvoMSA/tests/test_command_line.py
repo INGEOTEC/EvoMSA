@@ -290,11 +290,11 @@ def test_predict_NearestCentroid():
 
 
 def test_performance_validation_set():
-    import os
+    # import os
     from EvoMSA.command_line import performance, fitness_vs
     for seed in range(3):
-        if os.path.isfile('t-%s.model' % seed):
-            continue
+        # if os.path.isfile('t-%s.model' % seed):
+        #     continue
         sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                     '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '-n1', TWEETS]
         train()

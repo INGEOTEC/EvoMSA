@@ -424,12 +424,12 @@ class CommandLinePerformance(CommandLine):
                     continue
                 I.append(x)
             if len(I):
-                D.append(np.array(I))
+                D.append(I)
             D = np.array(D).T
         else:
             models = [self.load_model(d) for d in self.data.model]
-            D = np.array([np.array([x.fitness_vs for x in m._evodag_model._m.models]) for m in models]).T
-        print(D, '***')
+            D = np.array([[x.fitness_vs for x in m._evodag_model._m.models] for m in models]).T
+        # print(D, '***')
         p, alpha = self.compute_p(D)
         self._p = p
         self._alpha = alpha
