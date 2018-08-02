@@ -430,6 +430,7 @@ class CommandLinePerformance(CommandLine):
         else:
             models = [self.load_model(d) for d in self.data.model]
             D = np.array([[x.fitness_vs for x in m._evodag_model._m.models] for m in models]).T
+        print(D, '***')
         p, alpha = self.compute_p(D)
         self._p = p
         self._alpha = alpha
