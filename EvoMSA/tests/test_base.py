@@ -69,6 +69,9 @@ def test_EvoMSA_kfold_decision_function():
 def test_EvoMSA_fit():
     from EvoMSA.model import Bernulli
     from EvoDAG.model import EvoDAGE
+    from EvoMSA.command_line import CommandLine
+    import gzip
+    import pickle
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
                                   n_estimators=5),
@@ -78,6 +81,12 @@ def test_EvoMSA_fit():
     assert evo
     assert isinstance(evo._svc_models[1], Bernulli)
     assert isinstance(evo._evodag_model, EvoDAGE)
+    with gzip.open('EvoMSA.model', 'w') as fpt:
+        pickle.dump(evo, fpt)
+    evo = CommandLine.load_model('EvoMSA.model')
+    assert isinstance(evo._svc_models[1], Bernulli)
+    assert isinstance(evo._evodag_model, EvoDAGE)
+    os.unlink('EvoMSA.model')
 
 
 def test_EvoMSA_fit2():

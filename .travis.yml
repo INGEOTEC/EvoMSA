@@ -34,7 +34,7 @@ script:
   - which python
   - python --version
   - which coverage
-  - python -c "import nltk; nltk.download('stopwords')"  
+  - python -c "import nltk; nltk.download('stopwords')"
   - if [ $python = 3.6 ]; then coverage run setup.py nosetests; fi
   - if [ $python = 3.5 ]; then nosetests --verbose -exe EvoMSA; fi
 

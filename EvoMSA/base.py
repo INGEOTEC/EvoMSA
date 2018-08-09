@@ -98,19 +98,39 @@ DEFAULT_R = dict(random_generations=1000,
 
 
 class EvoMSA(object):
+    """EvoMSA"""
     def __init__(self, b4msa_params=None, evodag_args=dict(),
-                 b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
+                 b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0,
                  classifier=True,
                  models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC']],
-                 evodag_class="EvoDAG.model.EvoDAGE", logistic_regression_args=None,
+                 evodag_class="EvoDAG.model.EvoDAGE",
+                 logistic_regression=False, logistic_regression_args=None,
                  probability_calibration=False):
-        """ EvoMSA.
-
+        """
         :param b4msa_params: kwargs pass to TextModel, i.e., B4MSATextModel
-        :type b4msa_params: dict 
+        :type b4msa_params: dict
         :param evodag_args: kwargs pass to EvoDAG
         :type evodag_args: dict
-
+        :param b4msa_args:
+        :type b4msa_args:  dict
+        :param n_jobs: multiprocessing default 1 process
+        :type n_jobs: int
+        :param n_splits: Number of folds to train EvoDAG or evodag_class
+        :param n_splits: int
+        :param seed: Seed used default 0
+        :type seed: int
+        :param classifier: EvoMSA as classifier default True
+        :type classifier: bool
+        :param models: Models used as list of pairs
+        :type models: list
+        :param evodag_class: Classifier or regressor used to produce prediction default `EvoDAG.model.EvoDAGE`
+        :type evodag_class: str | class
+        :param logistic_regression: Use Logistic Regression as final output defautl False
+        :type logistic_regression: bool
+        :param logistic_regression_args: Parameters pass to the Logistic Regression
+        :type logistic_regression_args: dict
+        :param probability_calibration: Use a probability calibration algorithm default False
+        :type probability_calibration: bool
         """
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
@@ -365,13 +385,13 @@ class EvoMSA(object):
 
     def fit(self, X, y, test_set=None):
         """
+        Train the model using a training set or pairs: text, dependent variable (e.g. class)
 
-        :param X: training set - independent variables
+        :param X: Independent variables
         :type X: dict | list
-        :param y: training set - dependent variable.
+        :param y: Dependent variable.
         :type y: list
-        :return: self
-
+        :return: EvoMSA instance, i.e., self
         """
         if isinstance(y[0], list):
             le = []
@@ -427,3 +447,12 @@ class EvoMSA(object):
         if isinstance(kw, list):
             kw = kw[0]
         return kw
+
+    def __getstate__(self):
+        """Remove attributes unable to pickle"""
+        r = self.__dict__.copy()
+        try:
+            del r['_logger']
+        except KeyError:
+            pass
+        return r
