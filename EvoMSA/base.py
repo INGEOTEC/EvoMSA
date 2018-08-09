@@ -104,6 +104,14 @@ class EvoMSA(object):
                  models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC']],
                  evodag_class="EvoDAG.model.EvoDAGE", logistic_regression_args=None,
                  probability_calibration=False):
+        """ EvoMSA.
+
+        :param b4msa_params: kwargs pass to TextModel, i.e., B4MSATextModel
+        :type b4msa_params: dict 
+        :param evodag_args: kwargs pass to EvoDAG
+        :type evodag_args: dict
+
+        """
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
                                         'conf', 'default_parameters.json')
@@ -139,6 +147,7 @@ class EvoMSA(object):
 
     @property
     def classifier(self):
+        """ Whether EvoMSA is acting as classifier """
         return self._classifier
 
     def get_class(self, m):
@@ -355,6 +364,15 @@ class EvoMSA(object):
         self._svc_models = svc_models
 
     def fit(self, X, y, test_set=None):
+        """
+
+        :param X: training set - independent variables
+        :type X: dict | list
+        :param y: training set - dependent variable.
+        :type y: list
+        :return: self
+
+        """
         if isinstance(y[0], list):
             le = []
             Y = []
