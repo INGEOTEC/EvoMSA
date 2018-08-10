@@ -30,15 +30,31 @@ except ImportError:
 
 
 class LabelEncoderWrapper(object):
+    """Wrapper of LabelEncoder. The idea is to keep the order when the classes are numbers
+    at some point this will help improve the performance in ordinary classification problems
+    
+    :param classifier: Specifies whether it is a classification problem
+    :type classifier: bool
+    """
+
     def __init__(self, classifier=True):
         self._m = {}
         self._classifier = classifier
 
     @property
     def classifier(self):
+        """Whether EvoMSA is acting as classifier"""
+
         return self._classifier
 
     def fit(self, y):
+        """Fit the label encoder
+
+        :param y: Independent variables
+        :type y: list or np.array
+        :rtype: self
+        """
+
         if not self.classifier:
             return self
         try:
@@ -147,6 +163,7 @@ class EvoMSA(object):
     :param probability_calibration: Use a probability calibration algorithm default False
     :type probability_calibration: bool
     """
+
     def __init__(self, b4msa_params=None, b4msa_args=dict(),
                  evodag_args=dict(), n_jobs=1, n_splits=5, seed=0,
                  classifier=True,
@@ -197,6 +214,7 @@ class EvoMSA(object):
         :type y: list
         :return: EvoMSA instance, i.e., self
         """
+
         if isinstance(y[0], list):
             le = []
             Y = []
@@ -239,6 +257,7 @@ class EvoMSA(object):
     @property
     def classifier(self):
         """Whether EvoMSA is acting as classifier"""
+
         return self._classifier
 
     def get_class(self, m):
@@ -254,6 +273,7 @@ class EvoMSA(object):
 
         :rtype: list
         """
+
         return self._models
 
     @models.setter
@@ -476,6 +496,7 @@ class EvoMSA(object):
 
     def __getstate__(self):
         """Remove attributes unable to pickle"""
+
         r = self.__dict__.copy()
         try:
             del r['_logger']

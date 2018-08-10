@@ -23,11 +23,22 @@ import gzip
 
 
 class BaseTextModel(object):
+    """Base class for text model
+
+    :param corpus: Text to build the text model
+    :type corpus: list or dict
+    """
+
     def __init__(self, corpus=None, **kwargs):
         pass
 
     @property
     def num_terms(self):
+        """Dimension which is the number of terms of the corpus
+
+        :rtype: int
+        """
+
         try:
             return self._num_terms
         except AttributeError:
@@ -35,6 +46,13 @@ class BaseTextModel(object):
         return None
 
     def tonp(self, X):
+        """Sparse representation to sparce matrix
+
+        :param X: Sparse representation of matrix
+        :type X: list
+        :rtype: csr_matrix
+        """
+
         data = []
         row = []
         col = []
@@ -58,17 +76,37 @@ class BaseTextModel(object):
 
 
 class BaseClassifier(object):
+    """Base class for the classifier"""
+
     def __init__(self, random_state=0):
         pass
 
     def fit(self, X, y):
+        """Method to train the classifier
+
+        :param X: Independent variable
+        :type X: np.array or csc_matrix
+        :param y: Dependent variable
+        :type y: np.array
+        :rtype: self
+        """
+
         return self
 
     def decision_function(self, X):
+        """Classifier's decision function
+
+        :param X: Independent variable
+        :type X: np.array or csc_matrix
+        :rtype: np.array
+        """
+
         pass
 
 
 class OutputClassifier(object):
+    """LinearSVC that outputs the training set and test set using the environment varible OUTPUT"""
+
     def __init__(self, random_state=0, output=None):
         self._output = os.getenv('OUTPUT', output)
         assert self._output is not None
@@ -100,6 +138,8 @@ class OutputClassifier(object):
 
 
 class Identity(BaseTextModel, BaseClassifier):
+    """Identity function used as either text model or classifier or regressor"""
+
     def tonp(self, x):
         return x
 
@@ -114,14 +154,28 @@ class Identity(BaseTextModel, BaseClassifier):
 
 
 class B4MSATextModel(TextModel, BaseTextModel):
+    """Text model based on B4MSA"""
+
     def __init__(self, *args, **kwargs):
         self._text = os.getenv('TEXT', default='text')
         TextModel.__init__(self, *args, **kwargs)
 
     def get_text(self, text):
+        """Return self._text key from text
+
+        :param text: Text
+        :type text: dict
+        """
+
         return text[self._text]
 
     def tokenize(self, text):
+        """Tokenize a text
+
+        :param text: Text
+        :type text: dict or str
+        """
+
         if isinstance(text, dict):
             text = self.get_text(text)
         if isinstance(text, (list, tuple)):
@@ -134,6 +188,8 @@ class B4MSATextModel(TextModel, BaseTextModel):
 
 
 class HaSpace(object):
+    """Text classifier based on a Humman Annotated dataset in Spanish"""
+
     def __init__(self, *args, **kwargs):
         self._model = self.get_model()
         self._text = os.getenv('TEXT', default='text')
@@ -148,6 +204,8 @@ class HaSpace(object):
         return X
 
     def get_model(self):
+        """Return the model"""
+
         import os
         from urllib import request
         fname = os.path.join(os.path.dirname(__file__), 'ha-es.model')
@@ -160,6 +218,12 @@ class HaSpace(object):
         return _
 
     def get_text(self, text):
+        """Return self._text key from text
+
+        :param text: Text
+        :type text: dict
+        """
+
         key = self._text
         if isinstance(text, (list, tuple)):
             return " | ".join([x[key] for x in text])
@@ -167,6 +231,8 @@ class HaSpace(object):
 
 
 class HaSpaceEn(HaSpace):
+    """Text classifier based on a Humman Annotated dataset in English"""
+
     def get_model(self):
         import os
         from urllib import request
@@ -181,6 +247,8 @@ class HaSpaceEn(HaSpace):
 
 
 class HaSpaceAr(HaSpace):
+    """Text classifier based on a Humman Annotated dataset in Arabic"""
+
     def get_model(self):
         import os
         from urllib import request
@@ -195,6 +263,8 @@ class HaSpaceAr(HaSpace):
 
 
 class EmoSpace(BaseTextModel, BaseClassifier):
+    """Spanish text model or classifier based on a Emojis"""
+
     def __init__(self, *args, **kwargs):
         self._textModel, self._classifiers = self.get_model()
         self._text = os.getenv('TEXT', default='text')
@@ -234,6 +304,8 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
 
 class EmoSpaceEn(EmoSpace):
+    """English text model or classifier based on a Emojis"""
+
     def get_model(self):
         import os
         from urllib import request
@@ -246,6 +318,8 @@ class EmoSpaceEn(EmoSpace):
 
 
 class EmoSpaceAr(EmoSpace):
+    """Arabic text model or classifier based on a Emojis"""
+
     def get_model(self):
         import os
         from urllib import request
@@ -258,6 +332,8 @@ class EmoSpaceAr(EmoSpace):
 
 
 class Corpus(BaseTextModel):
+    """Text model using only words"""
+
     def __init__(self, corpus, **kwargs):
         self._text = os.getenv('TEXT', default='text')
         self._m = {}
@@ -307,6 +383,8 @@ class Corpus(BaseTextModel):
 
 
 class AffectiveAr(Corpus):
+    """Arabic text model using an affective corpus"""
+
     def __init__(self, *args, **kwargs):
         fname = os.path.join(os.path.dirname(__file__), 'conf', 'ar.affective.words.json')
         corpus = []
@@ -316,6 +394,8 @@ class AffectiveAr(Corpus):
 
 
 class AffectiveEn(Corpus):
+    """English text model using an affective corpus"""
+
     def __init__(self, *args, **kwargs):
         fname = os.path.join(os.path.dirname(__file__), 'conf', 'en.affective.words.json')
         corpus = []
@@ -325,6 +405,8 @@ class AffectiveEn(Corpus):
 
 
 class AffectiveEs(Corpus):
+    """Spanish text model using an affective corpus"""
+
     def __init__(self, *args, **kwargs):
         fname = os.path.join(os.path.dirname(__file__), 'conf', 'es.affective.words.json')
         corpus = []
@@ -334,6 +416,8 @@ class AffectiveEs(Corpus):
 
 
 class AggressivenessAr(Corpus):
+    """Arabic text model using an aggressive corpus"""
+
     def __init__(self, *args, **kwargs):
         fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.ar')
         corpus = []
@@ -343,6 +427,8 @@ class AggressivenessAr(Corpus):
 
 
 class AggressivenessEn(Corpus):
+    """English text model using an aggressive corpus"""
+
     def __init__(self, *args, **kwargs):
         fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.en')
         corpus = []
@@ -352,6 +438,8 @@ class AggressivenessEn(Corpus):
 
 
 class AggressivenessEs(Corpus):
+    """Spanish text model using an aggressive corpus"""
+
     def __init__(self, *args, **kwargs):
         fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.es')
         corpus = []
@@ -361,6 +449,8 @@ class AggressivenessEs(Corpus):
         
 
 class Bernulli(BaseClassifier):
+    """Bernulli classifier"""
+
     def __init__(self, random_state=0):
         self._num_terms = -1
 
@@ -414,6 +504,8 @@ class Bernulli(BaseClassifier):
 
 
 class Multinomial(Bernulli):
+    """Multinomial classifier"""
+
     def fit(self, X, klass):
         self._num_terms = X.shape[1]
         klasses = np.unique(klass)
@@ -440,27 +532,24 @@ class Multinomial(Bernulli):
 
 
 class ThumbsUpDownEs(ThumbsUpDown, BaseTextModel):
+    """Spanish thumbs up and down model"""
+
     def __init__(self, *args, **kwargs):
-        """
-        Initializes the parameters for specific language
-        """
         fname = os.path.join(os.path.dirname(__file__), 'conf', 'es.affective.words.json')
         super(ThumbsUpDownEs, self).__init__(file_name=fname, lang=_SPANISH, stemming=False)
 
 
 class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
+    """English thumbs up and down model"""
+
     def __init__(self, *args, **kwargs):
-        """
-        Initializes the parameters for specific language
-        """
         fname = os.path.join(os.path.dirname(__file__), 'conf', 'en.affective.words.json')
         super(ThumbsUpDownEn, self).__init__(file_name=fname, lang=_ENGLISH, stemming=False)
 
 
 class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
+    """Arabic thumbs up and down model"""
+
     def __init__(self, *args, **kwargs):
-        """
-        Initializes the parameters for specific language
-        """
         fname = os.path.join(os.path.dirname(__file__), 'conf', 'ar.affective.words.json')
         super(ThumbsUpDownAr, self).__init__(file_name=fname, lang=_ARABIC, stemming=False)
