@@ -14,11 +14,11 @@
 import os
 from b4msa.command_line import load_json
 from sklearn.model_selection import KFold
-from sklearn.preprocessing import LabelEncoder
 import importlib
 from sklearn.linear_model import LogisticRegression
 from .calibration import CalibrationLR
 from .model import Identity, BaseTextModel
+from .utils import LabelEncoderWrapper
 import numpy as np
 import logging
 from multiprocessing import Pool
@@ -27,54 +27,6 @@ try:
 except ImportError:
     def tqdm(x, **kwargs):
         return x
-
-
-class LabelEncoderWrapper(object):
-    """Wrapper of LabelEncoder. The idea is to keep the order when the classes are numbers
-    at some point this will help improve the performance in ordinary classification problems
-    
-    :param classifier: Specifies whether it is a classification problem
-    :type classifier: bool
-    """
-
-    def __init__(self, classifier=True):
-        self._m = {}
-        self._classifier = classifier
-
-    @property
-    def classifier(self):
-        """Whether EvoMSA is acting as classifier"""
-
-        return self._classifier
-
-    def fit(self, y):
-        """Fit the label encoder
-
-        :param y: Independent variables
-        :type y: list or np.array
-        :rtype: self
-        """
-
-        if not self.classifier:
-            return self
-        try:
-            n = [int(x) for x in y]
-        except ValueError:
-            return LabelEncoder().fit(y)
-        self.classes_ = np.unique(n)
-        self._m = {v: k for k, v in enumerate(self.classes_)}
-        self._inv = {v: k for k, v in self._m.items()}
-        return self
-
-    def transform(self, y):
-        if not self.classifier:
-            return np.array([float(_) for _ in y])
-        return np.array([self._m[int(x)] for x in y])
-
-    def inverse_transform(self, y):
-        if not self.classifier:
-            return y
-        return np.array([self._inv[int(x)] for x in y])
 
 
 def kfold_decision_function(args):
