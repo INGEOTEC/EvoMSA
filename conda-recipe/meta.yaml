@@ -26,7 +26,7 @@ test:
         - nltk
         - b4msa
         - evodag
-	- conceptmodelling
+        - conceptmodelling
         - coverage
 
     imports:
