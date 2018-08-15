@@ -135,7 +135,7 @@ def test_train_exogenous():
         evo = pickle.load(fpt)
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
-    m = evo._evodag_model.models[0]
+    m = evo._evodag_model._m.models[0]
     os.unlink('ex.json')
     print(m.nvar)
     assert m.nvar == 6
@@ -290,19 +290,20 @@ def test_predict_NearestCentroid():
 
 
 def test_performance_validation_set():
-    import os
+    # import os
     from EvoMSA.command_line import performance, fitness_vs
     for seed in range(3):
-        if os.path.isfile('t-%s.model' % seed):
-            continue
-        sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+        # if os.path.isfile('t-%s.model' % seed):
+        #     continue
+        sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "n_estimators": 5}',
                     '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '-n1', TWEETS]
         train()
     sys.argv = ['EvoMSA', '-m'] + ['t-%s.model' % seed for seed in range(3)]
+    print(fitness_vs((0, 't-0.model')))
     m = performance(output=True)
     assert len(m._p) == 3
-    fitness_vs((0, 't-0.model'))
-
+    # assert False
+    
 
 def test_performance_validation_set2():
     import os
@@ -349,8 +350,39 @@ def test_list_of_text():
             x['text'] = [x['text'], x['text']]
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA', '-ot.model', '-n2',
-                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"], ["EvoMSA.model.B4MSATextModel", "EvoMSA.model.B4MSAClassifier"]]}',
+                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"], ["EvoMSA.model.B4MSATextModel", "sklearn.svm.LinearSVC"]]}',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 't.json']
     train()
     os.unlink('t.json')
+
+
+def test_train_exogenous_model_class():
+    from EvoMSA.base import EvoMSA
+    sys.argv = ['EvoMSA', '-ot.model', '-n2',
+                '--exogenous-model', 'EvoMSA.model.EmoSpace',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                TWEETS]
+    train(output=True)
+    with gzip.open('t.model', 'r') as fpt:
+        evo = pickle.load(fpt)
+    assert isinstance(evo, EvoMSA)
+    os.unlink('t.model')
+
+
+def test_train_ieee_cim():
+    from EvoMSA.base import EvoMSA
+    import json
+    sys.argv = ['EvoMSA', '-ot.model', '-n1',
+                '--ieee-cim', 'ES',
+                '--kw', '{"models": [["EvoMSA.model.AggressivenessEs", "sklearn.svm.LinearSVC"]]}',
+                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                TWEETS]
+    c = train(output=True)
+    kw = json.loads(c.data.kwargs)
+    assert len(kw['models']) == 4
+    with gzip.open('t.model', 'r') as fpt:
+        evo = pickle.load(fpt)
+    assert isinstance(evo, EvoMSA)
+    os.unlink('t.model')
+    

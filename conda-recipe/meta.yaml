@@ -1,6 +1,6 @@
 package:
   name: evomsa
-  version: "0.16"
+  version: "0.19"
 
 requirements:
   build:
@@ -8,11 +8,13 @@ requirements:
     - setuptools
     - b4msa
     - evodag
+    - conceptmodelling
     - scikit-learn
   run:
     - python
     - b4msa
     - evodag
+    - conceptmodelling
 
 test:
     requires:
@@ -24,12 +26,14 @@ test:
         - nltk
         - b4msa
         - evodag
+        - conceptmodelling
         - coverage
 
     imports:
         - EvoMSA
 
     commands:
+        - python -c "import nltk; nltk.download('stopwords')"      
         - nosetests --verbose -exe EvoMSA
         - EvoMSA-predict --help
         - EvoMSA-train --help

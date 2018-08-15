@@ -13,13 +13,60 @@
 # limitations under the License.
 import numpy as np
 from b4msa.textmodel import TextModel
-from b4msa.classifier import SVC
+from b4msa.utils import tweet_iterator
+from scipy.sparse import csr_matrix
+from sklearn.svm import LinearSVC
+from ConceptModelling.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH
 import os
+import pickle
+import gzip
 
 
 class BaseTextModel(object):
-    def __init__(self, corpus, **kwargs):
+    """Base class for text model
+
+    :param corpus: Text to build the text model
+    :type corpus: list or dict
+    """
+
+    def __init__(self, corpus=None, **kwargs):
         pass
+
+    @property
+    def num_terms(self):
+        """Dimension which is the number of terms of the corpus
+
+        :rtype: int
+        """
+
+        try:
+            return self._num_terms
+        except AttributeError:
+            self._num_terms = None
+        return None
+
+    def tonp(self, X):
+        """Sparse representation to sparce matrix
+
+        :param X: Sparse representation of matrix
+        :type X: list
+        :rtype: csr_matrix
+        """
+
+        data = []
+        row = []
+        col = []
+        for r, x in enumerate(X):
+            cc = [_[0] for _ in x if np.isfinite(_[1])]
+            col += cc
+            data += [_[1] for _ in x if np.isfinite(_[1])]
+            _ = [r] * len(cc)
+            row += _
+        if self.num_terms is None:
+            _ = csr_matrix((data, (row, col)))
+            self._num_terms = _.shape[1]
+            return _
+        return csr_matrix((data, (row, col)), shape=(len(X), self.num_terms))
 
     def __getitem__(self, x):
         pass
@@ -28,31 +75,107 @@ class BaseTextModel(object):
         pass
 
 
-class Identity(BaseTextModel):
-    def __getitem__(self, x):
-        return x
-
-
 class BaseClassifier(object):
+    """Base class for the classifier"""
+
     def __init__(self, random_state=0):
         pass
 
     def fit(self, X, y):
-        pass
+        """Method to train the classifier
+
+        :param X: Independent variable
+        :type X: np.array or csc_matrix
+        :param y: Dependent variable
+        :type y: np.array
+        :rtype: self
+        """
+
+        return self
 
     def decision_function(self, X):
+        """Classifier's decision function
+
+        :param X: Independent variable
+        :type X: np.array or csc_matrix
+        :rtype: np.array
+        """
+
         pass
+
+
+class OutputClassifier(object):
+    """LinearSVC that outputs the training set and test set using the environment varible OUTPUT"""
+
+    def __init__(self, random_state=0, output=None):
+        self._output = os.getenv('OUTPUT', output)
+        assert self._output is not None
+        self._random_state = random_state
+
+    def fit(self, X, y):
+        self.m = LinearSVC(random_state=self._random_state).fit(X, y)
+        try:
+            X = np.array(X.todense())
+        except AttributeError:
+            pass
+        with open('%s_train.csv' % self._output, 'w') as fpt:
+            for x, _y in zip(X, y):
+                fpt.write(",".join([str(_) for _ in x]))
+                fpt.write(",%s\n" % str(_y))
+        return self
+
+    def decision_function(self, X):
+        hy = self.m.decision_function(X)
+        try:
+            X = np.array(X.todense())
+        except AttributeError:
+            pass
+        with open('%s_test.csv' % self._output, 'w') as fpt:
+            for x in X:
+                fpt.write(",".join([str(_) for _ in x]))
+                fpt.write("\n")
+        return hy
+
+
+class Identity(BaseTextModel, BaseClassifier):
+    """Identity function used as either text model or classifier or regressor"""
+
+    def tonp(self, x):
+        return x
+
+    def __getitem__(self, x):
+        return x
+
+    def decision_function(self, X):
+        return X
+
+    def predict_proba(self, X):
+        return self.decision_function(X)
 
 
 class B4MSATextModel(TextModel, BaseTextModel):
+    """Text model based on B4MSA"""
+
     def __init__(self, *args, **kwargs):
         self._text = os.getenv('TEXT', default='text')
         TextModel.__init__(self, *args, **kwargs)
 
     def get_text(self, text):
+        """Return self._text key from text
+
+        :param text: Text
+        :type text: dict
+        """
+
         return text[self._text]
 
     def tokenize(self, text):
+        """Tokenize a text
+
+        :param text: Text
+        :type text: dict or str
+        """
+
         if isinstance(text, dict):
             text = self.get_text(text)
         if isinstance(text, (list, tuple)):
@@ -63,24 +186,154 @@ class B4MSATextModel(TextModel, BaseTextModel):
         else:
             return TextModel.tokenize(self, text)
 
-    def __getitem__(self, x):
-        if x is None:
-            x = ''
-        return TextModel.__getitem__(self, str(x))
 
+class HaSpace(object):
+    """Text classifier based on a Humman Annotated dataset in Spanish"""
 
-class B4MSAClassifier(SVC, BaseClassifier):
-    def __init__(self, random_state=0):
-        SVC.__init__(self, model=None, random_state=random_state)
+    def __init__(self, *args, **kwargs):
+        self._model = self.get_model()
+        self._text = os.getenv('TEXT', default='text')
 
+    def fit(self, X, y):
+        return self
+    
     def decision_function(self, X):
-        _ = SVC.decision_function(self, X)
-        _[_ > 1] = 1
-        _[_ < -1] = -1
+        X = [self.get_text(x) for x in X]
+        X = self._model.decision_function(X)
+        X[~np.isfinite(X)] = 0
+        return X
+
+    def get_model(self):
+        """Return the model"""
+
+        import os
+        from urllib import request
+        fname = os.path.join(os.path.dirname(__file__), 'ha-es.model')
+        if not os.path.isfile(fname):
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-es.model",
+                                fname)
+        with gzip.open(fname) as fpt:
+            _ = pickle.load(fpt)
+        _.n_jobs = 1
+        return _
+
+    def get_text(self, text):
+        """Return self._text key from text
+
+        :param text: Text
+        :type text: dict
+        """
+
+        key = self._text
+        if isinstance(text, (list, tuple)):
+            return " | ".join([x[key] for x in text])
+        return text[key]
+
+
+class HaSpaceEn(HaSpace):
+    """Text classifier based on a Humman Annotated dataset in English"""
+
+    def get_model(self):
+        import os
+        from urllib import request
+        fname = os.path.join(os.path.dirname(__file__), 'ha-en.model')
+        if not os.path.isfile(fname):
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-en.model",
+                                fname)
+        with gzip.open(fname) as fpt:
+            _ = pickle.load(fpt)
+        _.n_jobs = 1
         return _
 
 
+class HaSpaceAr(HaSpace):
+    """Text classifier based on a Humman Annotated dataset in Arabic"""
+
+    def get_model(self):
+        import os
+        from urllib import request
+        fname = os.path.join(os.path.dirname(__file__), 'ha-ar.model')
+        if not os.path.isfile(fname):
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-ar.model",
+                                fname)
+        with gzip.open(fname) as fpt:
+            _ = pickle.load(fpt)
+        _.n_jobs = 1
+        return _
+
+
+class EmoSpace(BaseTextModel, BaseClassifier):
+    """Spanish text model or classifier based on a Emojis"""
+
+    def __init__(self, *args, **kwargs):
+        self._textModel, self._classifiers = self.get_model()
+        self._text = os.getenv('TEXT', default='text')
+
+    def fit(self, X, y):
+        pass
+
+    def get_model(self):
+        import os
+        from urllib import request
+        fname = os.path.join(os.path.dirname(__file__), 'emo-es.b4msa')
+        if not os.path.isfile(fname):
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-es.b4msa",
+                                fname)
+        with gzip.open(fname) as fpt:
+            return pickle.load(fpt)
+
+    def get_text(self, text):
+        key = self._text
+        if isinstance(text, (list, tuple)):
+            return " | ".join([x[key] for x in text])
+        return text[key]
+
+    def decision_function(self, X):
+        tm = self._textModel
+        _ = [tm[self.get_text(x)] for x in X]
+        return np.array([m.decision_function(_) for m in self._classifiers]).T
+
+    def predict_proba(self, X):
+        return self.decision_function(X)
+
+    def __getitem__(self, x):
+        tm = self._textModel
+        _ = [tm[self.get_text(x)]]
+        _ = np.array([m.decision_function(_) for m in self._classifiers]).flatten()
+        return [[k, v] for k, v in enumerate(_)]
+
+
+class EmoSpaceEn(EmoSpace):
+    """English text model or classifier based on a Emojis"""
+
+    def get_model(self):
+        import os
+        from urllib import request
+        fname = os.path.join(os.path.dirname(__file__), 'emo-en.b4msa')
+        if not os.path.isfile(fname):
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-en.b4msa",
+                                fname)
+        with gzip.open(fname) as fpt:
+            return pickle.load(fpt)
+
+
+class EmoSpaceAr(EmoSpace):
+    """Arabic text model or classifier based on a Emojis"""
+
+    def get_model(self):
+        import os
+        from urllib import request
+        fname = os.path.join(os.path.dirname(__file__), 'emo-ar.b4msa')
+        if not os.path.isfile(fname):
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-ar.b4msa",
+                                fname)
+        with gzip.open(fname) as fpt:
+            return pickle.load(fpt)
+
+
 class Corpus(BaseTextModel):
+    """Text model using only words"""
+
     def __init__(self, corpus, **kwargs):
         self._text = os.getenv('TEXT', default='text')
         self._m = {}
@@ -129,7 +382,42 @@ class Corpus(BaseTextModel):
         return tokens
 
 
+class AggressivenessAr(Corpus):
+    """Arabic text model using an aggressive corpus"""
+
+    def __init__(self, *args, **kwargs):
+        fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.ar')
+        corpus = []
+        for x in tweet_iterator(fname):
+            corpus += x['words']
+        super(AggressivenessAr, self).__init__(corpus)
+
+
+class AggressivenessEn(Corpus):
+    """English text model using an aggressive corpus"""
+
+    def __init__(self, *args, **kwargs):
+        fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.en')
+        corpus = []
+        for x in tweet_iterator(fname):
+            corpus += x['words']
+        super(AggressivenessEn, self).__init__(corpus)
+
+
+class AggressivenessEs(Corpus):
+    """Spanish text model using an aggressive corpus"""
+
+    def __init__(self, *args, **kwargs):
+        fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.es')
+        corpus = []
+        for x in tweet_iterator(fname):
+            corpus += x['words']
+        super(AggressivenessEs, self).__init__(corpus)
+        
+
 class Bernulli(BaseClassifier):
+    """Bernulli classifier"""
+
     def __init__(self, random_state=0):
         self._num_terms = -1
 
@@ -138,11 +426,11 @@ class Bernulli(BaseClassifier):
         return self._num_terms
 
     def fit(self, X, klass):
-        self._num_terms = max([max([_[0] for _ in x]) for x in X if len(x)]) + 1
+        self._num_terms = X.shape[1]
         klasses = np.unique(klass)
         pr = np.zeros((klasses.shape[0], self.num_terms))
         for i, k in zip(X, klass):
-            index = np.array([_[0] for _ in i])
+            index = i.indices
             if index.shape[0] > 0:
                 pr[k, index] += 1
         _ = np.atleast_2d(self.num_terms + np.array([(klass == _k).sum() for _k in klasses])).T
@@ -171,26 +459,26 @@ class Bernulli(BaseClassifier):
     def decision_function_raw(self, X):
         wj = self._wj
         vj = self._vj
-        if not isinstance(X, list):
-            X = [X]
         hy = []
         for d in X:
             x = np.zeros(self.num_terms)
-            index = [_[0] for _ in d if _[0] < self._num_terms]
-            if len(index):
-                x[np.array(index)] = 1
+            index = d.indices
+            if index.shape[0] > 0:
+                x[index] = 1
             _ = ((x * wj) + (1 - x) * vj).sum(axis=1)
             hy.append(_)
         return np.array(hy)
 
 
 class Multinomial(Bernulli):
+    """Multinomial classifier"""
+
     def fit(self, X, klass):
-        self._num_terms = max([max([_[0] for _ in x]) for x in X if len(x)]) + 1
+        self._num_terms = X.shape[1]
         klasses = np.unique(klass)
         pr = np.zeros((klasses.shape[0], self.num_terms))
         for i, k in zip(X, klass):
-            index = np.array([_[0] for _ in i])
+            index = i.indices
             if index.shape[0] > 0:
                 pr[k, index] += 1
         den = pr.sum(axis=1)
@@ -199,15 +487,80 @@ class Multinomial(Bernulli):
 
     def decision_function_raw(self, X):
         xj = self._log_xj
-        if not isinstance(X, list):
-            X = [X]
         hy = []
         for d in X:
             x = np.zeros(self.num_terms)
-            index = [_[0] for _ in d if _[0] < self._num_terms]
-            if len(index):
-                x[np.array(index)] = 1
+            index = d.indices
+            if index.shape[0] > 0:
+                x[index] = 1
             _ = (xj * x).sum(axis=1)
             hy.append(_)
         return np.array(hy)
-    
+
+
+class ThumbsUpDownEs(ThumbsUpDown, BaseTextModel):
+    """Spanish thumbs up and down model"""
+
+    def __init__(self, *args, **kwargs):
+        super(ThumbsUpDownEs, self).__init__(lang=_SPANISH, stemming=False)
+
+    def tonp(self, X):
+        """Convert list to np
+
+        :param X: list of tuples
+        :type X: list
+        :rtype: np.array
+        """
+
+        return np.array(X)
+
+
+class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
+    """English thumbs up and down model"""
+
+    def __init__(self, *args, **kwargs):
+        super(ThumbsUpDownEn, self).__init__(lang=_ENGLISH, stemming=False)
+
+    def tonp(self, X):
+        """Convert list to np
+
+        :param X: list of tuples
+        :type X: list
+        :rtype: np.array
+        """
+
+        return np.array(X)
+
+
+class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
+    """Arabic thumbs up and down model"""
+
+    def __init__(self, *args, **kwargs):
+        super(ThumbsUpDownAr, self).__init__(lang=_ARABIC, stemming=False)
+
+    def tonp(self, X):
+        """Convert list to np
+
+        :param X: list of tuples
+        :type X: list
+        :rtype: np.array
+        """
+
+        return np.array(X)
+
+
+class Vec(BaseTextModel):
+    """Read the key vec, useful to incorporate external knowledge as FastText print-sentence-vectors"""
+
+    def __getitem__(self, x):
+        return x['vec']
+
+    def tonp(self, X):
+        """Convert list to np
+
+        :param X: list of tuples
+        :type X: list
+        :rtype: np.array
+        """
+
+        return np.array(X)

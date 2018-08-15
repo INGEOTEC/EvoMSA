@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-from b4msa.command_line import load_json
-from sklearn.model_selection import KFold
-from sklearn.preprocessing import LabelEncoder
 import importlib
-from sklearn.linear_model import LogisticRegression
-from .calibration import CalibrationLR
-from .model import Identity, BaseTextModel, BaseClassifier
 import numpy as np
 import logging
 from multiprocessing import Pool
+from b4msa.command_line import load_json
+from EvoDAG.model import EvoDAGE
+from sklearn.model_selection import KFold
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import LinearSVC
+from .calibration import CalibrationLR
+from .model import Identity, BaseTextModel, B4MSATextModel
+from .utils import LabelEncoderWrapper
 try:
     from tqdm import tqdm
 except ImportError:
@@ -29,38 +31,22 @@ except ImportError:
         return x
 
 
-class LabelEncoderWrapper(object):
-    def __init__(self):
-        self._m = {}
-
-    def fit(self, y):
-        try:
-            n = [int(x) for x in y]
-        except ValueError:
-            return LabelEncoder().fit(y)
-        self.classes_ = np.unique(n)
-        self._m = {v: k for k, v in enumerate(self.classes_)}
-        self._inv = {v: k for k, v in self._m.items()}
-        return self
-
-    def transform(self, y):
-        return np.array([self._m[int(x)] for x in y])
-
-    def inverse_transform(self, y):
-        return np.array([self._inv[int(x)] for x in y])
-
-
 def kfold_decision_function(args):
     cl, X, y, tr, ts, seed = args
     c = cl(random_state=seed)
-    c.fit([X[x] for x in tr], [y[x] for x in tr])
-    _ = c.decision_function([X[x] for x in ts])
+    if isinstance(X, (list, tuple)):
+        c.fit([X[x] for x in tr], [y[x] for x in tr])
+        _ = c.decision_function([X[x] for x in ts])
+    else:
+        y = np.array(y)
+        c.fit(X[tr], y[tr])
+        _ = c.decision_function(X[ts])
     return ts, _
 
 
 def transform(args):
     k, m, t, X = args
-    x = [t[_] for _ in X]
+    x = t.tonp([t[_] for _ in X])
     df = m.decision_function(x)
     d = [EvoMSA.tolist(_) for _ in df]
     return (k, d)
@@ -68,14 +54,77 @@ def transform(args):
 
 def vector_space(args):
     k, t, X = args
-    return k, [t[_] for _ in X]
+    return k, t.tonp([t[_] for _ in X])
+
+
+DEFAULT_CL = dict(fitness_function='macro-F1',
+                  random_generations=1000,
+                  orthogonal_selection=True)
+
+
+DEFAULT_R = dict(random_generations=1000,
+                 classifier=False,
+                 orthogonal_selection=True)
 
 
 class EvoMSA(object):
-    def __init__(self, b4msa_params=None, evodag_args=dict(fitness_function='macro-F1'),
-                 b4msa_args=dict(), n_jobs=1, n_splits=5, seed=0, logistic_regression=False,
-                 models=[['EvoMSA.model.B4MSATextModel', 'EvoMSA.model.B4MSAClassifier']],
-                 evodag_class="EvoDAG.model.EvoDAGE", logistic_regression_args=None, probability_calibration=False):
+    """
+    This is the main entry to create an EvoMSA model
+
+    Let us start with an example to show how to create an EvoMSA model.
+    The first thing would be to read the dataset,
+    EvoMSA has a dummy dataset to test its functionality, so lets used it.
+
+    Read the dataset
+
+    >>> from EvoMSA import base
+    >>> from b4msa.utils import tweet_iterator
+    >>> import os
+    >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
+    >>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
+
+    Once the dataset is loaded, it is time to create an EvoMSA model
+
+    >>> from EvoMSA.base import EvoMSA
+    >>> evo = EvoMSA().fit([x[0] for x in D], [x[1] for x in D])
+
+    Predict a sentence in Spanish
+
+    >>> evo.predict(['EvoMSA esta funcionando'])
+
+    :param b4msa_params: File in json containing TextModel's arguments, i.e., B4MSATextModel
+    :type b4msa_params: str
+    :param b4msa_args: Arguments pass to TextModel updating the default arguments
+    :type b4msa_args:  dict
+    :param evodag_args: Arguments pass to EvoDAG
+    :type evodag_args: dict
+    :param n_jobs: Multiprocessing default 1 process
+    :type n_jobs: int
+    :param n_splits: Number of folds to train EvoDAG or evodag_class
+    :type n_splits: int
+    :param seed: Seed used default 0
+    :type seed: int
+    :param classifier: EvoMSA as classifier default True
+    :type classifier: bool
+    :param models: Models used as list of pairs
+    :type models: list
+    :param evodag_class: Classifier or regressor used to ensemble the outputs of :attr:`models` default :class:`EvoDAG.model.EvoDAGE`
+    :type evodag_class: str or class
+    :param logistic_regression: Use Logistic Regression as final output defautl False
+    :type logistic_regression: bool
+    :param logistic_regression_args: Parameters pass to the Logistic Regression
+    :type logistic_regression_args: dict
+    :param probability_calibration: Use a probability calibration algorithm default False
+    :type probability_calibration: bool
+    """
+
+    def __init__(self, b4msa_params=None, b4msa_args=dict(),
+                 evodag_args=dict(), n_jobs=1, n_splits=5, seed=0,
+                 classifier=True,
+                 models=[[B4MSATextModel, LinearSVC]],
+                 evodag_class=EvoDAGE,
+                 logistic_regression=False, logistic_regression_args=None,
+                 probability_calibration=False):
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
                                         'conf', 'default_parameters.json')
@@ -83,6 +132,12 @@ class EvoMSA(object):
         b4msa_params.update(b4msa_args)
         self._b4msa_args = b4msa_params
         self._evodag_args = evodag_args
+        if classifier:
+            _ = DEFAULT_CL.copy()
+        else:
+            _ = DEFAULT_R.copy()
+        _.update(self._evodag_args)
+        self._evodag_args = _
         self._n_jobs = n_jobs
         self._n_splits = n_splits
         self._seed = seed
@@ -91,6 +146,7 @@ class EvoMSA(object):
         self._logger = logging.getLogger('EvoMSA')
         self._le = None
         self._logistic_regression = None
+        self._classifier = classifier
         if logistic_regression:
             p = dict(random_state=self._seed, class_weight='balanced')
             if logistic_regression_args is not None:
@@ -102,6 +158,62 @@ class EvoMSA(object):
         self.models = models
         self._evodag_class = self.get_class(evodag_class)
 
+    def fit(self, X, y, test_set=None):
+        """
+        Train the model using a training set or pairs: text, dependent variable (e.g. class)
+
+        :param X: Independent variables
+        :type X: dict or list
+        :param y: Dependent variable.
+        :type y: list
+        :return: EvoMSA instance, i.e., self
+        """
+
+        if isinstance(y[0], list):
+            le = []
+            Y = []
+            for y0 in y:
+                _ = LabelEncoderWrapper(classifier=self.classifier).fit(y0)
+                le.append(_)
+                Y.append(_.transform(y0).tolist())
+            self._le = le[0]
+            y = Y
+        else:
+            self._le = LabelEncoderWrapper(classifier=self.classifier).fit(y)
+            y = self._le.transform(y).tolist()
+        self.fit_svm(X, y)
+        if isinstance(y[0], list):
+            y = y[0]
+        if isinstance(X[0], list):
+            X = X[0]
+        D = self.transform(X, y)
+        if test_set is not None:
+            if isinstance(test_set, list):
+                test_set = self.transform(test_set)
+        if self._probability_calibration:
+            probability_calibration = CalibrationLR
+        else:
+            probability_calibration = None
+        _ = dict(n_jobs=self.n_jobs, seed=self._seed,
+                 probability_calibration=probability_calibration)
+        self._evodag_args.update(_)
+        y = np.array(y)
+        try:
+            _ = self._evodag_class(**self._evodag_args)
+            _.fit(D, y, test_set=test_set)
+            self._evodag_model = _
+        except TypeError:
+            self._evodag_model = self._evodag_class().fit(D, y)
+        if self._logistic_regression is not None:
+            self._logistic_regression.fit(self._evodag_model.raw_decision_function(D), y)
+        return self
+
+    @property
+    def classifier(self):
+        """Whether EvoMSA is acting as classifier"""
+
+        return self._classifier
+
     def get_class(self, m):
         if isinstance(m, str):
             a = m.split('.')
@@ -111,6 +223,11 @@ class EvoMSA(object):
 
     @property
     def models(self):
+        """Models used as list of pairs
+
+        :rtype: list
+        """
+
         return self._models
 
     @models.setter
@@ -129,7 +246,7 @@ class EvoMSA(object):
                 tm = Identity
                 cl = self.get_class(m)
             assert issubclass(tm, BaseTextModel)
-            assert issubclass(cl, BaseClassifier)
+            # assert issubclass(cl, BaseClassifier)
             self._models.append([tm, cl])
 
     @property
@@ -201,11 +318,9 @@ class EvoMSA(object):
         L = [D]
         for x in ex:
             _ = x.predict_proba(X)
-            df = _ * 2 - 1
-            df[df > 1] = 1
-            df[df < -1] = -1
-            L.append(df)
-        return np.concatenate(L, axis=1)
+            L.append(_)
+        _ = np.concatenate(L, axis=1)
+        return _
 
     def model(self, X):
         if not isinstance(X[0], list):
@@ -257,7 +372,7 @@ class EvoMSA(object):
         for ts, df in res:
             [hy.__setitem__(k, self.tolist(v)) for k, v in zip(ts, df)]
         return hy
-    
+
     def _transform(self, X, models, textModel):
         if len(models) == 0:
             return []
@@ -283,7 +398,7 @@ class EvoMSA(object):
             Di = None
             for t_cl, t in zip(self.models, self._textModel):
                 cl = t_cl[1]
-                x = [t[_] for _ in X]
+                x = t.tonp([t[_] for _ in X])
                 d = self.kfold_decision_function(cl, x, y)
                 if Di is None:
                     Di = d
@@ -292,7 +407,9 @@ class EvoMSA(object):
             [v.__iadd__(w) for v, w in zip(Di, D)]
             D = Di
         _ = np.array(D)
-        return self.append_exogenous_model(self.append_exogenous(_), X)
+        _ = self.append_exogenous_model(self.append_exogenous(_), X)
+        _[~np.isfinite(_)] = 0
+        return _
 
     def fit_svm(self, X, y):
         self.model(X)
@@ -307,49 +424,13 @@ class EvoMSA(object):
                 x = Xvs[k]
                 cl = self.models[j][1]
                 k += 1
-                c = cl(random_state=self._seed)
+                try:
+                    c = cl(random_state=self._seed)
+                except TypeError:
+                    c = cl()
                 c.fit(x, y0)
                 svc_models.append(c)
         self._svc_models = svc_models
-
-    def fit(self, X, y, test_set=None):
-        if isinstance(y[0], list):
-            le = []
-            Y = []
-            for y0 in y:
-                _ = LabelEncoderWrapper().fit(y0)
-                le.append(_)
-                Y.append(_.transform(y0).tolist())
-            self._le = le[0]
-            y = Y
-        else:
-            self._le = LabelEncoderWrapper().fit(y)
-            y = self._le.transform(y).tolist()
-        self.fit_svm(X, y)
-        if isinstance(y[0], list):
-            y = y[0]
-        if isinstance(X[0], list):
-            X = X[0]
-        D = self.transform(X, y)
-        if test_set is not None:
-            if isinstance(test_set, list):
-                test_set = self.transform(test_set)
-        if self._probability_calibration:
-            probability_calibration = CalibrationLR
-        else:
-            probability_calibration = None
-        _ = dict(n_jobs=self.n_jobs, seed=self._seed,
-                 probability_calibration=probability_calibration)
-        self._evodag_args.update(_)
-        y = np.array(y)
-        try:
-            _ = self._evodag_class(**self._evodag_args).fit(D, y, test_set=test_set)
-            self._evodag_model = _
-        except TypeError:
-            self._evodag_model = self._evodag_class().fit(D, y)
-        if self._logistic_regression is not None:
-            self._logistic_regression.fit(self._evodag_model.raw_decision_function(D), y)
-        return self
 
     @staticmethod
     def tolist(x):
@@ -366,3 +447,13 @@ class EvoMSA(object):
         if isinstance(kw, list):
             kw = kw[0]
         return kw
+
+    def __getstate__(self):
+        """Remove attributes unable to pickle"""
+
+        r = self.__dict__.copy()
+        try:
+            del r['_logger']
+        except KeyError:
+            pass
+        return r
