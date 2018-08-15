@@ -123,6 +123,7 @@ def test_ThumbsUpDownEn():
     aff = ThumbsUpDownEn()
     _ = aff['adorably XxX elation vergazo']
     assert (2, 0) == _
+    print(_)
 
 
 def test_ThumbsUpDownAr():

@@ -373,7 +373,7 @@ def test_train_exogenous_model_class():
 def test_train_ieee_cim():
     from EvoMSA.base import EvoMSA
     import json
-    sys.argv = ['EvoMSA', '-ot.model', '-n2',
+    sys.argv = ['EvoMSA', '-ot.model', '-n1',
                 '--ieee-cim', 'ES',
                 '--kw', '{"models": [["EvoMSA.model.AggressivenessEs", "sklearn.svm.LinearSVC"]]}',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',

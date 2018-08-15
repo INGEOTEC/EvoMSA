@@ -535,21 +535,46 @@ class ThumbsUpDownEs(ThumbsUpDown, BaseTextModel):
     """Spanish thumbs up and down model"""
 
     def __init__(self, *args, **kwargs):
-        fname = os.path.join(os.path.dirname(__file__), 'conf', 'es.affective.words.json')
-        super(ThumbsUpDownEs, self).__init__(file_name=fname, lang=_SPANISH, stemming=False)
+        super(ThumbsUpDownEs, self).__init__(lang=_SPANISH, stemming=False)
+
+    def tonp(self, X):
+        """Convert list to np
+
+        :param X: list of tuples
+        :type X: list
+        :rtype: np.array
+        """
+        return np.array(X)
 
 
 class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
     """English thumbs up and down model"""
 
     def __init__(self, *args, **kwargs):
-        fname = os.path.join(os.path.dirname(__file__), 'conf', 'en.affective.words.json')
-        super(ThumbsUpDownEn, self).__init__(file_name=fname, lang=_ENGLISH, stemming=False)
+        super(ThumbsUpDownEn, self).__init__(lang=_ENGLISH, stemming=False)
 
+    def tonp(self, X):
+        """Convert list to np
+
+        :param X: list of tuples
+        :type X: list
+        :rtype: np.array
+        """
+        return np.array(X)
+        
 
 class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
     """Arabic thumbs up and down model"""
 
     def __init__(self, *args, **kwargs):
-        fname = os.path.join(os.path.dirname(__file__), 'conf', 'ar.affective.words.json')
-        super(ThumbsUpDownAr, self).__init__(file_name=fname, lang=_ARABIC, stemming=False)
+        super(ThumbsUpDownAr, self).__init__(lang=_ARABIC, stemming=False)
+
+    def tonp(self, X):
+        """Convert list to np
+
+        :param X: list of tuples
+        :type X: list
+        :rtype: np.array
+        """
+        return np.array(X)
+        
