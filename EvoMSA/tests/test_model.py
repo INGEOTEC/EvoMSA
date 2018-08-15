@@ -185,5 +185,11 @@ def test_AggressivenessAr():
     aff = AggressivenessAr()
     _ = aff['adoracion XxX fervor vergazo']
     assert len(_) == 0
-    
 
+
+def test_Vec():
+    from EvoMSA.model import Vec
+    a = dict(vec=[1, 3, 1])
+    vec = Vec()
+    assert vec[a] == [1, 3, 1]
+    

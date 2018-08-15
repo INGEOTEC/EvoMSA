@@ -511,6 +511,7 @@ class ThumbsUpDownEs(ThumbsUpDown, BaseTextModel):
         :type X: list
         :rtype: np.array
         """
+
         return np.array(X)
 
 
@@ -527,8 +528,9 @@ class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
         :type X: list
         :rtype: np.array
         """
+
         return np.array(X)
-        
+
 
 class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
     """Arabic thumbs up and down model"""
@@ -543,5 +545,22 @@ class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
         :type X: list
         :rtype: np.array
         """
+
         return np.array(X)
-        
+
+
+class Vec(BaseTextModel):
+    """Read the key vec, useful to incorporate external knowledge as FastText print-sentence-vectors"""
+
+    def __getitem__(self, x):
+        return x['vec']
+
+    def tonp(self, X):
+        """Convert list to np
+
+        :param X: list of tuples
+        :type X: list
+        :rtype: np.array
+        """
+
+        return np.array(X)

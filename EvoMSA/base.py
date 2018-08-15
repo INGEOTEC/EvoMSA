@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-from b4msa.command_line import load_json
-from sklearn.model_selection import KFold
 import importlib
-from sklearn.linear_model import LogisticRegression
-from .calibration import CalibrationLR
-from .model import Identity, BaseTextModel
-from .utils import LabelEncoderWrapper
 import numpy as np
 import logging
 from multiprocessing import Pool
+from b4msa.command_line import load_json
+from EvoDAG.model import EvoDAGE
+from sklearn.model_selection import KFold
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import LinearSVC
+from .calibration import CalibrationLR
+from .model import Identity, BaseTextModel, B4MSATextModel
+from .utils import LabelEncoderWrapper
 try:
     from tqdm import tqdm
 except ImportError:
@@ -119,8 +121,8 @@ class EvoMSA(object):
     def __init__(self, b4msa_params=None, b4msa_args=dict(),
                  evodag_args=dict(), n_jobs=1, n_splits=5, seed=0,
                  classifier=True,
-                 models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC']],
-                 evodag_class="EvoDAG.model.EvoDAGE",
+                 models=[[B4MSATextModel, LinearSVC]],
+                 evodag_class=EvoDAGE,
                  logistic_regression=False, logistic_regression_args=None,
                  probability_calibration=False):
         if b4msa_params is None:
