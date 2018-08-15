@@ -296,6 +296,12 @@ class EmoSpace(BaseTextModel, BaseClassifier):
     def predict_proba(self, X):
         return self.decision_function(X)
 
+    def transform(self, X):
+        tm = self._textModel
+        D = [tm[self.get_text(x)] for x in X]
+        D = np.array([m.decision_function(D) for m in self._classifiers])
+        return [[[k, v] for k, v in enumerate(_)] for _ in D.T]
+
     def __getitem__(self, x):
         tm = self._textModel
         _ = [tm[self.get_text(x)]]

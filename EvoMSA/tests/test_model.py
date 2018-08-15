@@ -69,6 +69,16 @@ def test_EmoSpace():
     assert emo.decision_function(X).shape[1] == 64
 
 
+def test_EmoSpace_transform():
+    from EvoMSA.model import EmoSpace
+    from b4msa.utils import tweet_iterator
+    X = [x for x in tweet_iterator(TWEETS)]
+    emo = EmoSpace()
+    r = emo.transform(X)
+    print(len(r), len(X), len(r[0]), 64)
+    assert len(r) == len(X) and len(r[0]) == 64
+
+
 def test_EmoSpaceEn():
     from EvoMSA.model import EmoSpaceEn
     cls = EmoSpaceEn()
