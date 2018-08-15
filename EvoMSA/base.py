@@ -46,7 +46,10 @@ def kfold_decision_function(args):
 
 def transform(args):
     k, m, t, X = args
-    x = t.tonp([t[_] for _ in X])
+    try:
+        x = t.tonp(t.transform(X))
+    except AttributeError:
+        x = t.tonp([t[_] for _ in X])
     df = m.decision_function(x)
     d = [EvoMSA.tolist(_) for _ in df]
     return (k, d)
@@ -54,7 +57,11 @@ def transform(args):
 
 def vector_space(args):
     k, t, X = args
-    return k, t.tonp([t[_] for _ in X])
+    try:
+        res = t.tonp(t.transform(X))
+    except AttributeError:
+        res = t.tonp([t[_] for _ in X])    
+    return k, res
 
 
 DEFAULT_CL = dict(fitness_function='macro-F1',
