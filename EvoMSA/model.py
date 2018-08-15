@@ -382,39 +382,6 @@ class Corpus(BaseTextModel):
         return tokens
 
 
-class AffectiveAr(Corpus):
-    """Arabic text model using an affective corpus"""
-
-    def __init__(self, *args, **kwargs):
-        fname = os.path.join(os.path.dirname(__file__), 'conf', 'ar.affective.words.json')
-        corpus = []
-        for x in tweet_iterator(fname):
-            corpus += x['words']
-        super(AffectiveAr, self).__init__(corpus)
-
-
-class AffectiveEn(Corpus):
-    """English text model using an affective corpus"""
-
-    def __init__(self, *args, **kwargs):
-        fname = os.path.join(os.path.dirname(__file__), 'conf', 'en.affective.words.json')
-        corpus = []
-        for x in tweet_iterator(fname):
-            corpus += x['words']
-        super(AffectiveEn, self).__init__(corpus)
-
-
-class AffectiveEs(Corpus):
-    """Spanish text model using an affective corpus"""
-
-    def __init__(self, *args, **kwargs):
-        fname = os.path.join(os.path.dirname(__file__), 'conf', 'es.affective.words.json')
-        corpus = []
-        for x in tweet_iterator(fname):
-            corpus += x['words']
-        super(AffectiveEs, self).__init__(corpus)
-
-
 class AggressivenessAr(Corpus):
     """Arabic text model using an aggressive corpus"""
 
