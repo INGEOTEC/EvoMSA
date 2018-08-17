@@ -60,10 +60,10 @@ def test_multinomial():
 
 
 def test_EmoSpace():
-    from EvoMSA.model import EmoSpace
+    from EvoMSA.model import EmoSpaceEs
     from b4msa.utils import tweet_iterator
     X = [x for x in tweet_iterator(TWEETS)]
-    emo = EmoSpace()
+    emo = EmoSpaceEs()
     Xs = [emo[x] for x in X]
     assert len(Xs) == len(X) and len(Xs[0]) == 64
     assert emo.decision_function(X).shape[1] == 64
