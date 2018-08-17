@@ -196,7 +196,7 @@ class HaSpace(object):
 
     def fit(self, X, y):
         return self
-    
+
     def decision_function(self, X):
         X = [self.get_text(x) for x in X]
         X = self._model.decision_function(X)
@@ -290,7 +290,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
     def decision_function(self, X):
         tm = self._textModel
-        _ = [tm[self.get_text(x)] for x in X]
+        _ = tm.tonp([tm[x] for x in X])
         return np.array([m.decision_function(_) for m in self._classifiers]).T
 
     def predict_proba(self, X):
@@ -298,15 +298,19 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
     def transform(self, X):
         tm = self._textModel
-        D = [tm[self.get_text(x)] for x in X]
+        D = tm.tonp([tm[x] for x in X])
         D = np.array([m.decision_function(D) for m in self._classifiers])
         return [[[k, v] for k, v in enumerate(_)] for _ in D.T]
 
     def __getitem__(self, x):
         tm = self._textModel
-        _ = [tm[self.get_text(x)]]
+        _ = tm.tonp([tm[self.get_text(x)]])
         _ = np.array([m.decision_function(_) for m in self._classifiers]).flatten()
         return [[k, v] for k, v in enumerate(_)]
+
+
+class EmoSpaceEs(EmoSpace):
+    pass
 
 
 class EmoSpaceEn(EmoSpace):
@@ -419,7 +423,7 @@ class AggressivenessEs(Corpus):
         for x in tweet_iterator(fname):
             corpus += x['words']
         super(AggressivenessEs, self).__init__(corpus)
-        
+
 
 class Bernulli(BaseClassifier):
     """Bernulli classifier"""

@@ -60,7 +60,7 @@ def vector_space(args):
     try:
         res = t.tonp(t.transform(X))
     except AttributeError:
-        res = t.tonp([t[_] for _ in X])    
+        res = t.tonp([t[_] for _ in X])
     return k, res
 
 
