@@ -87,7 +87,12 @@ html_theme = 'classic'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    "rightsidebar": "false",
+    "relbarbgcolor": "black",
+    "sidebarbgcolor": "white",
+    "sidebartextcolor": "black"
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -109,6 +114,7 @@ html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'EvoMSAdoc'
+html_logo = 'ingeotec.gif'
 
 
 # -- Options for LaTeX output ------------------------------------------------
