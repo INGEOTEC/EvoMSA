@@ -114,7 +114,7 @@ html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'EvoMSAdoc'
-html_logo = 'ingeotec.gif'
+html_logo = 'ingeotec.png'
 
 
 # -- Options for LaTeX output ------------------------------------------------
