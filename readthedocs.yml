@@ -1,12 +1,12 @@
 # readthedocs.yml
 
-build:
-  image: latest
+# build:
+#   image: latest
 
-python:
-  version: 3.6
-  setup_py_install: true
+# python:
+#   version: 3.6
+#   setup_py_install: true
 
-conda:
-  channels: 
-    - ingeotec
+# conda:
+#   channels: 
+#     - ingeotec
