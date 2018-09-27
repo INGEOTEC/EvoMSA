@@ -9,15 +9,18 @@ EvoMSA
 .. autoclass:: EvoMSA.base.EvoMSA
    :members:
 
+	      
+Including Extra knowledge
+==================================
+
+.. autoclass:: EvoMSA.model.EmoSpace
+
+Models
+==================	      
+
 .. toctree::
    :maxdepth: 2
 
    model
    utils      
-      
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   

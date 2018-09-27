@@ -263,7 +263,36 @@ class HaSpaceAr(HaSpace):
 
 
 class EmoSpace(BaseTextModel, BaseClassifier):
-    """Spanish text model or classifier based on a Emojis"""
+    """Spanish text model or classifier based on Emojis
+
+    Let us describe the procedure to use EmoSpace to create a model using it as text model
+
+    Read the dataset
+
+    >>> from EvoMSA import base
+    >>> from b4msa.utils import tweet_iterator
+    >>> import os
+    >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
+    >>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
+
+    Once the dataset is loaded, it is time to import the models and the classifier
+
+    >>> from EvoMSA.model import BaseTextModel, B4MSATextModel, EmoSpace
+    >>> from sklearn.svm import LinearSVC
+
+    The models one wishes to use are set in a list of lists, namely:
+
+    >>> models = [[B4MSATextModel, LinearSVC], [EmoSpace, LinearSVC]]
+
+    EvoMSA model is created using
+
+    >>> from EvoMSA.base import EvoMSA
+    >>> evo = EvoMSA(models=models).fit([dict(text=x[0]) for x in D], [x[1] for x in D])
+
+    Predict a sentence in Spanish
+
+    >>> evo.predict(['EvoMSA esta funcionando', 'EmoSpace esta funcionando'])
+    """
 
     def __init__(self, *args, **kwargs):
         self._textModel, self._classifiers = self.get_model()
