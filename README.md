@@ -11,7 +11,9 @@
 [![Anaconda-Server Badge](https://anaconda.org/ingeotec/evomsa/badges/license.svg)](https://anaconda.org/ingeotec/evomsa)
 
 # EvoMSA
-Sentiment Analysis System based on B4MSA and EvoDAG
+Sentiment Analysis System based on [B4MSA](https://github.com/ingeotec/b4msa) and [EvoDAG](https://github.com/mgraffg/EvoDAG).
+
+The documentation can be found [here](http://ingeotec.mx/~mgraffg/EvoMSA/index.html).
 
 ## Quick Start ##
 
