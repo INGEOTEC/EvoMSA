@@ -263,6 +263,10 @@ class EvoMSA(object):
     @n_jobs.setter
     def n_jobs(self, v):
         self._n_jobs = v
+        try:
+            self._evodag_model._m._n_jobs = v
+        except AttributeError:
+            pass
 
     def predict(self, X):
         pr = self.predict_proba(X)
