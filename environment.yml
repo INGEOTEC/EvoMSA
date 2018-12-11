@@ -1,7 +1,6 @@
 name: evomsa
 channels:
   - ingeotec
-  - mgraffg
 dependencies:
   - python
   - setuptools
@@ -11,3 +10,4 @@ dependencies:
   - nltk
   - evodag
   - b4msa
+  - conceptmodelling
