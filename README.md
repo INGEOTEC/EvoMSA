@@ -9,11 +9,10 @@
 [![Anaconda-Server Badge](https://anaconda.org/ingeotec/evomsa/badges/installer/conda.svg)](https://anaconda.org/ingeotec/evomsa)
 [![PyPI version](https://badge.fury.io/py/EvoMSA.svg)](https://badge.fury.io/py/EvoMSA)
 [![Anaconda-Server Badge](https://anaconda.org/ingeotec/evomsa/badges/license.svg)](https://anaconda.org/ingeotec/evomsa)
+[![Documentation Status](https://readthedocs.org/projects/evomsa/badge/?version=latest)](https://evomsa.readthedocs.io/en/latest/?badge=latest)
 
 # EvoMSA
 Sentiment Analysis System based on [B4MSA](https://github.com/ingeotec/b4msa) and [EvoDAG](https://github.com/mgraffg/EvoDAG).
-
-The documentation can be found [here](http://ingeotec.mx/~mgraffg/EvoMSA/index.html).
 
 ## Quick Start ##
 
