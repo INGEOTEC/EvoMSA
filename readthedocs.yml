@@ -1,12 +1,8 @@
-# readthedocs.yml
+build:
+  image: latest
 
-# build:
-#   image: latest
+python:
+  version: 3.6
 
-# python:
-#   version: 3.6
-#   setup_py_install: true
-
-# conda:
-#   channels: 
-#     - ingeotec
+conda:
+  file: environment.yml

@@ -1,0 +1,13 @@
+name: evomsa
+channels:
+  - ingeotec
+  - mgraffg
+dependencies:
+  - python
+  - setuptools
+  - numpy
+  - scipy
+  - scikit-learn
+  - nltk
+  - evodag
+  - b4msa
