@@ -327,7 +327,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
     def transform(self, X):
         tm = self._textModel
-        D = tm.tonp([tm[x] for x in X])
+        D = tm.tonp([tm[self.get_text(x)] for x in X])
         D = np.array([m.decision_function(D) for m in self._classifiers])
         return [[[k, v] for k, v in enumerate(_)] for _ in D.T]
 

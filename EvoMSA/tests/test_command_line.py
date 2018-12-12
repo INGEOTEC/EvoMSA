@@ -88,8 +88,7 @@ def test_utils_b4msa_df():
     from EvoMSA.command_line import utils
     from b4msa.utils import tweet_iterator
     import shutil
-    sys.argv = ['EvoMSA', '--kw={"seed": 1}', '--b4msa-kw={"del_dup1":false}',
-                '-omodel.json', '--b4msa-df', TWEETS]
+    sys.argv = ['EvoMSA', '--kw={"seed": 1}', '-omodel.json', '--b4msa-df', TWEETS]
     utils(output=True)
     assert os.path.isfile('model.json')
     sys.argv = ['EvoMSA', '-omodel', '--b4msa-df', '--test_set', TWEETS, TWEETS]
@@ -339,7 +338,7 @@ def test_performance_public_set():
         m = performance(output=True)
         assert len(m._p) == 2
 
- 
+
 def test_list_of_text():
     import os
     import json

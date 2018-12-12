@@ -263,6 +263,10 @@ class EvoMSA(object):
     @n_jobs.setter
     def n_jobs(self, v):
         self._n_jobs = v
+        try:
+            self._evodag_model._m._n_jobs = v
+        except AttributeError:
+            pass
 
     def predict(self, X):
         pr = self.predict_proba(X)
@@ -405,7 +409,10 @@ class EvoMSA(object):
             Di = None
             for t_cl, t in zip(self.models, self._textModel):
                 cl = t_cl[1]
-                x = t.tonp([t[_] for _ in X])
+                try:
+                    x = t.tonp(t.transform(X))
+                except AttributeError:
+                    x = t.tonp([t[_] for _ in X])
                 d = self.kfold_decision_function(cl, x, y)
                 if Di is None:
                     Di = d
