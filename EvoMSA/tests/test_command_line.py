@@ -89,7 +89,7 @@ def test_utils_b4msa_df():
     from b4msa.utils import tweet_iterator
     import shutil
     sys.argv = ['EvoMSA', '--kw={"seed": 1}', '-omodel.json', '--b4msa-df', TWEETS]
-    utils(output=True)∑
+    utils(output=True)
     assert os.path.isfile('model.json')
     sys.argv = ['EvoMSA', '-omodel', '--b4msa-df', '--test_set', TWEETS, TWEETS]
     utils(output=True)
