@@ -20,6 +20,7 @@ from ConceptModelling.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SP
 import os
 import pickle
 import gzip
+from sklearn.neighbors import KDTree
 
 
 class BaseTextModel(object):
@@ -603,3 +604,176 @@ class Vec(BaseTextModel):
         """
 
         return np.array(X)
+
+
+class SemanticToken(BaseTextModel):
+    def __init__(self, corpus, del_dup1=False, token_list=[-1], **kwargs):
+        self._text = os.getenv('TEXT', default='text')
+        self._textmodel = TextModel([], del_dup1=del_dup1,
+                                    token_list=token_list,
+                                    **kwargs)
+        self.init(corpus)
+
+    @property
+    def textmodel(self):
+        """TextModel instance"""
+
+        return self._textmodel
+
+    def init(self, corpus):
+        """Initial model"""
+
+        words = self.tokens(corpus)
+        self._weight = np.ones(len(words))
+        key = self.semantic_space._text
+        _ = self.semantic_space.transform([{key: x} for x in words])
+        X = self.semantic_space.tonp(_).toarray()
+        self._kdtree = KDTree(X, metric='manhattan')
+        w = self.entropy(self.transform(corpus), corpus, ntokens=X.shape[0])
+        w = np.where(w > 0.01)[0]
+        self._kdtree = KDTree(X[w], metric='manhattan')
+        self._weight = self._weight[w]
+        self.compute_idf(self.transform(corpus))
+
+    def entropy(self, Xt, corpus, ntokens):
+        """Compute the entropy"""
+
+        y = [x['klass'] for x in corpus]
+        klasses = np.unique(y)
+        nklasses = klasses.shape[0]
+        weight = np.zeros((klasses.shape[0], ntokens))
+        for ki, klass in enumerate(klasses):
+            for _y, tokens in zip(y, Xt):
+                if _y != klass:
+                    continue
+                for x in np.unique([_[0] for _ in tokens]):
+                    weight[ki, x] += 1
+        weight = weight / weight.sum(axis=0)
+        weight[~np.isfinite(weight)] = 1.0 / nklasses
+        logc = np.log2(weight)
+        logc[~np.isfinite(logc)] = 0
+        if nklasses > 2:
+            logc = logc / np.log2(nklasses)
+        return (1 + (weight * logc).sum(axis=0))
+
+    def compute_idf(self, Xt):
+        N = len(Xt)
+        weight = np.zeros_like(self.weight)
+        for tokens in Xt:
+            for x in np.unique([_[0] for _ in tokens]):
+                weight[x] += 1
+        self._weight = np.log2(N / weight)
+
+    @property
+    def weight(self):
+        """weight per token
+
+        :rtype: list"""
+
+        return self._weight
+
+    def tokens(self, corpus):
+        """Tokens used for modeling"""
+        lst = []
+        [lst.__iadd__(self.tokenize(x)) for x in corpus]
+        return lst
+
+    @property
+    def semantic_space(self):
+        """Semantic space
+
+        :rtype: instance
+        """
+
+        try:
+            return self._semantic_space
+        except AttributeError:
+            self._semantic_space = EmoSpaceEs()
+        return self._semantic_space
+
+    def get_text(self, text):
+        """Return self._text key from text
+
+        :param text: Text
+        :type text: dict
+        """
+
+        return text[self._text]
+
+    def tokenize(self, text):
+        """Tokenize a text
+        :param text: Text
+        :type text: dict or str
+
+        :rtype: list of str
+        """
+
+        textmodel = self.textmodel
+        if isinstance(text, dict):
+            text = self.get_text(text)
+        if isinstance(text, (list, tuple)):
+            tokens = []
+            for _text in text:
+                tokens.extend(textmodel.tokenize(_text))
+            return tokens
+        else:
+            return textmodel.tokenize(text)
+
+    def transform(self, X):
+        w = self.weight
+        kdtree = self._kdtree
+        tokens_doc = [self.tokenize(x) for x in X]
+        tokens = []
+        [tokens.__iadd__(x) for x in tokens_doc]
+        tokens = np.unique(tokens)
+        key = self.semantic_space._text
+        _ = self.semantic_space.transform([{key: _} for _ in tokens])
+        xx = self.semantic_space.tonp(_).toarray()
+        m = {t: (ind[0], w[ind[0]] / (1 + d[0])) for t, d, ind in zip(tokens, *kdtree.query(xx))}
+        Xt = []
+        for x in tokens_doc:
+            unique = {}
+            for _ in x:
+                r = m[_]
+                try:
+                    unique[r[0]] += r[1]
+                except KeyError:
+                    unique[r[0]] = r[1]
+            n = np.sqrt(sum([x * x for _, x in unique.items()]))
+            Xt.append([(i, x/n) for i, x in unique.items()])
+        return Xt
+
+
+class SemanticTokenEs(SemanticToken):
+    pass
+
+
+class SemanticTokenEn(SemanticToken):
+    @property
+    def semantic_space(self):
+        """Semantic space
+
+        :rtype: instance
+        """
+
+        try:
+            return self._semantic_space
+        except AttributeError:
+            self._semantic_space = EmoSpaceEn()
+        return self._semantic_space
+
+
+class SemanticTokenAr(SemanticToken):
+    @property
+    def semantic_space(self):
+        """Semantic space
+
+        :rtype: instance
+        """
+
+        try:
+            return self._semantic_space
+        except AttributeError:
+            self._semantic_space = EmoSpaceAr()
+        return self._semantic_space
+    

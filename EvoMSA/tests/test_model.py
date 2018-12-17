@@ -202,4 +202,29 @@ def test_Vec():
     a = dict(vec=[1, 3, 1])
     vec = Vec()
     assert vec[a] == [1, 3, 1]
+
+
+def test_semantic_token():
+    from EvoMSA.model import SemanticToken
+    from b4msa.utils import tweet_iterator
+    corpus = [x for x in tweet_iterator(TWEETS)]
+    semantic = SemanticToken(corpus)
+    assert semantic._weight.shape[0] == 3198
+    assert len(semantic.transform([dict(text='buenos dias')])[0]) == 2
+
+
+def test_semantic_token_en():
+    from EvoMSA.model import SemanticTokenEn, EmoSpaceEn
+    from b4msa.utils import tweet_iterator
+    corpus = [x for x in tweet_iterator(TWEETS)]
+    semantic = SemanticTokenEn(corpus)
+    isinstance(semantic.semantic_space, EmoSpaceEn)
+
+
+def test_semantic_token_ar():
+    from EvoMSA.model import SemanticTokenAr, EmoSpaceAr
+    from b4msa.utils import tweet_iterator
+    corpus = [x for x in tweet_iterator(TWEETS)]
+    semantic = SemanticTokenAr(corpus)
+    isinstance(semantic.semantic_space, EmoSpaceAr)
     
