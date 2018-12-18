@@ -607,11 +607,9 @@ class Vec(BaseTextModel):
 
 
 class SemanticToken(BaseTextModel):
-    def __init__(self, corpus, del_dup1=False, token_list=[-1], **kwargs):
+    def __init__(self, corpus, **kwargs):
         self._text = os.getenv('TEXT', default='text')
-        self._textmodel = TextModel([], del_dup1=del_dup1,
-                                    token_list=token_list,
-                                    **kwargs)
+        self._textmodel = TextModel([], token_list=[-1], del_dup1=False)
         self.init(corpus)
 
     @property
