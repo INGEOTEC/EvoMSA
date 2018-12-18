@@ -744,14 +744,14 @@ class SemanticToken(BaseTextModel):
 
 class SemanticTokenEs(SemanticToken):
     def __init__(self, corpus, *kwargs):
-        super(SemanticTokenEs, self).__init__(self, token_list=[-1], del_dup1=True,
+        super(SemanticTokenEs, self).__init__(corpus, token_list=[-1], del_dup1=True,
                                               num_option='delete', usr_option='delete',
                                               url_option='delete', emo_option='delete')
 
 
 class SemanticTokenEn(SemanticToken):
     def __init__(self, corpus, *kwargs):
-        super(SemanticTokenEn, self).__init__(self, token_list=[-1], del_dup1=False,
+        super(SemanticTokenEn, self).__init__(corpus, token_list=[-1], del_dup1=False,
                                               num_option='delete', usr_option='delete',
                                               url_option='delete', emo_option='delete')
 
@@ -771,7 +771,7 @@ class SemanticTokenEn(SemanticToken):
 
 class SemanticTokenAr(SemanticToken):
     def __init__(self, corpus, *kwargs):
-        super(SemanticTokenAr, self).__init__(self, token_list=[-1], del_dup1=False,
+        super(SemanticTokenAr, self).__init__(corpus, token_list=[-1], del_dup1=False,
                                               num_option='delete', usr_option='delete',
                                               url_option='delete', emo_option='delete')
 
