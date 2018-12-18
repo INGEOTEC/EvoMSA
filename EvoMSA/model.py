@@ -607,10 +607,20 @@ class Vec(BaseTextModel):
 
 
 class SemanticToken(BaseTextModel):
-    def __init__(self, corpus, **kwargs):
+    def __init__(self, corpus, threshold=0.01, **kwargs):
         self._text = os.getenv('TEXT', default='text')
         self._textmodel = TextModel([], **kwargs)
+        self._threshold = threshold
         self.init(corpus)
+
+    @property
+    def threshold(self):
+        """Threshold used to remove those tokens that less than 1 - entropy
+
+        :rtype: float
+        """
+
+        return self._threshold
 
     @property
     def textmodel(self):
@@ -628,7 +638,7 @@ class SemanticToken(BaseTextModel):
         X = self.semantic_space.tonp(_).toarray()
         self._kdtree = KDTree(X, metric='manhattan')
         w = self.entropy(self.transform(corpus), corpus, ntokens=X.shape[0])
-        w = np.where(w > 0.01)[0]
+        w = np.where(w > self.threshold)[0]
         self._kdtree = KDTree(X[w], metric='manhattan')
         self._weight = self._weight[w]
         self.compute_idf(self.transform(corpus))
