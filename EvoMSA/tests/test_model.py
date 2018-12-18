@@ -228,4 +228,34 @@ def test_semantic_token_ar():
     corpus = [x for x in tweet_iterator(TWEETS)]
     semantic = SemanticTokenAr(corpus)
     isinstance(semantic.semantic_space, EmoSpaceAr)
+
+
+def test_semantic_affective_es():
+    from EvoMSA.model import SemanticAffectiveEs
+    from b4msa.utils import tweet_iterator
+    corpus = [x for x in tweet_iterator(TWEETS)]
+    semantic = SemanticAffectiveEs(corpus)
+    tokens = semantic.tokens(None)
+    print(tokens)
+    print(semantic._weight.shape[0])
+    assert semantic._weight.shape[0] == 881
+
+
+def test_semantic_affective_ar():
+    from EvoMSA.model import SemanticAffectiveAr
+    from b4msa.utils import tweet_iterator
+    corpus = [x for x in tweet_iterator(TWEETS)]
+    semantic = SemanticAffectiveAr(corpus)
+    tokens = semantic.tokens(None)
+    assert len(tokens) == 4073
+
+
+def test_semantic_affective_en():
+    from EvoMSA.model import SemanticAffectiveEn
+    from b4msa.utils import tweet_iterator
+    corpus = [x for x in tweet_iterator(TWEETS)]
+    semantic = SemanticAffectiveEn(corpus)
+    tokens = semantic.tokens(None)
+    print(len(tokens))
+    assert len(tokens) == 4102
     

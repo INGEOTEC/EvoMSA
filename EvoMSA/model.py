@@ -16,7 +16,7 @@ from b4msa.textmodel import TextModel
 from b4msa.utils import tweet_iterator
 from scipy.sparse import csr_matrix
 from sklearn.svm import LinearSVC
-from ConceptModelling.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH
+from ConceptModelling.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH, PATH as ConPATH
 import os
 import pickle
 import gzip
@@ -798,3 +798,33 @@ class SemanticTokenAr(SemanticToken):
             self._semantic_space = EmoSpaceAr()
         return self._semantic_space
 
+
+class SemanticAffectiveEs(SemanticTokenEs):
+    def tokens(self, corpus):
+        """Tokens used for modeling"""
+        fname = os.path.join(ConPATH, 'data', 'es.affective.words.json')
+        lst = []
+        for x in tweet_iterator(fname):
+            lst += x['words']
+        return lst
+
+
+class SemanticAffectiveAr(SemanticTokenAr):
+    def tokens(self, corpus):
+        """Tokens used for modeling"""
+        fname = os.path.join(ConPATH, 'data', 'ar.affective.words.json')
+        lst = []
+        for x in tweet_iterator(fname):
+            lst += x['words']
+        return lst
+
+
+class SemanticAffectiveEn(SemanticTokenEn):
+    def tokens(self, corpus):
+        """Tokens used for modeling"""
+        fname = os.path.join(ConPATH, 'data', 'en.affective.words.json')
+        lst = []
+        for x in tweet_iterator(fname):
+            lst += x['words']
+        return lst
+    
