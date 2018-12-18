@@ -609,7 +609,7 @@ class Vec(BaseTextModel):
 class SemanticToken(BaseTextModel):
     def __init__(self, corpus, **kwargs):
         self._text = os.getenv('TEXT', default='text')
-        self._textmodel = TextModel([], token_list=[-1], del_dup1=False)
+        self._textmodel = TextModel([], **kwargs)
         self.init(corpus)
 
     @property
@@ -743,10 +743,18 @@ class SemanticToken(BaseTextModel):
 
 
 class SemanticTokenEs(SemanticToken):
-    pass
+    def __init__(self, corpus, *kwargs):
+        super(SemanticTokenEs, self).__init__(self, token_list=[-1], del_dup1=True,
+                                              num_option='delete', usr_option='delete',
+                                              url_option='delete', emo_option='delete')
 
 
 class SemanticTokenEn(SemanticToken):
+    def __init__(self, corpus, *kwargs):
+        super(SemanticTokenEn, self).__init__(self, token_list=[-1], del_dup1=False,
+                                              num_option='delete', usr_option='delete',
+                                              url_option='delete', emo_option='delete')
+
     @property
     def semantic_space(self):
         """Semantic space
@@ -762,6 +770,11 @@ class SemanticTokenEn(SemanticToken):
 
 
 class SemanticTokenAr(SemanticToken):
+    def __init__(self, corpus, *kwargs):
+        super(SemanticTokenAr, self).__init__(self, token_list=[-1], del_dup1=False,
+                                              num_option='delete', usr_option='delete',
+                                              url_option='delete', emo_option='delete')
+
     @property
     def semantic_space(self):
         """Semantic space
@@ -774,4 +787,4 @@ class SemanticTokenAr(SemanticToken):
         except AttributeError:
             self._semantic_space = EmoSpaceAr()
         return self._semantic_space
-    
+
