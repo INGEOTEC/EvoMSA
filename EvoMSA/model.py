@@ -148,7 +148,10 @@ class Identity(BaseTextModel, BaseClassifier):
         return x
 
     def decision_function(self, X):
-        return X
+        try:
+            return X.toarray()
+        except AttributeError:
+            return X
 
     def predict_proba(self, X):
         return self.decision_function(X)
