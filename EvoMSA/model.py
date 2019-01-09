@@ -347,6 +347,52 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         _ = np.array([m.decision_function(_) for m in self._classifiers]).flatten()
         return [[k, v] for k, v in enumerate(_)]
 
+    @classmethod
+    def create_space(cls, fname, output=None, **kwargs):
+        """Create the space from a file of json
+
+        :param fname: Path to the file containing the json
+        :type fname: str
+        :param output: Path to store the model, it is cls().model_fname if None
+        :type output: str
+        :param kwargs: Keywords pass to B4MSATextModel
+        """
+        import random
+        try:
+            from tqdm import tqdm
+        except ImportError:
+            def tqdm(x, **kwargs):
+                return x
+
+        if output is None:
+            output = cls().model_fname
+        data = [x for x in tweet_iterator(fname)]
+        random.shuffle(data)
+        kw = dict(emo_option='delete')
+        kw.update(kwargs)
+        tm = B4MSATextModel([x['text'] for x in data[:128000]], **kw)
+        tm._num_terms = tm.model.num_terms
+        klass, nele = np.unique([x['klass'] for x in data], return_counts=True)
+        h = {v: k for k, v in enumerate(klass)}
+        MODELS = []
+        for ident, k in tqdm(enumerate(klass)):
+            elepklass = [0 for _ in range(klass.shape[0])]
+            cnt = nele[ident]
+            cntpklass = int(cnt / klass.shape[0])
+            D = [(x, 1) for x in data if x['klass'] == k]
+            for x in data:
+                if x['klass'] == k:
+                    continue
+                if elepklass[h[x['klass']]] > cntpklass:
+                    continue
+                elepklass[h[x['klass']]] = elepklass[h[x['klass']]] + 1
+                D.append((x, -1))
+            m = LinearSVC().fit(tm.tonp([tm[x[0]['text']] for x in D]), [x[1] for x in D])
+            MODELS.append(m)
+
+        with gzip.open(output, 'w') as fpt:
+            pickle.dump([tm, MODELS], fpt)  
+
 
 class EmoSpaceEs(EmoSpace):
     pass

@@ -265,3 +265,10 @@ def test_semantic_affective_en():
     print(len(tokens))
     assert len(tokens) == 4102
     
+
+def test_EmoSpace_create_space():
+    from EvoMSA.model import EmoSpace
+    import os
+    EmoSpace.create_space(TWEETS, output='t.model')
+    assert os.path.isfile('t.model')
+    os.unlink('t.model')
