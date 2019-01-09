@@ -302,15 +302,21 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         self._textModel, self._classifiers = self.get_model()
         self._text = os.getenv('TEXT', default='text')
 
+    @property
+    def model_fname(self):
+        import EvoMSA
+        return 'emo-v%s-es.b4msa' % EvoMSA.__version__
+
     def fit(self, X, y):
         pass
 
     def get_model(self):
         import os
         from urllib import request
-        fname = os.path.join(os.path.dirname(__file__), 'emo-es.b4msa')
+        model_fname = self.model_fname
+        fname = os.path.join(os.path.dirname(__file__), model_fname)
         if not os.path.isfile(fname):
-            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-es.b4msa",
+            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/%s" % model_fname,
                                 fname)
         with gzip.open(fname) as fpt:
             return pickle.load(fpt)
@@ -349,29 +355,19 @@ class EmoSpaceEs(EmoSpace):
 class EmoSpaceEn(EmoSpace):
     """English text model or classifier based on a Emojis"""
 
-    def get_model(self):
-        import os
-        from urllib import request
-        fname = os.path.join(os.path.dirname(__file__), 'emo-en.b4msa')
-        if not os.path.isfile(fname):
-            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-en.b4msa",
-                                fname)
-        with gzip.open(fname) as fpt:
-            return pickle.load(fpt)
+    @property
+    def model_fname(self):
+        import EvoMSA
+        return 'emo-v%s-en.b4msa' % EvoMSA.__version__
 
 
 class EmoSpaceAr(EmoSpace):
     """Arabic text model or classifier based on a Emojis"""
 
-    def get_model(self):
-        import os
-        from urllib import request
-        fname = os.path.join(os.path.dirname(__file__), 'emo-ar.b4msa')
-        if not os.path.isfile(fname):
-            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/emo-ar.b4msa",
-                                fname)
-        with gzip.open(fname) as fpt:
-            return pickle.load(fpt)
+    @property
+    def model_fname(self):
+        import EvoMSA
+        return 'emo-v%s-ar.b4msa' % EvoMSA.__version__
 
 
 class Corpus(BaseTextModel):

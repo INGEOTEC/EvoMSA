@@ -60,6 +60,7 @@ def test_multinomial():
 
 
 def test_EmoSpace():
+    import EvoMSA
     from EvoMSA.model import EmoSpaceEs
     from b4msa.utils import tweet_iterator
     X = [x for x in tweet_iterator(TWEETS)]
@@ -67,6 +68,7 @@ def test_EmoSpace():
     Xs = [emo[x] for x in X]
     assert len(Xs) == len(X) and len(Xs[0]) == 64
     assert emo.decision_function(X).shape[1] == 64
+    assert emo.model_fname == 'emo-v%s-es.b4msa' % EvoMSA.__version__
 
 
 def test_EmoSpace_transform():
@@ -81,14 +83,18 @@ def test_EmoSpace_transform():
 
 def test_EmoSpaceEn():
     from EvoMSA.model import EmoSpaceEn
+    import EvoMSA
     cls = EmoSpaceEn()
     assert cls
+    assert cls.model_fname == 'emo-v%s-en.b4msa' % EvoMSA.__version__
 
 
 def test_EmoSpaceAr():
     from EvoMSA.model import EmoSpaceAr
+    import EvoMSA
     cls = EmoSpaceAr()
     assert cls
+    assert cls.model_fname == 'emo-v%s-ar.b4msa' % EvoMSA.__version__
 
 
 def test_tonp():
