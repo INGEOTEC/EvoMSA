@@ -391,7 +391,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
             MODELS.append(m)
 
         with gzip.open(output, 'w') as fpt:
-            pickle.dump([tm, MODELS], fpt)  
+            pickle.dump([tm, MODELS], fpt)
 
 
 class EmoSpaceEs(EmoSpace):
@@ -673,6 +673,14 @@ class SemanticToken(BaseTextModel):
 
         return self._textmodel
 
+    @property
+    def id2token(self):
+        """Map from id to token
+
+        :rtype: list"""
+        
+        return self._id2token
+
     def init(self, corpus):
         """Initial model"""
 
@@ -686,6 +694,7 @@ class SemanticToken(BaseTextModel):
         w = np.where(w > self.threshold)[0]
         self._kdtree = KDTree(X[w], metric='manhattan')
         self._weight = self._weight[w]
+        self._id2token = [words[x] for x in w]
         self.compute_idf(self.transform(corpus))
 
     def entropy(self, Xt, corpus, ntokens):
