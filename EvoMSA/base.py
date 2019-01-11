@@ -33,7 +33,10 @@ except ImportError:
 
 def kfold_decision_function(args):
     cl, X, y, tr, ts, seed = args
-    c = cl(random_state=seed)
+    try:
+        c = cl(random_state=seed)
+    except TypeError:
+        c = cl()
     if isinstance(X, (list, tuple)):
         c.fit([X[x] for x in tr], [y[x] for x in tr])
         _ = c.decision_function([X[x] for x in ts])
