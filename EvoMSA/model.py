@@ -302,8 +302,8 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         self._textModel, self._classifiers = self.get_model()
         self._text = os.getenv('TEXT', default='text')
 
-    @property
-    def model_fname(self):
+    @staticmethod
+    def model_fname():
         import EvoMSA
         return 'emo-v%s-es.b4msa' % EvoMSA.__version__
 
@@ -313,7 +313,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
     def get_model(self):
         import os
         from urllib import request
-        model_fname = self.model_fname
+        model_fname = self.model_fname()
         fname = os.path.join(os.path.dirname(__file__), model_fname)
         if not os.path.isfile(fname):
             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/%s" % model_fname,
@@ -353,7 +353,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
         :param fname: Path to the file containing the json
         :type fname: str
-        :param output: Path to store the model, it is cls().model_fname if None
+        :param output: Path to store the model, it is cls.model_fname if None
         :type output: str
         :param kwargs: Keywords pass to B4MSATextModel
         """
@@ -365,7 +365,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
                 return x
 
         if output is None:
-            output = cls().model_fname
+            output = cls.model_fname()
         data = [x for x in tweet_iterator(fname)]
         random.shuffle(data)
         kw = dict(emo_option='delete')
@@ -401,8 +401,8 @@ class EmoSpaceEs(EmoSpace):
 class EmoSpaceEn(EmoSpace):
     """English text model or classifier based on a Emojis"""
 
-    @property
-    def model_fname(self):
+    @staticmethod
+    def model_fname():
         import EvoMSA
         return 'emo-v%s-en.b4msa' % EvoMSA.__version__
 
@@ -410,8 +410,8 @@ class EmoSpaceEn(EmoSpace):
 class EmoSpaceAr(EmoSpace):
     """Arabic text model or classifier based on a Emojis"""
 
-    @property
-    def model_fname(self):
+    @staticmethod
+    def model_fname():
         import EvoMSA
         return 'emo-v%s-ar.b4msa' % EvoMSA.__version__
 
