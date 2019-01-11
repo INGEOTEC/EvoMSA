@@ -807,17 +807,23 @@ class SemanticToken(BaseTextModel):
 
 
 class SemanticTokenEs(SemanticToken):
-    def __init__(self, corpus, **kwargs):
-        super(SemanticTokenEs, self).__init__(corpus, token_list=[-1], del_dup1=True,
-                                              num_option='delete', usr_option='delete',
-                                              url_option='delete', emo_option='delete')
+    def __init__(self, corpus, token_list=[-1], del_dup1=True,
+                 num_option='delete', usr_option='delete',
+                 url_option='delete', emo_option='delete', **kwargs):
+        super(SemanticTokenEs, self).__init__(corpus, token_list=token_list,
+                                              del_dup1=del_dup1, num_option=num_option,
+                                              usr_option=usr_option, url_option=url_option,
+                                              emo_option=emo_option, **kwargs)
 
 
 class SemanticTokenEn(SemanticToken):
-    def __init__(self, corpus, **kwargs):
-        super(SemanticTokenEn, self).__init__(corpus, token_list=[-1], del_dup1=False,
-                                              num_option='delete', usr_option='delete',
-                                              url_option='delete', emo_option='delete')
+    def __init__(self, corpus, token_list=[-1], del_dup1=False,
+                 num_option='delete', usr_option='delete',
+                 url_option='delete', emo_option='delete', **kwargs):
+        super(SemanticTokenEn, self).__init__(corpus, token_list=token_list,
+                                              del_dup1=del_dup1, num_option=num_option,
+                                              usr_option=usr_option, url_option=url_option,
+                                              emo_option=emo_option, **kwargs)
 
     @property
     def semantic_space(self):
