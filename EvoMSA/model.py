@@ -652,9 +652,17 @@ class Vec(BaseTextModel):
 
 
 class SemanticToken(BaseTextModel):
-    def __init__(self, corpus, threshold=0.01, **kwargs):
+    def __init__(self, corpus, threshold=0.01, token_min_filter=0.001,
+                 token_list=[-2, -1],
+                 num_option='delete', usr_option='delete',
+                 url_option='delete', emo_option='delete', **kwargs):
         self._text = os.getenv('TEXT', default='text')
-        self._textmodel = TextModel([], **kwargs)
+        self._textmodel = TextModel(None, token_list=token_list,
+                                    threshold=threshold,
+                                    token_min_filter=token_min_filter,
+                                    num_option=num_option, usr_option=usr_option,
+                                    url_option=url_option, emo_option=emo_option,
+                                    **kwargs)
         self._threshold = threshold
         self.init(corpus)
 
@@ -678,7 +686,7 @@ class SemanticToken(BaseTextModel):
         """Map from id to token
 
         :rtype: list"""
-        
+
         return self._id2token
 
     def init(self, corpus):
@@ -736,9 +744,8 @@ class SemanticToken(BaseTextModel):
 
     def tokens(self, corpus):
         """Tokens used for modeling"""
-        lst = []
-        [lst.__iadd__(self.tokenize(x)) for x in corpus]
-        return lst
+        self.textmodel.fit(corpus)
+        return [x for x in self.textmodel.model._w2id.keys()]
 
     @property
     def semantic_space(self):
@@ -771,15 +778,7 @@ class SemanticToken(BaseTextModel):
         """
 
         textmodel = self.textmodel
-        if isinstance(text, dict):
-            text = self.get_text(text)
-        if isinstance(text, (list, tuple)):
-            tokens = []
-            for _text in text:
-                tokens.extend(textmodel.tokenize(_text))
-            return tokens
-        else:
-            return textmodel.tokenize(text)
+        return textmodel.tokenize(text)
 
     def transform(self, X):
         w = self.weight
@@ -807,23 +806,16 @@ class SemanticToken(BaseTextModel):
 
 
 class SemanticTokenEs(SemanticToken):
-    def __init__(self, corpus, token_list=[-1], del_dup1=True,
-                 num_option='delete', usr_option='delete',
-                 url_option='delete', emo_option='delete', **kwargs):
-        super(SemanticTokenEs, self).__init__(corpus, token_list=token_list,
-                                              del_dup1=del_dup1, num_option=num_option,
-                                              usr_option=usr_option, url_option=url_option,
-                                              emo_option=emo_option, **kwargs)
+    def __init__(self, corpus, stopwords='delete', **kwargs):
+        super(SemanticTokenEs, self).__init__(corpus, stopwords=stopwords,
+                                              lang='es', **kwargs)
 
 
 class SemanticTokenEn(SemanticToken):
-    def __init__(self, corpus, token_list=[-1], del_dup1=False,
-                 num_option='delete', usr_option='delete',
-                 url_option='delete', emo_option='delete', **kwargs):
-        super(SemanticTokenEn, self).__init__(corpus, token_list=token_list,
-                                              del_dup1=del_dup1, num_option=num_option,
-                                              usr_option=usr_option, url_option=url_option,
-                                              emo_option=emo_option, **kwargs)
+    def __init__(self, corpus, del_dup=False, stopwords='delete', **kwargs):
+        super(SemanticTokenEn, self).__init__(corpus, del_dup=del_dup,
+                                              stopwords=stopwords,
+                                              lang='en', **kwargs)
 
     @property
     def semantic_space(self):
@@ -840,10 +832,9 @@ class SemanticTokenEn(SemanticToken):
 
 
 class SemanticTokenAr(SemanticToken):
-    def __init__(self, corpus, **kwargs):
-        super(SemanticTokenAr, self).__init__(corpus, token_list=[-1], del_dup1=False,
-                                              num_option='delete', usr_option='delete',
-                                              url_option='delete', emo_option='delete')
+    def __init__(self, corpus, stopwords='delete', **kwargs):
+        super(SemanticTokenAr, self).__init__(corpus, stopwords=stopwords,
+                                              lang='ar', **kwargs)
 
     @property
     def semantic_space(self):
