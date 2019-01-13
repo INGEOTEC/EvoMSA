@@ -652,7 +652,7 @@ class Vec(BaseTextModel):
 
 
 class SemanticToken(BaseTextModel):
-    def __init__(self, corpus, threshold=0.01, token_min_filter=0.001,
+    def __init__(self, corpus, threshold=0.001, token_min_filter=0.001,
                  token_list=[-2, -1],
                  num_option='delete', usr_option='delete',
                  url_option='delete', emo_option='delete', **kwargs):
