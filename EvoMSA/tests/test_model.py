@@ -218,7 +218,8 @@ def test_semantic_token_es():
     print(semantic._weight.shape[0])
     assert semantic._weight.shape[0] == 978
     tr = semantic.transform([dict(text='buenos dias')])[0]
-    assert len(tr) == 2
+    print(tr)
+    assert len(tr) == 3
     print([semantic.id2token[x[0]] for x in tr])
 
 
