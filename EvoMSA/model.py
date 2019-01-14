@@ -191,79 +191,79 @@ class B4MSATextModel(TextModel, BaseTextModel):
             return TextModel.tokenize(self, text)
 
 
-class HaSpace(object):
-    """Text classifier based on a Humman Annotated dataset in Spanish"""
+# class HaSpace(object):
+#     """Text classifier based on a Humman Annotated dataset in Spanish"""
 
-    def __init__(self, *args, **kwargs):
-        self._model = self.get_model()
-        self._text = os.getenv('TEXT', default='text')
+#     def __init__(self, *args, **kwargs):
+#         self._model = self.get_model()
+#         self._text = os.getenv('TEXT', default='text')
 
-    def fit(self, X, y):
-        return self
+#     def fit(self, X, y):
+#         return self
 
-    def decision_function(self, X):
-        X = [self.get_text(x) for x in X]
-        X = self._model.decision_function(X)
-        X[~np.isfinite(X)] = 0
-        return X
+#     def decision_function(self, X):
+#         X = [self.get_text(x) for x in X]
+#         X = self._model.decision_function(X)
+#         X[~np.isfinite(X)] = 0
+#         return X
 
-    def get_model(self):
-        """Return the model"""
+#     def get_model(self):
+#         """Return the model"""
 
-        import os
-        from urllib import request
-        fname = os.path.join(os.path.dirname(__file__), 'ha-es.model')
-        if not os.path.isfile(fname):
-            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-es.model",
-                                fname)
-        with gzip.open(fname) as fpt:
-            _ = pickle.load(fpt)
-        _.n_jobs = 1
-        return _
+#         import os
+#         from urllib import request
+#         fname = os.path.join(os.path.dirname(__file__), 'ha-es.model')
+#         if not os.path.isfile(fname):
+#             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-es.model",
+#                                 fname)
+#         with gzip.open(fname) as fpt:
+#             _ = pickle.load(fpt)
+#         _.n_jobs = 1
+#         return _
 
-    def get_text(self, text):
-        """Return self._text key from text
+#     def get_text(self, text):
+#         """Return self._text key from text
 
-        :param text: Text
-        :type text: dict
-        """
+#         :param text: Text
+#         :type text: dict
+#         """
 
-        key = self._text
-        if isinstance(text, (list, tuple)):
-            return " | ".join([x[key] for x in text])
-        return text[key]
-
-
-class HaSpaceEn(HaSpace):
-    """Text classifier based on a Humman Annotated dataset in English"""
-
-    def get_model(self):
-        import os
-        from urllib import request
-        fname = os.path.join(os.path.dirname(__file__), 'ha-en.model')
-        if not os.path.isfile(fname):
-            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-en.model",
-                                fname)
-        with gzip.open(fname) as fpt:
-            _ = pickle.load(fpt)
-        _.n_jobs = 1
-        return _
+#         key = self._text
+#         if isinstance(text, (list, tuple)):
+#             return " | ".join([x[key] for x in text])
+#         return text[key]
 
 
-class HaSpaceAr(HaSpace):
-    """Text classifier based on a Humman Annotated dataset in Arabic"""
+# class HaSpaceEn(HaSpace):
+#     """Text classifier based on a Humman Annotated dataset in English"""
 
-    def get_model(self):
-        import os
-        from urllib import request
-        fname = os.path.join(os.path.dirname(__file__), 'ha-ar.model')
-        if not os.path.isfile(fname):
-            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-ar.model",
-                                fname)
-        with gzip.open(fname) as fpt:
-            _ = pickle.load(fpt)
-        _.n_jobs = 1
-        return _
+#     def get_model(self):
+#         import os
+#         from urllib import request
+#         fname = os.path.join(os.path.dirname(__file__), 'ha-en.model')
+#         if not os.path.isfile(fname):
+#             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-en.model",
+#                                 fname)
+#         with gzip.open(fname) as fpt:
+#             _ = pickle.load(fpt)
+#         _.n_jobs = 1
+#         return _
+
+
+# class HaSpaceAr(HaSpace):
+#     """Text classifier based on a Humman Annotated dataset in Arabic"""
+
+#     def get_model(self):
+#         import os
+#         from urllib import request
+#         fname = os.path.join(os.path.dirname(__file__), 'ha-ar.model')
+#         if not os.path.isfile(fname):
+#             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/ha-ar.model",
+#                                 fname)
+#         with gzip.open(fname) as fpt:
+#             _ = pickle.load(fpt)
+#         _.n_jobs = 1
+#         return _
 
 
 class EmoSpace(BaseTextModel, BaseClassifier):

@@ -148,37 +148,37 @@ def test_OutputClassifier():
     os.unlink('xx_test.csv')
 
 
-def test_HaSpace():
-    from EvoMSA.model import HaSpace
-    from b4msa.utils import tweet_iterator
-    X = [x for x in tweet_iterator(TWEETS)]
-    y = [x['klass'] for x in X]
-    emo = HaSpace().fit(X, y)
-    Xs = emo.decision_function(X)
-    print(Xs)
-    assert len(Xs) == len(X) and Xs.shape[1] == 3
+# def test_HaSpace():
+#     from EvoMSA.model import HaSpace
+#     from b4msa.utils import tweet_iterator
+#     X = [x for x in tweet_iterator(TWEETS)]
+#     y = [x['klass'] for x in X]
+#     emo = HaSpace().fit(X, y)
+#     Xs = emo.decision_function(X)
+#     print(Xs)
+#     assert len(Xs) == len(X) and Xs.shape[1] == 3
 
 
-def test_HaSpaceEn():
-    from EvoMSA.model import HaSpaceEn
-    from b4msa.utils import tweet_iterator
-    X = [x for x in tweet_iterator(TWEETS)]
-    y = [x['klass'] for x in X]
-    emo = HaSpaceEn().fit(X, y)
-    Xs = emo.decision_function(X)
-    print(Xs)
-    assert len(Xs) == len(X) and Xs.shape[1] == 3
+# def test_HaSpaceEn():
+#     from EvoMSA.model import HaSpaceEn
+#     from b4msa.utils import tweet_iterator
+#     X = [x for x in tweet_iterator(TWEETS)]
+#     y = [x['klass'] for x in X]
+#     emo = HaSpaceEn().fit(X, y)
+#     Xs = emo.decision_function(X)
+#     print(Xs)
+#     assert len(Xs) == len(X) and Xs.shape[1] == 3
 
 
-def test_HaSpaceAr():
-    from EvoMSA.model import HaSpaceAr
-    from b4msa.utils import tweet_iterator
-    X = [x for x in tweet_iterator(TWEETS)]
-    y = [x['klass'] for x in X]
-    emo = HaSpaceAr().fit(X, y)
-    Xs = emo.decision_function(X)
-    print(Xs)
-    assert len(Xs) == len(X) and Xs.shape[1] == 3
+# def test_HaSpaceAr():
+#     from EvoMSA.model import HaSpaceAr
+#     from b4msa.utils import tweet_iterator
+#     X = [x for x in tweet_iterator(TWEETS)]
+#     y = [x['klass'] for x in X]
+#     emo = HaSpaceAr().fit(X, y)
+#     Xs = emo.decision_function(X)
+#     print(Xs)
+#     assert len(Xs) == len(X) and Xs.shape[1] == 3
 
 
 def test_AggressivenessEs():
