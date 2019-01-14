@@ -17,6 +17,7 @@ import numpy as np
 import logging
 from multiprocessing import Pool
 from b4msa.command_line import load_json
+from b4msa.textmodel import TextModel
 from EvoDAG.model import EvoDAGE
 from sklearn.model_selection import KFold
 from sklearn.linear_model import LogisticRegression
@@ -255,7 +256,7 @@ class EvoMSA(object):
             else:
                 tm = Identity
                 cl = self.get_class(m)
-            assert issubclass(tm, BaseTextModel)
+            assert issubclass(tm, BaseTextModel) or issubclass(tm, TextModel)
             # assert issubclass(cl, BaseClassifier)
             self._models.append([tm, cl])
 

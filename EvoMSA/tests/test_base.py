@@ -42,7 +42,7 @@ def test_TextModel():
 def test_vector_space():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
-                 models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
+                 models=[['b4msa.textmodel.TextModel', 'sklearn.svm.LinearSVC'],
                          ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
     evo.model(X)
     nrows = len(X)

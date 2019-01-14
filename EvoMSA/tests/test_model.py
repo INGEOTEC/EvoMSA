@@ -216,7 +216,7 @@ def test_semantic_token_es():
     corpus = [x for x in tweet_iterator(TWEETS)]
     semantic = SemanticTokenEs(corpus)
     print(semantic._weight.shape[0])
-    assert semantic._weight.shape[0] == 3107
+    assert semantic._weight.shape[0] == 978
     tr = semantic.transform([dict(text='buenos dias')])[0]
     assert len(tr) == 2
     print([semantic.id2token[x[0]] for x in tr])
@@ -245,8 +245,7 @@ def test_semantic_affective_es():
     semantic = SemanticAffectiveEs(corpus)
     tokens = semantic.tokens(None)
     print(tokens)
-    print(semantic._weight.shape[0])
-    assert semantic._weight.shape[0] == 881
+    assert semantic._weight.shape[0] == 1116
 
 
 def test_semantic_affective_ar():
