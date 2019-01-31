@@ -424,7 +424,7 @@ class EmoSpaceAr(EmoSpace):
 
     @classmethod
     def create_space(cls, fname, output=None, lang='ar', **kwargs):
-        super(EmoSpaceEs, cls).create_space(fname, output=output, lang=lang, **kwargs)
+        super(EmoSpaceAr, cls).create_space(fname, output=output, lang=lang, **kwargs)
 
 
 class Corpus(BaseTextModel):
