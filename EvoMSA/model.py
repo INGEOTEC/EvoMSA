@@ -281,12 +281,13 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
     Once the dataset is loaded, it is time to import the models and the classifier
 
-    >>> from EvoMSA.model import BaseTextModel, B4MSATextModel, EmoSpace
+    >>> from EvoMSA.model import EmoSpace
+    >>> from b4msa.textmodel import TextModel
     >>> from sklearn.svm import LinearSVC
 
     The models one wishes to use are set in a list of lists, namely:
 
-    >>> models = [[B4MSATextModel, LinearSVC], [EmoSpace, LinearSVC]]
+    >>> models = [[TextModel, LinearSVC], [EmoSpace, LinearSVC]]
 
     EvoMSA model is created using
 
@@ -370,7 +371,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         random.shuffle(data)
         kw = dict(emo_option='delete')
         kw.update(kwargs)
-        tm = B4MSATextModel([x['text'] for x in data[:128000]], **kw)
+        tm = TextModel(**kw).fit([x['text'] for x in data[:128000]])
         tm._num_terms = tm.model.num_terms
         klass, nele = np.unique([x['klass'] for x in data], return_counts=True)
         h = {v: k for k, v in enumerate(klass)}
@@ -395,7 +396,9 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
 
 class EmoSpaceEs(EmoSpace):
-    pass
+    @classmethod
+    def create_space(cls, fname, output=None, lang='es', **kwargs):
+        super(EmoSpaceEs, cls).create_space(fname, output=output, lang=lang, **kwargs)
 
 
 class EmoSpaceEn(EmoSpace):
@@ -406,6 +409,10 @@ class EmoSpaceEn(EmoSpace):
         import EvoMSA
         return 'emo-v%s-en.b4msa' % EvoMSA.__version__
 
+    @classmethod
+    def create_space(cls, fname, output=None, lang='en', **kwargs):
+        super(EmoSpaceEn, cls).create_space(fname, output=output, lang=lang, **kwargs)
+    
 
 class EmoSpaceAr(EmoSpace):
     """Arabic text model or classifier based on a Emojis"""
@@ -414,6 +421,10 @@ class EmoSpaceAr(EmoSpace):
     def model_fname():
         import EvoMSA
         return 'emo-v%s-ar.b4msa' % EvoMSA.__version__
+
+    @classmethod
+    def create_space(cls, fname, output=None, lang='ar', **kwargs):
+        super(EmoSpaceEs, cls).create_space(fname, output=output, lang=lang, **kwargs)
 
 
 class Corpus(BaseTextModel):
