@@ -36,7 +36,7 @@ def test_train():
 def test_evo_kwargs():
     from EvoMSA.base import EvoMSA
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                '-ot.model', '--b4msa-kw={"del_dup1":false}',
+                '-ot.model', '--b4msa-kw={"del_dup":false}',
                 '-n2', TWEETS, TWEETS]
     train(output=True)
     with gzip.open('t.model', 'r') as fpt:

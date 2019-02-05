@@ -216,7 +216,7 @@ def test_semantic_token_es():
     corpus = [x for x in tweet_iterator(TWEETS)]
     semantic = SemanticTokenEs(corpus)
     print(semantic._weight.shape[0])
-    assert semantic._weight.shape[0] == 978
+    assert semantic._weight.shape[0] == 998
     tr = semantic.transform([dict(text='buenos dias')])[0]
     print(tr)
     assert len(tr) == 3
@@ -245,8 +245,9 @@ def test_semantic_affective_es():
     corpus = [x for x in tweet_iterator(TWEETS)]
     semantic = SemanticAffectiveEs(corpus)
     tokens = semantic.tokens(None)
-    print(tokens)
-    assert semantic._weight.shape[0] == 1116
+    assert tokens
+    print(semantic._weight.shape[0])
+    assert semantic._weight.shape[0] == 1124
 
 
 def test_semantic_affective_ar():
@@ -280,14 +281,9 @@ def test_HA():
     from EvoMSA.model import HA
     from EvoMSA.base import EvoMSA
     from b4msa.utils import tweet_iterator
-    import pickle
-    import gzip
     import os
     X = [x for x in tweet_iterator(TWEETS)]
-    ha = HA().fit(X, [x['klass'] for x in X])
-    print(ha.transform(X))
-    with gzip.open('ha.model', 'w') as fpt:
-        pickle.dump(ha, fpt)
+    HA.create_space(TWEETS, 'ha.model')
     EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                             n_estimators=3),
            models=[['ha.model', 'sklearn.svm.LinearSVC']],
