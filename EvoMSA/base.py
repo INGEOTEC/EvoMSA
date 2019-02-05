@@ -227,6 +227,8 @@ class EvoMSA(object):
 
     def get_class(self, m):
         if isinstance(m, str):
+            if os.path.isfile(m):
+                return m
             a = m.split('.')
             p = importlib.import_module('.'.join(a[:-1]))
             return getattr(p, a[-1])
@@ -256,7 +258,7 @@ class EvoMSA(object):
             else:
                 tm = Identity
                 cl = self.get_class(m)
-            assert issubclass(tm, BaseTextModel) or issubclass(tm, TextModel)
+            assert isinstance(tm, str) or issubclass(tm, BaseTextModel) or issubclass(tm, TextModel)
             # assert issubclass(cl, BaseClassifier)
             self._models.append([tm, cl])
 
@@ -337,6 +339,18 @@ class EvoMSA(object):
         _ = np.concatenate(L, axis=1)
         return _
 
+    @staticmethod
+    def load_model(fname):
+        """Read model from file. The model must be stored using gzip and pickle
+        
+        :param fname: filename
+        :type fname: str (path)
+        """
+        import gzip
+        import pickle
+        with gzip.open(fname, 'r') as fpt:
+            return pickle.load(fpt)
+
     def model(self, X):
         if not isinstance(X[0], list):
             X = [X]
@@ -346,7 +360,10 @@ class EvoMSA(object):
         self._logger.info(str(kwargs))
         for x in X:
             for tm, cl in self.models:
-                m.append(tm(x, **kwargs))
+                if isinstance(tm, str):
+                    m.append(self.load_model(tm))
+                else:
+                    m.append(tm(x, **kwargs))
         self._textModel = m
 
     def vector_space(self, X):

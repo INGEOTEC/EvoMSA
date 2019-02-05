@@ -274,3 +274,23 @@ def test_EmoSpace_create_space():
     EmoSpaceEs.create_space(TWEETS, output='t.model')
     assert os.path.isfile('t.model')
     os.unlink('t.model')
+
+
+def test_HA():
+    from EvoMSA.model import HA
+    from EvoMSA.base import EvoMSA
+    from b4msa.utils import tweet_iterator
+    import pickle
+    import gzip
+    import os
+    X = [x for x in tweet_iterator(TWEETS)]
+    ha = HA().fit(X, [x['klass'] for x in X])
+    print(ha.transform(X))
+    with gzip.open('ha.model', 'w') as fpt:
+        pickle.dump(ha, fpt)
+    EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                            n_estimators=3),
+           models=[['ha.model', 'sklearn.svm.LinearSVC']],
+           n_jobs=2).fit(X, [x['klass'] for x in X])
+    os.unlink('ha.model')
+    

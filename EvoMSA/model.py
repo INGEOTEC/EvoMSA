@@ -191,6 +191,27 @@ class B4MSATextModel(TextModel, BaseTextModel):
             return TextModel.tokenize(self, text)
 
 
+class HA(BaseTextModel):
+    """Wrapper of b4msa.textmodel.TextModel and LinearSVC"""
+    def __init__(self, **kwargs):
+        self._tm = TextModel(**kwargs)
+        self._cl = LinearSVC()
+
+    def fit(self, X, y):
+        self._tm.fit(X)
+        self._cl.fit(self._tm.transform(X), y)
+        return self
+
+    def tonp(self, X):
+        return X
+
+    def transform(self, X):
+        res = self._cl.decision_function(self._tm.transform(X))
+        if res.ndim == 1:
+            return np.atleast_2d(res).T
+        return res
+        
+
 # class HaSpace(object):
 #     """Text classifier based on a Humman Annotated dataset in Spanish"""
 
