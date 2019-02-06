@@ -18,12 +18,10 @@ import logging
 from multiprocessing import Pool
 from b4msa.command_line import load_json
 from b4msa.textmodel import TextModel
-from EvoDAG.model import EvoDAGE
 from sklearn.model_selection import KFold
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import LinearSVC
 from .calibration import CalibrationLR
-from .model import Identity, BaseTextModel, B4MSATextModel
+from .model import Identity, BaseTextModel
 from .utils import LabelEncoderWrapper
 try:
     from tqdm import tqdm
@@ -132,8 +130,8 @@ class EvoMSA(object):
     def __init__(self, b4msa_params=None, b4msa_args=dict(),
                  evodag_args=dict(), n_jobs=1, n_splits=5, seed=0,
                  classifier=True,
-                 models=[[B4MSATextModel, LinearSVC]],
-                 evodag_class=EvoDAGE,
+                 models=[["b4msa.textmodel.TextModel", "sklearn.svm.LinearSVC"]],
+                 evodag_class="EvoDAG.model.EvoDAGE",
                  logistic_regression=False, logistic_regression_args=None,
                  probability_calibration=False):
         if b4msa_params is None:
@@ -342,7 +340,7 @@ class EvoMSA(object):
     @staticmethod
     def load_model(fname):
         """Read model from file. The model must be stored using gzip and pickle
-        
+
         :param fname: filename
         :type fname: str (path)
         """
