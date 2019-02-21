@@ -281,9 +281,12 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         import os
         from urllib import request
         model_fname = self.model_fname()
-        fname = os.path.join(os.path.dirname(__file__), model_fname)
+        dirname = os.path.join(os.path.dirname(__file__), 'models')
+        if not os.path.isdir(dirname):
+            os.mkdir(dirname)
+        fname = os.path.join(dirname, model_fname)
         if not os.path.isfile(fname):
-            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/%s" % model_fname,
+            request.urlretrieve("https://media.githubusercontent.com/media/INGEOTEC/EvoMSA/develop/EvoMSA/models/%s" % model_fname,
                                 fname)
         with gzip.open(fname) as fpt:
             return pickle.load(fpt)
