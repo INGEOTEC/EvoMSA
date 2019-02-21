@@ -295,6 +295,7 @@ def test_emospace_model_cl():
     from EvoMSA.model import EmoSpace
     tm, cl = EmoSpace._create_space(TWEETS)
     emo = EmoSpace(model_cl=[tm, cl])
-    print(emo[dict(text='buenos dias')])
-    assert False
+    r = emo[dict(text='buenos dias')]
+    print(r)
+    assert len(r) == 4
     
