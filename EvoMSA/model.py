@@ -262,7 +262,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
     >>> evo.predict(['EvoMSA esta funcionando', 'EmoSpace esta funcionando'])
     """
 
-    def __init__(self, model_cl=None, **kwargs):
+    def __init__(self, docs=None, model_cl=None, **kwargs):
         if model_cl is None:
             self._textModel, self._classifiers = self.get_model()
         else:
@@ -272,7 +272,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
     @staticmethod
     def model_fname():
         import EvoMSA
-        return 'emo-v%s-es.b4msa' % EvoMSA.__version__
+        return 'emo-v%s-es.evoemo' % EvoMSA.__version__
 
     def fit(self, X, y):
         pass
@@ -381,7 +381,7 @@ class EmoSpaceEn(EmoSpace):
     @staticmethod
     def model_fname():
         import EvoMSA
-        return 'emo-v%s-en.b4msa' % EvoMSA.__version__
+        return 'emo-v%s-en.evoemo' % EvoMSA.__version__
 
     @classmethod
     def create_space(cls, fname, output=None, lang='en', **kwargs):
@@ -394,7 +394,7 @@ class EmoSpaceAr(EmoSpace):
     @staticmethod
     def model_fname():
         import EvoMSA
-        return 'emo-v%s-ar.b4msa' % EvoMSA.__version__
+        return 'emo-v%s-ar.evoemo' % EvoMSA.__version__
 
     @classmethod
     def create_space(cls, fname, output=None, lang='ar', **kwargs):
