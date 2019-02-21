@@ -19,7 +19,6 @@ from multiprocessing import Pool
 from b4msa.command_line import load_json
 from b4msa.textmodel import TextModel
 from sklearn.model_selection import KFold
-from sklearn.linear_model import LogisticRegression
 from .calibration import CalibrationLR
 from .model import Identity, BaseTextModel
 from .utils import LabelEncoderWrapper
@@ -119,21 +118,13 @@ class EvoMSA(object):
     :type models: list
     :param evodag_class: Classifier or regressor used to ensemble the outputs of :attr:`models` default :class:`EvoDAG.model.EvoDAGE`
     :type evodag_class: str or class
-    :param logistic_regression: Use Logistic Regression as final output defautl False
-    :type logistic_regression: bool
-    :param logistic_regression_args: Parameters pass to the Logistic Regression
-    :type logistic_regression_args: dict
-    :param probability_calibration: Use a probability calibration algorithm default False
-    :type probability_calibration: bool
     """
 
     def __init__(self, b4msa_params=None, b4msa_args=dict(),
                  evodag_args=dict(), n_jobs=1, n_splits=5, seed=0,
                  classifier=True,
                  models=[["b4msa.textmodel.TextModel", "sklearn.svm.LinearSVC"]],
-                 evodag_class="EvoDAG.model.EvoDAGE",
-                 logistic_regression=False, logistic_regression_args=None,
-                 probability_calibration=False):
+                 evodag_class="EvoDAG.model.EvoDAGE"):
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
                                         'conf', 'default_parameters.json')
@@ -156,14 +147,8 @@ class EvoMSA(object):
         self._le = None
         self._logistic_regression = None
         self._classifier = classifier
-        if logistic_regression:
-            p = dict(random_state=self._seed, class_weight='balanced')
-            if logistic_regression_args is not None:
-                p.update(logistic_regression_args)
-            self._logistic_regression = LogisticRegression(**p)
         self._exogenous = None
         self._exogenous_model = None
-        self._probability_calibration = probability_calibration
         self.models = models
         self._evodag_class = self.get_class(evodag_class)
 
@@ -199,12 +184,7 @@ class EvoMSA(object):
         if test_set is not None:
             if isinstance(test_set, list):
                 test_set = self.transform(test_set)
-        if self._probability_calibration:
-            probability_calibration = CalibrationLR
-        else:
-            probability_calibration = None
-        _ = dict(n_jobs=self.n_jobs, seed=self._seed,
-                 probability_calibration=probability_calibration)
+        _ = dict(n_jobs=self.n_jobs, seed=self._seed)
         self._evodag_args.update(_)
         y = np.array(y)
         try:
@@ -278,9 +258,6 @@ class EvoMSA(object):
 
     def predict_proba(self, X):
         X = self.transform(X)
-        if self._logistic_regression is not None:
-            X = self._evodag_model.raw_decision_function(X)
-            return self._logistic_regression.predict_proba(X)
         try:
             return self._evodag_model.predict_proba(X)
         except AttributeError:
