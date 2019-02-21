@@ -68,7 +68,7 @@ def test_EmoSpace():
     Xs = [emo[x] for x in X]
     assert len(Xs) == len(X) and len(Xs[0]) == 64
     assert emo.decision_function(X).shape[1] == 64
-    assert emo.model_fname() == 'emo-v%s-es.b4msa' % EvoMSA.__version__
+    assert emo.model_fname() == 'emo-v%s-es.evoemo' % EvoMSA.__version__
 
 
 def test_EmoSpace_transform():
@@ -86,7 +86,7 @@ def test_EmoSpaceEn():
     import EvoMSA
     cls = EmoSpaceEn()
     assert cls
-    assert cls.model_fname() == 'emo-v%s-en.b4msa' % EvoMSA.__version__
+    assert cls.model_fname() == 'emo-v%s-en.evoemo' % EvoMSA.__version__
 
 
 def test_EmoSpaceAr():
@@ -94,7 +94,7 @@ def test_EmoSpaceAr():
     import EvoMSA
     cls = EmoSpaceAr()
     assert cls
-    assert cls.model_fname() == 'emo-v%s-ar.b4msa' % EvoMSA.__version__
+    assert cls.model_fname() == 'emo-v%s-ar.evoemo' % EvoMSA.__version__
 
 
 def test_tonp():
