@@ -19,7 +19,6 @@ from multiprocessing import Pool
 from b4msa.command_line import load_json
 from b4msa.textmodel import TextModel
 from sklearn.model_selection import KFold
-from .calibration import CalibrationLR
 from .model import Identity, BaseTextModel
 from .utils import LabelEncoderWrapper
 try:
