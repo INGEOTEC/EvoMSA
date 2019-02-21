@@ -262,7 +262,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
     >>> evo.predict(['EvoMSA esta funcionando', 'EmoSpace esta funcionando'])
     """
 
-    def __init__(self, model_cl=None):
+    def __init__(self, model_cl=None, **kwargs):
         if model_cl is None:
             self._textModel, self._classifiers = self.get_model()
         else:
