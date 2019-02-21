@@ -262,8 +262,11 @@ class EmoSpace(BaseTextModel, BaseClassifier):
     >>> evo.predict(['EvoMSA esta funcionando', 'EmoSpace esta funcionando'])
     """
 
-    def __init__(self, *args, **kwargs):
-        self._textModel, self._classifiers = self.get_model()
+    def __init__(self, model_cl=None):
+        if model_cl is None:
+            self._textModel, self._classifiers = self.get_model()
+        else:
+            self._textModel, self._classifiers = model_cl
         self._text = os.getenv('TEXT', default='text')
 
     @staticmethod
@@ -312,13 +315,11 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         return [[k, v] for k, v in enumerate(_)]
 
     @classmethod
-    def create_space(cls, fname, output=None, **kwargs):
+    def _create_space(cls, fname, **kwargs):
         """Create the space from a file of json
 
         :param fname: Path to the file containing the json
         :type fname: str
-        :param output: Path to store the model, it is cls.model_fname if None
-        :type output: str
         :param kwargs: Keywords pass to TextModel
         """
         import random
@@ -328,8 +329,6 @@ class EmoSpace(BaseTextModel, BaseClassifier):
             def tqdm(x, **kwargs):
                 return x
 
-        if output is None:
-            output = cls.model_fname()
         data = [x for x in tweet_iterator(fname)]
         random.shuffle(data)
         kw = dict(emo_option='delete')
@@ -342,7 +341,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         for ident, k in tqdm(enumerate(klass)):
             elepklass = [0 for _ in range(klass.shape[0])]
             cnt = nele[ident]
-            cntpklass = int(cnt / klass.shape[0])
+            cntpklass = int(cnt / (klass.shape[0] - 1))
             D = [(x, 1) for x in data if x['klass'] == k]
             for x in data:
                 if x['klass'] == k:
@@ -353,7 +352,19 @@ class EmoSpace(BaseTextModel, BaseClassifier):
                 D.append((x, -1))
             m = LinearSVC().fit(tm.tonp([tm[x[0]['text']] for x in D]), [x[1] for x in D])
             MODELS.append(m)
+        return tm, MODELS
 
+    @classmethod
+    def create_space(cls, fname, output=None, **kwargs):
+        """Create the space from a file of json
+
+        :param fname: Path to the file containing the json
+        :type fname: str
+        :param output: Path to store the model, it is cls.model_fname if None
+        :type output: str
+        :param kwargs: Keywords pass to TextModel
+        """
+        tm, MODELS = cls._create_space(fname, **kwargs)
         with gzip.open(output, 'w') as fpt:
             pickle.dump([tm, MODELS], fpt)
 

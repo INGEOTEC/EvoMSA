@@ -289,4 +289,12 @@ def test_HA():
            models=[['ha.model', 'sklearn.svm.LinearSVC']],
            n_jobs=2).fit(X, [x['klass'] for x in X])
     os.unlink('ha.model')
+
+
+def test_emospace_model_cl():
+    from EvoMSA.model import EmoSpace
+    tm, cl = EmoSpace._create_space(TWEETS)
+    emo = EmoSpace(model_cl=[tm, cl])
+    print(emo[dict(text='buenos dias')])
+    assert False
     
