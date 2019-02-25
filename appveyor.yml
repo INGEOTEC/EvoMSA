@@ -42,8 +42,9 @@ install:
   - python -c "import sys; print(sys.executable)"
   - python -c "import sys; print(sys.prefix)"
   - conda update -q --all
-  - conda update -q conda  
-  - conda install -q pip conda-build jinja2 anaconda-client
+  # conda update -q conda  
+  - conda install -q pip conda-build jinja2 anaconda-client conda-verify
+  - conda update -n base -c defaults conda  
   - conda config --append channels mgraffg
   - conda config --append channels ingeotec
   - set PATH
@@ -56,7 +57,7 @@ test_script:
   - set PATH
   # echo "safety_checks: disabled" >> ~/.condarc
   # echo "local_repodata_ttl: 1800" >> ~/.condarc
-  - conda install -y conda-verify
+  - conda-verify conda-recipe
   - conda build conda-recipe --quiet
   # Move the conda package into the current directory, to register it
   # as an "artifact" for Appveyor. cmd.exe does't have good globbing, so
