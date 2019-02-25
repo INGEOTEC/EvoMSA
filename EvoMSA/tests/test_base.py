@@ -75,7 +75,7 @@ def test_EvoMSA_fit():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
                                   n_estimators=5),
-                 models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
+                 models=[['b4msa.textmodel.TextModel', 'sklearn.svm.LinearSVC'],
                          ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                  n_jobs=1).fit(X, y)
     assert evo
