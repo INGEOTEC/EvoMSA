@@ -84,7 +84,7 @@ def test_EvoMSA_fit():
     assert isinstance(evo._evodag_model, EvoDAGE)
     with gzip.open('EvoMSA.model', 'w') as fpt:
         pickle.dump(evo, fpt)
-    print("Guarde modelo")        
+    print("Guarde modelo")
     evo = CommandLine.load_model('EvoMSA.model')
     print("Cargue modelo")
     assert isinstance(evo._svc_models[1], Bernulli)

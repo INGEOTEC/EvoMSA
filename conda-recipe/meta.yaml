@@ -22,7 +22,6 @@ test:
         - numpy
         - scipy
         - scikit-learn
-        - gensim
         - nltk
         - b4msa
         - evodag
