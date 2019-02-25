@@ -78,12 +78,15 @@ def test_EvoMSA_fit():
                  models=[['b4msa.textmodel.TextModel', 'sklearn.svm.LinearSVC'],
                          ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                  n_jobs=1).fit(X, y)
+    print("Termine fit")
     assert evo
     assert isinstance(evo._svc_models[1], Bernulli)
     assert isinstance(evo._evodag_model, EvoDAGE)
     with gzip.open('EvoMSA.model', 'w') as fpt:
         pickle.dump(evo, fpt)
+    print("Guarde modelo")        
     evo = CommandLine.load_model('EvoMSA.model')
+    print("Cargue modelo")
     assert isinstance(evo._svc_models[1], Bernulli)
     assert isinstance(evo._evodag_model, EvoDAGE)
     os.unlink('EvoMSA.model')
