@@ -20,12 +20,16 @@ from b4msa.command_line import load_json
 from b4msa.textmodel import TextModel
 from sklearn.model_selection import KFold
 from .model import Identity, BaseTextModel
-from .utils import LabelEncoderWrapper
-try:
-    from tqdm import tqdm
-except ImportError:
-    def tqdm(x, **kwargs):
-        return x
+from .utils import LabelEncoderWrapper, load_model
+# try:
+#     from tqdm import tqdm
+# except ImportError:
+#     def tqdm(x, **kwargs):
+#         return x
+
+
+def tqdm(x, **kwargs):
+    return x
 
 
 def kfold_decision_function(args):
