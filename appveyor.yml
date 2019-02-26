@@ -7,7 +7,7 @@ environment:
     # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
     # /E:ON and /V:ON options are not enabled in the batch script intepreter
     # See: http://stackoverflow.com/a/13751649/163740
-    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\tools\\appveyor\\run_with_env.cmd"
+    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\continuous-integration\\appveyor\\run_with_env.cmd"
 
   matrix:
     - PYTHON: "C:\\Miniconda35-x64"
@@ -29,26 +29,23 @@ init:
     - ECHO %SYS_PYTHON% %SYS_PYTHON_VERSION% %SYS_PYTHON_ARCH% %HOME%
 
 install:
-
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   # as well as pip, conda-build, and the binstar CLI
   - if "%PYTHON_ARCH%" == "64" set "ARCH_LABEL=-x64"
   - set "CONDA_ROOT=C:\Miniconda%CONDA_PY%%ARCH_LABEL%"
   - set "PATH=%CONDA_ROOT%;%CONDA_ROOT%\Scripts;%CONDA_ROOT%\Library\bin;%PATH%"
   - conda config --set always_yes yes
-  # conda config --set auto_update_conda no
+  - conda update -q conda
+  - conda config --set auto_update_conda no
   - conda info
   - python -c "import sys; print(sys.version)"
   - python -c "import sys; print(sys.executable)"
   - python -c "import sys; print(sys.prefix)"
   - conda update -q --all
-  # conda update -n base -c defaults conda
-  # conda update -q conda
-  - conda install -q pip conda-build jinja2 anaconda-client conda-verify
-  - conda config --append channels mgraffg
+  - conda install -q pip conda-build jinja2 anaconda-client
+  # conda install -yq conda-build=3.15.1
+  - conda config --append channels mgraffg  
   - conda config --append channels ingeotec
-  - conda install --yes numpy scipy scikit-learn nltk nose b4msa evodag conceptmodelling
-  - python setup.py build_ext --inplace
   - set PATH
   - conda build --version
 
@@ -59,10 +56,8 @@ test_script:
   - set PATH
   # echo "safety_checks: disabled" >> ~/.condarc
   # echo "local_repodata_ttl: 1800" >> ~/.condarc
-  - nosetests --verbose -exe EvoMSA
-  - conda-verify conda-recipe
-  - conda build conda-recipe
-  # conda build conda-recipe --quiet  
+  - conda install -y conda-verify
+  - conda build conda-recipe --quiet
   # Move the conda package into the current directory, to register it
   # as an "artifact" for Appveyor. cmd.exe does't have good globbing, so
   # we'll use a simple python script.
@@ -77,3 +72,4 @@ on_success:
   # exit-status code is tricky in cmd.exe or powershell, so we're just using
   # a python script.
   - python continuous-integration\binstar-push.py
+
