@@ -16,11 +16,10 @@ import importlib
 import logging
 import EvoMSA
 from EvoMSA import base
+from .utils import save_model
 from b4msa.utils import tweet_iterator
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score
 from scipy.stats import pearsonr
-import gzip
-import pickle
 import json
 import os
 import numpy as np
@@ -196,9 +195,7 @@ class CommandLineTrain(CommandLine):
             evo.exogenous_model = [self.load_model(x) for x in self.data.exogenous_model]
         evo.fit(D, Y, test_set=test_set)
         evo.exogenous = None
-        with gzip.open(self.data.output_file, 'w') as fpt:
-            evo._logger = None
-            pickle.dump(evo, fpt)
+        save_model(evo, self.data.output_file)
 
 
 class CommandLineUtils(CommandLineTrain):
