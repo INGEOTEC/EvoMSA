@@ -41,12 +41,14 @@ install:
   - python -c "import sys; print(sys.version)"
   - python -c "import sys; print(sys.executable)"
   - python -c "import sys; print(sys.prefix)"
-  - conda update -q --all
+  # conda update -q --all
+  - conda update -n base -c defaults conda  
   # conda update -q conda
   - conda install -q pip conda-build jinja2 anaconda-client conda-verify
-  - conda update -n base -c defaults conda
   - conda config --append channels mgraffg
   - conda config --append channels ingeotec
+  - conda install --yes numpy scipy scikit-learn nltk nose b4msa evodag conceptmodelling
+  - python setup.py build_ext --inplace
   - set PATH
   - conda build --version
 
@@ -57,6 +59,7 @@ test_script:
   - set PATH
   # echo "safety_checks: disabled" >> ~/.condarc
   # echo "local_repodata_ttl: 1800" >> ~/.condarc
+  - nosetests --verbose -exe EvoMSA
   - conda-verify conda-recipe
   - conda build conda-recipe
   # conda build conda-recipe --quiet  
