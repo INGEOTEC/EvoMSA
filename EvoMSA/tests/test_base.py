@@ -71,6 +71,7 @@ def test_EvoMSA_fit():
     from EvoDAG.model import EvoDAGE
     from EvoMSA.utils import load_model, save_model
     X, y = get_data()
+    print('iniciando')
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
                                   n_estimators=5),
                  models=[['b4msa.textmodel.TextModel', 'sklearn.svm.LinearSVC'],
