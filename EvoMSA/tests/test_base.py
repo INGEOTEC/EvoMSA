@@ -81,13 +81,13 @@ def test_EvoMSA_fit():
     assert evo
     assert isinstance(evo._svc_models[1], Bernulli)
     assert isinstance(evo._evodag_model, EvoDAGE)
-    save_model(evo, 'EvoMSA.model')
+    save_model(evo, 'test.evomodel')
     print("Guarde modelo")
-    evo = load_model('EvoMSA.model')
+    evo = load_model('test.evomodel')
     print("Cargue modelo")
     assert isinstance(evo._svc_models[1], Bernulli)
     assert isinstance(evo._evodag_model, EvoDAGE)
-    os.unlink('EvoMSA.model')
+    os.unlink('test.evomodel')
 
 
 def test_EvoMSA_fit2():
