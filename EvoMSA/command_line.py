@@ -96,9 +96,9 @@ class CommandLine(object):
 
     @staticmethod
     def load_model(fname):
+        from .utils import load_model
         if os.path.isfile(fname):
-            with gzip.open(fname, 'r') as fpt:
-                return pickle.load(fpt)
+            return load_model(fname)
         else:
             cls = CommandLine.get_class(fname)
             ins = cls()

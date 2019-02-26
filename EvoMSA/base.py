@@ -313,18 +313,6 @@ class EvoMSA(object):
         _ = np.concatenate(L, axis=1)
         return _
 
-    @staticmethod
-    def load_model(fname):
-        """Read model from file. The model must be stored using gzip and pickle
-
-        :param fname: filename
-        :type fname: str (path)
-        """
-        import gzip
-        import pickle
-        with gzip.open(fname, 'r') as fpt:
-            return pickle.load(fpt)
-
     def model(self, X):
         if not isinstance(X[0], list):
             X = [X]
@@ -335,7 +323,7 @@ class EvoMSA(object):
         for x in X:
             for tm, cl in self.models:
                 if isinstance(tm, str):
-                    m.append(self.load_model(tm))
+                    m.append(load_model(tm))
                 else:
                     m.append(tm(x, **kwargs))
         self._textModel = m

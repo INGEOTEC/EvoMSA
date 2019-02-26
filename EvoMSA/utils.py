@@ -61,3 +61,30 @@ class LabelEncoderWrapper(object):
         if not self.classifier:
             return y
         return np.array([self._inv[int(x)] for x in y])
+
+
+def load_model(fname):
+    """Read model from file. The model must be stored using gzip and pickle
+
+    :param fname: filename
+    :type fname: str (path)
+    """
+    import gzip
+    import pickle
+    with gzip.open(fname, 'r') as fpt:
+        return pickle.load(fpt)
+
+
+def save_model(obj, fname):
+    """Store model from file. The model is stored using gzip and pickle
+
+    :param obj: object to store
+    :type obj: object
+    :param fname: filename
+    :type fname: str (path)
+    """
+    
+    import gzip
+    import pickle
+    with gzip.open(fname, 'w') as fpt:
+        pickle.dump(obj, fpt)
