@@ -42,7 +42,7 @@ install:
   - python -c "import sys; print(sys.executable)"
   - python -c "import sys; print(sys.prefix)"
   # conda update -q --all
-  - conda update -n base -c defaults conda  
+  - conda update -n base -c defaults conda
   # conda update -q conda
   - conda install -q pip conda-build jinja2 anaconda-client conda-verify
   - conda config --append channels mgraffg
