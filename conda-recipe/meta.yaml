@@ -1,6 +1,6 @@
 package:
   name: evomsa
-  version: "0.21.1"
+  version: "0.23"
 
 requirements:
   build:
@@ -22,7 +22,6 @@ test:
         - numpy
         - scipy
         - scikit-learn
-        - gensim
         - nltk
         - b4msa
         - evodag
@@ -42,4 +41,4 @@ test:
 about:
   home: https://github.com/ingeotec/EvoMSA
   summary: Sentiment Analysis System based on B4MSA and EvoDAG.
-  license: Apache
+  license: APACHE

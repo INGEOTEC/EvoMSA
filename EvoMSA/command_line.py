@@ -16,11 +16,10 @@ import importlib
 import logging
 import EvoMSA
 from EvoMSA import base
+from .utils import save_model
 from b4msa.utils import tweet_iterator
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score
 from scipy.stats import pearsonr
-import gzip
-import pickle
 import json
 import os
 import numpy as np
@@ -96,9 +95,9 @@ class CommandLine(object):
 
     @staticmethod
     def load_model(fname):
+        from .utils import load_model
         if os.path.isfile(fname):
-            with gzip.open(fname, 'r') as fpt:
-                return pickle.load(fpt)
+            return load_model(fname)
         else:
             cls = CommandLine.get_class(fname)
             ins = cls()
@@ -118,9 +117,6 @@ class CommandLineTrain(CommandLine):
            help='Parameters in json that overwrite EvoDAG default parameters')
         pa('--b4msa-kw', dest='b4msa_kwargs', default=None, type=str,
            help='Parameters in json that overwrite B4MSA default parameters')
-        pa('--logistic-regression-kw', dest='logistic_regression_kwargs',
-           default=None, type=str,
-           help='Parameters in json that overwrite Logistic Regression default parameters')
         pa('--test_set', dest='test_set', default=None, type=str,
            help='Test set to do transductive learning')
         pa('-P', '--parameters', dest='parameters', type=str,
@@ -192,21 +188,14 @@ class CommandLineTrain(CommandLine):
         if self.data.b4msa_kwargs is not None:
             _ = json.loads(self.data.b4msa_kwargs)
             b4msa_kwargs.update(_)
-        logistic_regression_kwargs = None
-        if self.data.logistic_regression_kwargs is not None:
-            logistic_regression_kwargs = json.loads(self.data.logistic_regression_kwargs)
         evo = base.EvoMSA(b4msa_params=self.data.parameters,
-                          b4msa_args=b4msa_kwargs, evodag_args=evo_kwargs,
-                          logistic_regression_args=logistic_regression_kwargs,
-                          **kwargs)
+                          b4msa_args=b4msa_kwargs, evodag_args=evo_kwargs, **kwargs)
         evo.exogenous = self._exogenous
         if self.data.exogenous_model is not None:
             evo.exogenous_model = [self.load_model(x) for x in self.data.exogenous_model]
         evo.fit(D, Y, test_set=test_set)
         evo.exogenous = None
-        with gzip.open(self.data.output_file, 'w') as fpt:
-            evo._logger = None
-            pickle.dump(evo, fpt)
+        save_model(evo, self.data.output_file)
 
 
 class CommandLineUtils(CommandLineTrain):

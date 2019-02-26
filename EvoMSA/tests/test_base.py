@@ -42,7 +42,7 @@ def test_TextModel():
 def test_vector_space():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
-                 models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
+                 models=[['b4msa.textmodel.TextModel', 'sklearn.svm.LinearSVC'],
                          ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
     evo.model(X)
     nrows = len(X)
@@ -69,24 +69,25 @@ def test_EvoMSA_kfold_decision_function():
 def test_EvoMSA_fit():
     from EvoMSA.model import Bernulli
     from EvoDAG.model import EvoDAGE
-    from EvoMSA.command_line import CommandLine
-    import gzip
-    import pickle
+    from EvoMSA.utils import load_model, save_model
     X, y = get_data()
+    print('iniciando')
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
                                   n_estimators=5),
                  models=[['b4msa.textmodel.TextModel', 'sklearn.svm.LinearSVC'],
                          ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                  n_jobs=1).fit(X, y)
+    print("Termine fit")
     assert evo
     assert isinstance(evo._svc_models[1], Bernulli)
     assert isinstance(evo._evodag_model, EvoDAGE)
-    with gzip.open('EvoMSA.model', 'w') as fpt:
-        pickle.dump(evo, fpt)
-    evo = CommandLine.load_model('EvoMSA.model')
+    save_model(evo, 'test.evomodel')
+    print("Guarde modelo")
+    evo = load_model('test.evomodel')
+    print("Cargue modelo")
     assert isinstance(evo._svc_models[1], Bernulli)
     assert isinstance(evo._evodag_model, EvoDAGE)
-    os.unlink('EvoMSA.model')
+    os.unlink('test.evomodel')
 
 
 def test_EvoMSA_fit2():
@@ -165,28 +166,6 @@ def test_binary_labels_json():
         print(type(x), str(x))
         _ = json.dumps(dict(klass=str(x)))
     print(_)
-
-
-def test_EvoMSA_predict_proba_logistic_regression():
-    X, y = get_data()
-    evo = EvoMSA(logistic_regression=True,
-                 evodag_args=dict(popsize=100, early_stopping_rounds=100, time_limit=5,
-                                  n_estimators=5),
-                 n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
-                               [y, [x for x in y if x in ['P', 'N']]])
-    hy = evo.predict_proba(X)
-    assert len(hy) == 1000
-    assert hy.min() >= 0 and hy.max() <= 1
-    print(hy)
-
-
-def test_EvoMSA_logistic_regression_params():
-    X, y = get_data()
-    evo = EvoMSA(logistic_regression=True, logistic_regression_args=dict(C=10),
-                 evodag_args=dict(popsize=100, early_stopping_rounds=100, time_limit=5,
-                                  n_estimators=5),
-                 n_jobs=2)
-    assert evo._logistic_regression.C == 10
 
 
 def test_EvoMSA_exogenous_model():

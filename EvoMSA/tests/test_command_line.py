@@ -13,9 +13,8 @@
 # limitations under the License.
 from EvoMSA.command_line import train, utils
 from EvoMSA.command_line import predict
+from EvoMSA.utils import load_model
 import sys
-import gzip
-import pickle
 import os
 from test_base import TWEETS
 from nose.tools import assert_almost_equals
@@ -27,8 +26,7 @@ def test_train():
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 TWEETS]
     train(output=True)
-    with gzip.open('t.model', 'r') as fpt:
-        evo = pickle.load(fpt)
+    evo = load_model('t.model')
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
 
@@ -36,11 +34,10 @@ def test_train():
 def test_evo_kwargs():
     from EvoMSA.base import EvoMSA
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                '-ot.model', '--b4msa-kw={"del_dup1":false}',
+                '-ot.model', '--b4msa-kw={"del_dup":false}',
                 '-n2', TWEETS, TWEETS]
     train(output=True)
-    with gzip.open('t.model', 'r') as fpt:
-        evo = pickle.load(fpt)
+    evo = load_model('t.model')
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
 
@@ -68,8 +65,7 @@ def test_evo_test_set():
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 '-ot.model', '--test_set', TWEETS, '-n2', TWEETS]
     train(output=True)
-    with gzip.open('t.model', 'r') as fpt:
-        evo = pickle.load(fpt)
+    evo = load_model('t.model')
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
 
@@ -103,20 +99,6 @@ def test_utils_b4msa_df():
     os.unlink('model.json')
 
 
-def test_train_kw():
-    from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '-ot.model', '-n1',
-                '--kw={"logistic_regression": true}',
-                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                TWEETS]
-    train(output=True)
-    with gzip.open('t.model', 'r') as fpt:
-        evo = pickle.load(fpt)
-    assert isinstance(evo, EvoMSA)
-    os.unlink('t.model')
-    assert evo._logistic_regression is not None
-
-
 def test_train_exogenous():
     from EvoMSA.base import EvoMSA
     from b4msa.utils import tweet_iterator
@@ -130,8 +112,7 @@ def test_train_exogenous():
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 TWEETS]
     train(output=True)
-    with gzip.open('t.model', 'r') as fpt:
-        evo = pickle.load(fpt)
+    evo = load_model('t.model')
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
     m = evo._evodag_model._m.models[0]
@@ -139,21 +120,6 @@ def test_train_exogenous():
     print(m.nvar)
     assert m.nvar == 6
     assert evo.n_jobs == 2
-
-
-def test_logistic_regression_params():
-    from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '-ot.model', '-n1',
-                '--kw={"logistic_regression": true}',
-                '--logistic-regression-kw={"C": 10}',
-                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                TWEETS]
-    train(output=True)
-    with gzip.open('t.model', 'r') as fpt:
-        evo = pickle.load(fpt)
-    assert isinstance(evo, EvoMSA)
-    assert evo._logistic_regression.C == 10
-    os.unlink('t.model')
 
 
 def test_utils_transform():
@@ -244,8 +210,7 @@ def test_evo_test_set_shuffle():
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 '-ot.model', '--test_set', 'shuffle', '-n2', TWEETS]
     train(output=True)
-    with gzip.open('t.model', 'r') as fpt:
-        evo = pickle.load(fpt)
+    evo = load_model('t.model')
     assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
 
@@ -302,7 +267,7 @@ def test_performance_validation_set():
     m = performance(output=True)
     assert len(m._p) == 3
     # assert False
-    
+
 
 def test_performance_validation_set2():
     import os
@@ -356,21 +321,7 @@ def test_list_of_text():
     os.unlink('t.json')
 
 
-def test_train_exogenous_model_class():
-    from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '-ot.model', '-n2',
-                '--exogenous-model', 'EvoMSA.model.EmoSpace',
-                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 15, "n_estimators": 5}',
-                TWEETS]
-    train(output=True)
-    # with gzip.open('t.model', 'r') as fpt:
-    #     evo = pickle.load(fpt)
-    # assert isinstance(evo, EvoMSA)
-    os.unlink('t.model')
-
-
 def test_train_ieee_cim():
-    from EvoMSA.base import EvoMSA
     import json
     sys.argv = ['EvoMSA', '-ot.model', '-n1',
                 '--ieee-cim', 'ES',
@@ -380,8 +331,5 @@ def test_train_ieee_cim():
     c = train(output=True)
     kw = json.loads(c.data.kwargs)
     assert len(kw['models']) == 4
-    # with gzip.open('t.model', 'r') as fpt:
-    #     evo = pickle.load(fpt)
-    # assert isinstance(evo, EvoMSA)
     os.unlink('t.model')
     
