@@ -14,16 +14,19 @@ environment:
       PYTHON_VERSION: "3.5"
       PYTHON_ARCH: "64"
       CONDA_PY: "35"
+      PYTHONUTF8: 1
 
     - PYTHON: "C:\\Miniconda36-x64"
       PYTHON_VERSION: "3.6"
       PYTHON_ARCH: "64"
       CONDA_PY: "36"
+      PYTHONUTF8: 1
 
     - PYTHON: "C:\\Miniconda37-x64"
       PYTHON_VERSION: "3.7"
       PYTHON_ARCH: "64"
       CONDA_PY: "37"
+      PYTHONUTF8: 1
 
 init:
     - ECHO %SYS_PYTHON% %SYS_PYTHON_VERSION% %SYS_PYTHON_ARCH% %HOME%
@@ -54,8 +57,6 @@ build: false
 test_script:
   - set "PATH=%CONDA_ROOT%;%CONDA_ROOT%\Scripts;%CONDA_ROOT%\Library\bin;%PATH%"
   - set PATH
-  - set "PYTHONIOENCODING=UTF-8"
-  - set "PYTHONUTF8=1"
   # echo "safety_checks: disabled" >> ~/.condarc
   # echo "local_repodata_ttl: 1800" >> ~/.condarc
   - conda install -y conda-verify
