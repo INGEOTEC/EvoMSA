@@ -86,10 +86,5 @@ def save_model(obj, fname):
     
     import gzip
     import pickle
-    try:
-        _ = obj._logger
-        obj._logger = None
-    except AttributeError:
-        pass
     with gzip.open(fname, 'w') as fpt:
         pickle.dump(obj, fpt)
