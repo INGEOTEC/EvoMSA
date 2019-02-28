@@ -34,7 +34,6 @@ install:
   - if "%PYTHON_ARCH%" == "64" set "ARCH_LABEL=-x64"
   - set "CONDA_ROOT=C:\Miniconda%CONDA_PY%%ARCH_LABEL%"
   - set "PATH=%CONDA_ROOT%;%CONDA_ROOT%\Scripts;%CONDA_ROOT%\Library\bin;%PATH%"
-  - set "PYTHONIOENCODING=utf8"
   - conda config --set always_yes yes
   - conda update -q conda
   - conda config --set auto_update_conda no
@@ -55,6 +54,8 @@ build: false
 test_script:
   - set "PATH=%CONDA_ROOT%;%CONDA_ROOT%\Scripts;%CONDA_ROOT%\Library\bin;%PATH%"
   - set PATH
+  - set "PYTHONIOENCODING=UTF-8"
+  - set "PYTHONUTF8=1"
   # echo "safety_checks: disabled" >> ~/.condarc
   # echo "local_repodata_ttl: 1800" >> ~/.condarc
   - conda install -y conda-verify
