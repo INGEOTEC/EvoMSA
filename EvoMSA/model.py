@@ -13,12 +13,12 @@
 # limitations under the License.
 import numpy as np
 from b4msa.textmodel import TextModel
-from b4msa.utils import tweet_iterator
+from microtc.utils import tweet_iterator
 from scipy.sparse import csr_matrix
 from sklearn.svm import LinearSVC
 from ConceptModelling.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH, PATH as ConPATH
 import os
-from .utils import save_model, load_model
+from microtc.utils import save_model, load_model
 from sklearn.neighbors import KDTree
 
 
@@ -235,7 +235,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
     Read the dataset
 
     >>> from EvoMSA import base
-    >>> from b4msa.utils import tweet_iterator
+    >>> from microtc.utils import tweet_iterator
     >>> import os
     >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
     >>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
@@ -262,19 +262,23 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
     def __init__(self, docs=None, model_cl=None, **kwargs):
         if model_cl is None:
-            self._textModel, self._classifiers = self.get_model()
+            self._textModel, self._classifiers, self._labels = self.get_model()
         else:
-            self._textModel, self._classifiers = model_cl
+            self._textModel, self._classifiers, self._labels = model_cl
         self._text = os.getenv('TEXT', default='text')
 
     def fit(self, X, y):
         pass
 
+    @staticmethod
+    def DIRNAME():
+        return os.path.dirname(__file__)
+
     def get_model(self):
         import os
         from urllib import request
         model_fname = self.model_fname()
-        dirname = os.path.join(os.path.dirname(__file__), 'models')
+        dirname = os.path.join(self.DIRNAME(), 'models')
         if not os.path.isdir(dirname):
             os.mkdir(dirname)
         fname = os.path.join(dirname, model_fname)
@@ -341,7 +345,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         for ident, k in tqdm(enumerate(klass)):
             elepklass = [0 for __ in klass]
             cnt = nele[ident]
-            cntpklass = int(cnt / (klass.shape[0] - 1))
+            cntpklass = int(cnt / (len(klass) - 1))
             D = [(x, 1) for x in data if x['klass'] == k]
             for x in data:
                 if x['klass'] == k:
@@ -364,7 +368,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         :type output: str
         :param kwargs: Keywords pass to TextModel
         """
-        tm, MODELS = cls._create_space(fname, **kwargs)
+        tm, MODELS, klass = cls._create_space(fname, **kwargs)
         if output is None:
             output = cls.model_fname()
         save_model([tm, MODELS, klass], output)

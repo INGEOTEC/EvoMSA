@@ -13,7 +13,7 @@
 # limitations under the License.
 from EvoMSA.command_line import train, utils
 from EvoMSA.command_line import predict
-from EvoMSA.utils import load_model
+from microtc.utils import load_model, tweet_iterator
 import sys
 import os
 from test_base import TWEETS
@@ -43,7 +43,6 @@ def test_evo_kwargs():
 
 
 def test_predict():
-    from b4msa.utils import tweet_iterator
     import numpy as np
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 '-ot.model', '-n2', TWEETS, TWEETS]
@@ -82,7 +81,6 @@ def test_evo_parameters():
 
 def test_utils_b4msa_df():
     from EvoMSA.command_line import utils
-    from b4msa.utils import tweet_iterator
     import shutil
     sys.argv = ['EvoMSA', '--kw={"seed": 1}', '-omodel.json', '--b4msa-df', TWEETS]
     utils(output=True)
@@ -101,7 +99,6 @@ def test_utils_b4msa_df():
 
 def test_train_exogenous():
     from EvoMSA.base import EvoMSA
-    from b4msa.utils import tweet_iterator
     import json
     with open('ex.json', 'w') as fpt:
         for x in tweet_iterator(TWEETS):
@@ -123,7 +120,6 @@ def test_train_exogenous():
 
 
 def test_utils_transform():
-    from b4msa.utils import tweet_iterator
     import json
     with open('ex.json', 'w') as fpt:
         for x in tweet_iterator(TWEETS):
@@ -145,7 +141,6 @@ def test_utils_transform():
 
 
 def test_raw_outputs():
-    from b4msa.utils import tweet_iterator
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 60, "n_estimators": 30}',
                 '-ot.model', '-n2', TWEETS, TWEETS]
     train(output=True)
@@ -158,7 +153,6 @@ def test_raw_outputs():
 
 
 def test_decision_function():
-    from b4msa.utils import tweet_iterator
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 '-ot.model', '-n2', TWEETS, TWEETS]
     train(output=True)
@@ -216,7 +210,6 @@ def test_evo_test_set_shuffle():
 
 
 def test_predict_numbers():
-    from b4msa.utils import tweet_iterator
     from sklearn.preprocessing import LabelEncoder
     import json
     d = [x for x in tweet_iterator(TWEETS)]
@@ -235,7 +228,6 @@ def test_predict_numbers():
 
 
 def test_predict_NearestCentroid():
-    from b4msa.utils import tweet_iterator
     from sklearn.preprocessing import LabelEncoder
     import json
     d = [x for x in tweet_iterator(TWEETS)]
@@ -308,7 +300,6 @@ def test_list_of_text():
     import os
     import json
     from EvoMSA.command_line import train
-    from b4msa.utils import tweet_iterator
     with open('t.json', 'w') as fpt:
         for x in tweet_iterator(TWEETS):
             x['text'] = [x['text'], x['text']]

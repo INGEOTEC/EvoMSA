@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from EvoMSA.base import EvoMSA
+from microtc.utils import tweet_iterator
 import os
 TWEETS = os.path.join(os.path.dirname(__file__), 'tweets.json')
 
 
 def get_data():
-    from b4msa.utils import tweet_iterator
     D = [[x['text'], x['klass']] for x in tweet_iterator(TWEETS)]
     X = [x[0] for x in D]
     y = [x[1] for x in D]
@@ -69,7 +69,7 @@ def test_EvoMSA_kfold_decision_function():
 def test_EvoMSA_fit():
     from EvoMSA.model import Bernulli
     from EvoDAG.model import EvoDAGE
-    from EvoMSA.utils import load_model, save_model
+    from microtc.utils import load_model, save_model
     X, y = get_data()
     print('iniciando')
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
@@ -279,7 +279,6 @@ def test_EvoMSA_empty_string():
 def test_label_encoder():
     import numpy as np
     from EvoMSA.base import LabelEncoderWrapper
-    from b4msa.utils import tweet_iterator
     y = [2, 2, -1, 0, 0]
     l = LabelEncoderWrapper().fit(y)
     print(l._m)

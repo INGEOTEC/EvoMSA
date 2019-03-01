@@ -20,7 +20,8 @@ from b4msa.command_line import load_json
 from b4msa.textmodel import TextModel
 from sklearn.model_selection import KFold
 from .model import Identity, BaseTextModel
-from .utils import LabelEncoderWrapper, load_model
+from .utils import LabelEncoderWrapper
+from microtc.utils import load_model
 try:
     from tqdm import tqdm
 except ImportError:
@@ -85,7 +86,7 @@ class EvoMSA(object):
     Read the dataset
 
     >>> from EvoMSA import base
-    >>> from b4msa.utils import tweet_iterator
+    >>> from microtc.utils import tweet_iterator
     >>> import os
     >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
     >>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
