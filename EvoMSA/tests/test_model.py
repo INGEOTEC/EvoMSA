@@ -265,7 +265,7 @@ def test_semantic_affective_es():
     tokens = semantic.tokens(None)
     assert tokens
     print(semantic._weight.shape[0])
-    assert semantic._weight.shape[0] == 1344
+    assert semantic._weight.shape[0] == 1318
 
 
 def test_HA():
