@@ -79,7 +79,8 @@ def test_EmoSpace_create_space():
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
     output = os.path.join(dirname, EmoSpaceEs.model_fname())
-    EmoSpaceEs.create_space(TWEETS, output=output)
+    if not os.path.isfile(output):
+        EmoSpaceEs.create_space(TWEETS, output=output)
     assert os.path.isfile(output)
     print(output)
     X = [x for x in tweet_iterator(TWEETS)]
@@ -280,10 +281,9 @@ def test_HA():
     os.unlink('ha.model')
 
 
-def test_emospace_model_cl():
+def test_EmoSpace_model_cl():
     from EvoMSA.model import EmoSpace
-    tm, cl = EmoSpace._create_space(TWEETS)
-    emo = EmoSpace(model_cl=[tm, cl])
+    emo = EmoSpace(model_cl=EmoSpace._create_space(TWEETS))
     r = emo[dict(text='buenos dias')]
     print(r)
     assert len(r) == 4

@@ -142,7 +142,7 @@ class CommandLineTrain(CommandLine):
             th = 'EvoMSA.model.ThumbsUpDownEn'
             # ha = 'EvoMSA.model.HaSpaceEn'
         elif lang == 'es':
-            emo = 'EvoMSA.model.EmoSpace'
+            emo = 'EvoMSA.model.EmoSpaceEs'
             th = 'EvoMSA.model.ThumbsUpDownEs'
             # ha = 'EvoMSA.model.HaSpace'
         kw = json.loads(self.data.kwargs) if self.data.kwargs is not None else dict()

@@ -302,6 +302,14 @@ def test_label_encoder_kwargs():
 
 def test_EvoMSA_regression():
     from EvoMSA.base import LabelEncoderWrapper
+    from EvoMSA.model import EmoSpaceEs
+    import os
+    dirname = os.path.join(EmoSpaceEs.DIRNAME(), 'models')
+    if not os.path.isdir(dirname):
+        os.mkdir(dirname)
+    output = os.path.join(dirname, EmoSpaceEs.model_fname())
+    if not os.path.isfile(output):
+        EmoSpaceEs.create_space(TWEETS, output=output)
     X, y = get_data()
     X = [dict(text=x) for x in X]
     l = LabelEncoderWrapper().fit(y)
@@ -309,7 +317,7 @@ def test_EvoMSA_regression():
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                   time_limit=5, n_estimators=2),
                  classifier=False,
-                 models=[['EvoMSA.model.Identity', 'EvoMSA.model.EmoSpace']],
+                 models=[['EvoMSA.model.Identity', 'EvoMSA.model.EmoSpaceEs']],
                  n_jobs=1).fit(X, y)
     assert evo
     df = evo.decision_function(X)

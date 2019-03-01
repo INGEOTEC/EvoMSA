@@ -314,6 +314,14 @@ def test_list_of_text():
 
 def test_train_ieee_cim():
     import json
+    from EvoMSA.model import EmoSpaceEs
+    import os
+    dirname = os.path.join(EmoSpaceEs.DIRNAME(), 'models')
+    if not os.path.isdir(dirname):
+        os.mkdir(dirname)
+    output = os.path.join(dirname, EmoSpaceEs.model_fname())
+    if not os.path.isfile(output):
+        EmoSpaceEs.create_space(TWEETS, output=output)
     sys.argv = ['EvoMSA', '-ot.model', '-n1',
                 '--ieee-cim', 'ES',
                 '--kw', '{"models": [["EvoMSA.model.AggressivenessEs", "sklearn.svm.LinearSVC"]]}',
