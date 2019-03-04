@@ -13,13 +13,12 @@
 # limitations under the License.
 import numpy as np
 from b4msa.textmodel import TextModel
-from b4msa.utils import tweet_iterator
+from microtc.utils import tweet_iterator
 from scipy.sparse import csr_matrix
 from sklearn.svm import LinearSVC
 from ConceptModelling.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH, PATH as ConPATH
 import os
-import pickle
-import gzip
+from microtc.utils import save_model, load_model
 from sklearn.neighbors import KDTree
 
 
@@ -225,8 +224,7 @@ class HA(BaseTextModel):
         X = [x for x in tweet_iterator(fname)]
         m = cls(**kwargs)
         m.fit(X, [x['klass'] for x in X])
-        with gzip.open(output, 'w') as fpt:
-            pickle.dump(m, fpt)
+        save_model(m, output)
 
 
 class EmoSpace(BaseTextModel, BaseClassifier):
@@ -237,7 +235,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
     Read the dataset
 
     >>> from EvoMSA import base
-    >>> from b4msa.utils import tweet_iterator
+    >>> from microtc.utils import tweet_iterator
     >>> import os
     >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
     >>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
@@ -264,32 +262,30 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
     def __init__(self, docs=None, model_cl=None, **kwargs):
         if model_cl is None:
-            self._textModel, self._classifiers = self.get_model()
+            self._textModel, self._classifiers, self._labels = self.get_model()
         else:
-            self._textModel, self._classifiers = model_cl
+            self._textModel, self._classifiers, self._labels = model_cl
         self._text = os.getenv('TEXT', default='text')
-
-    @staticmethod
-    def model_fname():
-        import EvoMSA
-        return 'emo-v%s-es.evoemo' % EvoMSA.__version__
 
     def fit(self, X, y):
         pass
+
+    @staticmethod
+    def DIRNAME():
+        return os.path.dirname(__file__)
 
     def get_model(self):
         import os
         from urllib import request
         model_fname = self.model_fname()
-        dirname = os.path.join(os.path.dirname(__file__), 'models')
+        dirname = os.path.join(self.DIRNAME(), 'models')
         if not os.path.isdir(dirname):
             os.mkdir(dirname)
         fname = os.path.join(dirname, model_fname)
         if not os.path.isfile(fname):
             request.urlretrieve("http://ingeotec.mx/~mgraffg/models/%s" % model_fname,
                                 fname)
-        with gzip.open(fname) as fpt:
-            return pickle.load(fpt)
+        return load_model(fname)
 
     def get_text(self, text):
         key = self._text
@@ -326,6 +322,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         :param kwargs: Keywords pass to TextModel
         """
         import random
+        from collections import Counter
         try:
             from tqdm import tqdm
         except ImportError:
@@ -338,13 +335,17 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         kw.update(kwargs)
         tm = TextModel(**kw).fit([x['text'] for x in data[:128000]])
         tm._num_terms = tm.model.num_terms
-        klass, nele = np.unique([x['klass'] for x in data], return_counts=True)
+        # klass, nele = np.unique([x['klass'] for x in data], return_counts=True)
+        _ = [(k, v) for k, v in Counter([x['klass'] for x in data]).items()]
+        _.sort(key=lambda x: x[0])
+        klass = [x[0] for x in _]
+        nele = [x[1] for x in _]
         h = {v: k for k, v in enumerate(klass)}
         MODELS = []
         for ident, k in tqdm(enumerate(klass)):
-            elepklass = [0 for _ in range(klass.shape[0])]
+            elepklass = [0 for __ in klass]
             cnt = nele[ident]
-            cntpklass = int(cnt / (klass.shape[0] - 1))
+            cntpklass = int(cnt / (len(klass) - 1))
             D = [(x, 1) for x in data if x['klass'] == k]
             for x in data:
                 if x['klass'] == k:
@@ -355,7 +356,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
                 D.append((x, -1))
             m = LinearSVC().fit(tm.tonp([tm[x[0]['text']] for x in D]), [x[1] for x in D])
             MODELS.append(m)
-        return tm, MODELS
+        return tm, MODELS, klass
 
     @classmethod
     def create_space(cls, fname, output=None, **kwargs):
@@ -367,12 +368,18 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         :type output: str
         :param kwargs: Keywords pass to TextModel
         """
-        tm, MODELS = cls._create_space(fname, **kwargs)
-        with gzip.open(output, 'w') as fpt:
-            pickle.dump([tm, MODELS], fpt)
+        tm, MODELS, klass = cls._create_space(fname, **kwargs)
+        if output is None:
+            output = cls.model_fname()
+        save_model([tm, MODELS, klass], output)
 
 
 class EmoSpaceEs(EmoSpace):
+    @staticmethod
+    def model_fname():
+        import EvoMSA
+        return 'emo-v%s-es.evoemo' % EvoMSA.__version__
+    
     @classmethod
     def create_space(cls, fname, output=None, lang='es', **kwargs):
         super(EmoSpaceEs, cls).create_space(fname, output=output, lang=lang, **kwargs)

@@ -16,8 +16,8 @@ import importlib
 import logging
 import EvoMSA
 from EvoMSA import base
-from .utils import save_model
-from b4msa.utils import tweet_iterator
+from microtc.utils import save_model
+from microtc.utils import tweet_iterator
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score
 from scipy.stats import pearsonr
 import json
@@ -95,7 +95,7 @@ class CommandLine(object):
 
     @staticmethod
     def load_model(fname):
-        from .utils import load_model
+        from microtc.utils import load_model
         if os.path.isfile(fname):
             return load_model(fname)
         else:
@@ -142,7 +142,7 @@ class CommandLineTrain(CommandLine):
             th = 'EvoMSA.model.ThumbsUpDownEn'
             # ha = 'EvoMSA.model.HaSpaceEn'
         elif lang == 'es':
-            emo = 'EvoMSA.model.EmoSpace'
+            emo = 'EvoMSA.model.EmoSpaceEs'
             th = 'EvoMSA.model.ThumbsUpDownEs'
             # ha = 'EvoMSA.model.HaSpace'
         kw = json.loads(self.data.kwargs) if self.data.kwargs is not None else dict()

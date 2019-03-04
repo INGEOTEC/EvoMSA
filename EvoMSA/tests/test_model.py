@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+from microtc.utils import tweet_iterator
 TWEETS = os.path.join(os.path.dirname(__file__), 'tweets.json')
 
 
 def test_corpus():
     from EvoMSA.model import Corpus
-    from b4msa.utils import tweet_iterator
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
     a = c['hola hola mundo']
     assert len(a) == 3
@@ -27,7 +27,6 @@ def test_corpus():
 def test_bernulli():
     import numpy as np
     from EvoMSA.model import Corpus, Bernulli
-    from b4msa.utils import tweet_iterator
     from sklearn.preprocessing import LabelEncoder
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
     X = c.tonp([c[x['text']] for x in tweet_iterator(TWEETS)])
@@ -44,7 +43,6 @@ def test_bernulli():
 def test_multinomial():
     import numpy as np
     from EvoMSA.model import Corpus, Multinomial
-    from b4msa.utils import tweet_iterator
     from sklearn.preprocessing import LabelEncoder
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
     X = c.tonp([c[x['text']] for x in tweet_iterator(TWEETS)])
@@ -61,7 +59,6 @@ def test_multinomial():
 
 def test_EmoSpace():
     from EvoMSA.model import EmoSpaceEs
-    from b4msa.utils import tweet_iterator
 
     class EmoTest(EmoSpaceEs):
         @staticmethod
@@ -76,6 +73,23 @@ def test_EmoSpace():
     # assert emo.model_fname() == 'emo-v%s-es.evoemo' % EvoMSA.__version__
 
 
+def test_EmoSpace_create_space():
+    from EvoMSA.model import EmoSpaceEs
+    dirname = os.path.join(EmoSpaceEs.DIRNAME(), 'models')
+    if not os.path.isdir(dirname):
+        os.mkdir(dirname)
+    output = os.path.join(dirname, EmoSpaceEs.model_fname())
+    if not os.path.isfile(output):
+        EmoSpaceEs.create_space(TWEETS, output=output)
+    assert os.path.isfile(output)
+    print(output)
+    X = [x for x in tweet_iterator(TWEETS)]
+    emo = EmoSpaceEs()
+    Xs = [emo[x] for x in X]
+    assert len(Xs) == len(X) and len(Xs[0]) == 4
+    assert emo.decision_function(X).shape[1] == 4
+
+
 def test_EmoSpaceEs():
     import EvoMSA
     from EvoMSA.model import EmoSpaceEs
@@ -85,7 +99,6 @@ def test_EmoSpaceEs():
 
 def test_EmoSpace_transform():
     from EvoMSA.model import EmoSpaceEs
-    from b4msa.utils import tweet_iterator
 
     class EmoTest(EmoSpaceEs):
         @staticmethod
@@ -117,7 +130,6 @@ def test_EmoSpaceAr():
 
 def test_tonp():
     from EvoMSA.model import B4MSATextModel
-    from b4msa.utils import tweet_iterator
     c = B4MSATextModel([x for x in tweet_iterator(TWEETS)])
     X = [c[x] for x in tweet_iterator(TWEETS)]
     Xp = c.tonp(X)
@@ -148,7 +160,6 @@ def test_ThumbsUpDownAr():
 
 def test_OutputClassifier():
     from EvoMSA.model import Corpus, OutputClassifier
-    from b4msa.utils import tweet_iterator
     from sklearn.preprocessing import LabelEncoder
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
     X = c.tonp([c[x['text']] for x in tweet_iterator(TWEETS)])
@@ -164,39 +175,6 @@ def test_OutputClassifier():
     assert len(open('xx_test.csv').readlines()) == pr.shape[0]
     os.unlink('xx_train.csv')
     os.unlink('xx_test.csv')
-
-
-# def test_HaSpace():
-#     from EvoMSA.model import HaSpace
-#     from b4msa.utils import tweet_iterator
-#     X = [x for x in tweet_iterator(TWEETS)]
-#     y = [x['klass'] for x in X]
-#     emo = HaSpace().fit(X, y)
-#     Xs = emo.decision_function(X)
-#     print(Xs)
-#     assert len(Xs) == len(X) and Xs.shape[1] == 3
-
-
-# def test_HaSpaceEn():
-#     from EvoMSA.model import HaSpaceEn
-#     from b4msa.utils import tweet_iterator
-#     X = [x for x in tweet_iterator(TWEETS)]
-#     y = [x['klass'] for x in X]
-#     emo = HaSpaceEn().fit(X, y)
-#     Xs = emo.decision_function(X)
-#     print(Xs)
-#     assert len(Xs) == len(X) and Xs.shape[1] == 3
-
-
-# def test_HaSpaceAr():
-#     from EvoMSA.model import HaSpaceAr
-#     from b4msa.utils import tweet_iterator
-#     X = [x for x in tweet_iterator(TWEETS)]
-#     y = [x['klass'] for x in X]
-#     emo = HaSpaceAr().fit(X, y)
-#     Xs = emo.decision_function(X)
-#     print(Xs)
-#     assert len(Xs) == len(X) and Xs.shape[1] == 3
 
 
 def test_AggressivenessEs():
@@ -230,7 +208,6 @@ def test_Vec():
 
 def test_semantic_token():
     from EvoMSA.model import SemanticTokenEs, EmoSpaceEs
-    from b4msa.utils import tweet_iterator
 
     class EmoTest(EmoSpaceEs):
         @staticmethod
@@ -261,33 +238,8 @@ def test_semantic_token():
     print([semantic.id2token[x[0]] for x in tr])
 
 
-# def test_semantic_token_es():
-#     from EvoMSA.model import SemanticTokenEs, EmoSpaceEs
-#     from b4msa.utils import tweet_iterator
-#     corpus = [x for x in tweet_iterator(TWEETS)]
-#     semantic = SemanticTokenEs(corpus)
-#     isinstance(semantic.semantic_space, EmoSpaceEs)
-
-
-# def test_semantic_token_en():
-#     from EvoMSA.model import SemanticTokenEn, EmoSpaceEn
-#     from b4msa.utils import tweet_iterator
-#     corpus = [x for x in tweet_iterator(TWEETS)]
-#     semantic = SemanticTokenEn(corpus)
-#     isinstance(semantic.semantic_space, EmoSpaceEn)
-
-
-# def test_semantic_token_ar():
-#     from EvoMSA.model import SemanticTokenAr, EmoSpaceAr
-#     from b4msa.utils import tweet_iterator
-#     corpus = [x for x in tweet_iterator(TWEETS)]
-#     semantic = SemanticTokenAr(corpus)
-#     isinstance(semantic.semantic_space, EmoSpaceAr)
-
-
 def test_semantic_affective_es():
     from EvoMSA.model import SemanticAffectiveEs, EmoSpaceEs
-    from b4msa.utils import tweet_iterator
 
     class EmoTest(EmoSpaceEs):
         @staticmethod
@@ -313,40 +265,12 @@ def test_semantic_affective_es():
     tokens = semantic.tokens(None)
     assert tokens
     print(semantic._weight.shape[0])
-    assert semantic._weight.shape[0] == 1344
-
-
-# def test_semantic_affective_ar():
-#     from EvoMSA.model import SemanticAffectiveAr
-#     from b4msa.utils import tweet_iterator
-#     corpus = [x for x in tweet_iterator(TWEETS)]
-#     semantic = SemanticAffectiveAr(corpus)
-#     tokens = semantic.tokens(None)
-#     assert len(tokens) == 4073
-
-
-# def test_semantic_affective_en():
-#     from EvoMSA.model import SemanticAffectiveEn
-#     from b4msa.utils import tweet_iterator
-#     corpus = [x for x in tweet_iterator(TWEETS)]
-#     semantic = SemanticAffectiveEn(corpus)
-#     tokens = semantic.tokens(None)
-#     print(len(tokens))
-#     assert len(tokens) == 4102
-
-
-def test_EmoSpace_create_space():
-    from EvoMSA.model import EmoSpaceEs
-    import os
-    EmoSpaceEs.create_space(TWEETS, output='t.model')
-    assert os.path.isfile('t.model')
-    os.unlink('t.model')
+    assert semantic._weight.shape[0] == 1318
 
 
 def test_HA():
     from EvoMSA.model import HA
     from EvoMSA.base import EvoMSA
-    from b4msa.utils import tweet_iterator
     import os
     X = [x for x in tweet_iterator(TWEETS)]
     HA.create_space(TWEETS, 'ha.model')
@@ -357,10 +281,9 @@ def test_HA():
     os.unlink('ha.model')
 
 
-def test_emospace_model_cl():
+def test_EmoSpace_model_cl():
     from EvoMSA.model import EmoSpace
-    tm, cl = EmoSpace._create_space(TWEETS)
-    emo = EmoSpace(model_cl=[tm, cl])
+    emo = EmoSpace(model_cl=EmoSpace._create_space(TWEETS))
     r = emo[dict(text='buenos dias')]
     print(r)
     assert len(r) == 4
