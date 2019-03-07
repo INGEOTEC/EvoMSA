@@ -125,14 +125,15 @@ class EvoMSA(object):
     :type Emo: bool
     :param TH: Use EvoMSA.model.ThumbsUpDown[Ar|En|Es], sklearn.svm.LinearSVC
     :type TH: bool
-
+    :param HA: Use HA datasets, sklearn.svm.LinearSVC
+    :type HA: bool
     """
 
     def __init__(self, b4msa_params=None, b4msa_args=dict(),
                  evodag_args=dict(), n_jobs=1, n_splits=5, seed=0,
                  classifier=True,
                  models=None, lang=None,
-                 evodag_class="EvoDAG.model.EvoDAGE", TR=True, Emo=False, TH=False):
+                 evodag_class="EvoDAG.model.EvoDAGE", TR=True, Emo=False, TH=False, HA=False):
         if models is None:
             models = []
         if TR:
@@ -144,6 +145,10 @@ class EvoMSA(object):
                            "sklearn.svm.LinearSVC"])
         if TH:
             models.append(["EvoMSA.model.%s" % self._thumbsUpDown(lang),
+                           "sklearn.svm.LinearSVC"])
+        if HA:
+            models.append([os.path.join(os.path.dirname(__file__),
+                                        "models", "%s.evoha" % lang),
                            "sklearn.svm.LinearSVC"])
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
@@ -193,7 +198,7 @@ class EvoMSA(object):
             m = "ThumbsUpDownAr"
         assert m is not None
         return m
-    
+
     def fit(self, X, y, test_set=None):
         """
         Train the model using a training set or pairs: text, dependent variable (e.g. class)

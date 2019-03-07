@@ -18,7 +18,7 @@ from scipy.sparse import csr_matrix
 from sklearn.svm import LinearSVC
 from ConceptModelling.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH, PATH as ConPATH
 import os
-from microtc.utils import save_model, load_model
+from microtc.utils import save_model
 from sklearn.neighbors import KDTree
 
 
@@ -275,17 +275,9 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         return os.path.dirname(__file__)
 
     def get_model(self):
-        import os
-        from urllib import request
+        from .utils import get_model
         model_fname = self.model_fname()
-        dirname = os.path.join(self.DIRNAME(), 'models')
-        if not os.path.isdir(dirname):
-            os.mkdir(dirname)
-        fname = os.path.join(dirname, model_fname)
-        if not os.path.isfile(fname):
-            request.urlretrieve("http://ingeotec.mx/~mgraffg/models/%s" % model_fname,
-                                fname)
-        return load_model(fname)
+        return get_model(model_fname)
 
     def get_text(self, text):
         key = self._text
@@ -379,7 +371,7 @@ class EmoSpaceEs(EmoSpace):
     def model_fname():
         import EvoMSA
         return 'emo-v%s-es.evoemo' % EvoMSA.__version__
-    
+
     @classmethod
     def create_space(cls, fname, output=None, lang='es', **kwargs):
         super(EmoSpaceEs, cls).create_space(fname, output=output, lang=lang, **kwargs)
@@ -396,7 +388,7 @@ class EmoSpaceEn(EmoSpace):
     @classmethod
     def create_space(cls, fname, output=None, lang='en', **kwargs):
         super(EmoSpaceEn, cls).create_space(fname, output=output, lang=lang, **kwargs)
-    
+
 
 class EmoSpaceAr(EmoSpace):
     """Arabic text model or classifier based on a Emojis"""
@@ -873,4 +865,3 @@ class SemanticAffectiveEn(SemanticTokenEn):
         for x in tweet_iterator(fname):
             lst += x['words']
         return lst
-    

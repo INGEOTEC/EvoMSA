@@ -380,4 +380,28 @@ def test_EvoMSA_param_TH():
                        TR=False, lang=lang, TH=True, n_jobs=2)
         assert len(model.models) == 1
         assert model.models[0][0] == cl
+
+
+def test_EvoMSA_param_HA():
+    from EvoMSA.model import ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs
+    from EvoMSA.model import EmoSpace, HA
+    from EvoMSA.base import EvoMSA
+    from b4msa.lang_dependency import get_lang
+    import os
+    X, y = get_data()
+    dirname = os.path.join(EmoSpace.DIRNAME(), 'models')
+    if not os.path.isdir(dirname):
+        os.mkdir(dirname)
+    for lang in ['ar', 'en', 'es']:
+        l = get_lang(lang)
+        model_fname = "%s.evoha" % l
+        HA.create_space(TWEETS, os.path.join(dirname, model_fname))
+    for cl, lang in zip([ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs],
+                        ['ar', 'en', 'es']):
+        model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                        n_estimators=3),
+                       TR=False, lang=lang, HA=True, n_jobs=2)
+        assert len(model.models) == 1
+        print(model.models[0][0])
+        assert os.path.isfile(model.models[0][0])
         

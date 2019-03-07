@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from sklearn.preprocessing import LabelEncoder
+import os
+from urllib import request
+from microtc.utils import load_model
 import numpy as np
 
 
@@ -61,3 +64,14 @@ class LabelEncoderWrapper(object):
         if not self.classifier:
             return y
         return np.array([self._inv[int(x)] for x in y])
+
+
+def get_model(model_fname):
+    dirname = os.path.join(os.path.dirname(__file__), 'models')
+    if not os.path.isdir(dirname):
+        os.mkdir(dirname)
+    fname = os.path.join(dirname, model_fname)
+    if not os.path.isfile(fname):
+        request.urlretrieve("http://ingeotec.mx/~mgraffg/models/%s" % model_fname,
+                            fname)
+    return load_model(fname)
