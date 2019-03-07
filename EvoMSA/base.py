@@ -136,7 +136,7 @@ class EvoMSA(object):
         if models is None:
             models = []
         if TR:
-            models.append(["b4msa.textmodel.TextModel", "sklearn.svm.LinearSVC"])
+            models.insert(0, ["b4msa.textmodel.TextModel", "sklearn.svm.LinearSVC"])
         lang = lang if lang is None else get_lang(lang)
         b4msa_args['lang'] = lang
         if Emo:
