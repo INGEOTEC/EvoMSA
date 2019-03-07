@@ -18,6 +18,7 @@ import logging
 from multiprocessing import Pool
 from b4msa.command_line import load_json
 from b4msa.textmodel import TextModel
+from b4msa.lang_dependency import get_lang
 from sklearn.model_selection import KFold
 from .model import Identity, BaseTextModel
 from .utils import LabelEncoderWrapper
@@ -114,17 +115,36 @@ class EvoMSA(object):
     :type seed: int
     :param classifier: EvoMSA as classifier default True
     :type classifier: bool
-    :param models: Models used as list of pairs
+    :param models: Models used as list of pairs (see flags: TR, TH and Emo)
     :type models: list
     :param evodag_class: Classifier or regressor used to ensemble the outputs of :attr:`models` default :class:`EvoDAG.model.EvoDAGE`
     :type evodag_class: str or class
+    :param TR: Use b4msa.textmodel.TextModel, sklearn.svm.LinearSVC on the training set
+    :type TR: bool
+    :param Emo: Use EvoMSA.model.EmoSpace[Ar|En|Es], sklearn.svm.LinearSVC
+    :type Emo: bool
+    :param TH: Use EvoMSA.model.ThumbsUpDown[Ar|En|Es], sklearn.svm.LinearSVC
+    :type TH: bool
+
     """
 
     def __init__(self, b4msa_params=None, b4msa_args=dict(),
                  evodag_args=dict(), n_jobs=1, n_splits=5, seed=0,
                  classifier=True,
-                 models=[["b4msa.textmodel.TextModel", "sklearn.svm.LinearSVC"]],
-                 evodag_class="EvoDAG.model.EvoDAGE"):
+                 models=None, lang=None,
+                 evodag_class="EvoDAG.model.EvoDAGE", TR=True, Emo=False, TH=False):
+        if models is None:
+            models = []
+        if TR:
+            models.append(["b4msa.textmodel.TextModel", "sklearn.svm.LinearSVC"])
+        lang = lang if lang is None else get_lang(lang)
+        b4msa_args['lang'] = lang
+        if Emo:
+            models.append(["EvoMSA.model.%s" % self._emoSpace(lang),
+                           "sklearn.svm.LinearSVC"])
+        if TH:
+            models.append(["EvoMSA.model.%s" % self._thumbsUpDown(lang),
+                           "sklearn.svm.LinearSVC"])
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
                                         'conf', 'default_parameters.json')
@@ -152,6 +172,28 @@ class EvoMSA(object):
         self.models = models
         self._evodag_class = self.get_class(evodag_class)
 
+    def _emoSpace(self, lang):
+        m = None
+        if lang == 'spanish':
+            m = "EmoSpaceEs"
+        elif lang == 'english':
+            m = "EmoSpaceEn"
+        elif lang == 'arabic':
+            m = "EmoSpaceAr"
+        assert m is not None
+        return m
+
+    def _thumbsUpDown(self, lang):
+        m = None
+        if lang == 'spanish':
+            m = "ThumbsUpDownEs"
+        elif lang == 'english':
+            m = "ThumbsUpDownEn"
+        elif lang == 'arabic':
+            m = "ThumbsUpDownAr"
+        assert m is not None
+        return m
+    
     def fit(self, X, y, test_set=None):
         """
         Train the model using a training set or pairs: text, dependent variable (e.g. class)

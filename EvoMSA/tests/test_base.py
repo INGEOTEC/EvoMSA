@@ -341,3 +341,47 @@ def test_EvoMSA_identity():
     print(cl, cl2)
     assert np.all(cl == cl2)
     
+
+def test_EvoMSA_param_TR():
+    from EvoMSA.base import EvoMSA
+    from b4msa.textmodel import TextModel
+    X, y = get_data()
+    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                    n_estimators=3),
+                   TR=False, n_jobs=2)
+    assert len(model.models) == 0
+    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                    n_estimators=3),
+                   n_jobs=2)
+    assert len(model.models) == 1
+    print(model.models[0])
+    assert model.models[0][0] == TextModel
+
+
+def test_EvoMSA_param_Emo():
+    from EvoMSA.model import EmoSpaceEs, EmoSpaceEn, EmoSpaceAr
+    from EvoMSA.base import EvoMSA
+
+    X, y = get_data()
+    for cl, lang in zip([EmoSpaceAr, EmoSpaceEn, EmoSpaceEs],
+                        ['ar', 'en', 'es']):
+        model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                        n_estimators=3),
+                       TR=False, lang=lang, Emo=True, n_jobs=2)
+        assert len(model.models) == 1
+        assert model.models[0][0] == cl
+
+
+def test_EvoMSA_param_TH():
+    from EvoMSA.model import ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs
+    from EvoMSA.base import EvoMSA
+
+    X, y = get_data()
+    for cl, lang in zip([ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs],
+                        ['ar', 'en', 'es']):
+        model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                        n_estimators=3),
+                       TR=False, lang=lang, TH=True, n_jobs=2)
+        assert len(model.models) == 1
+        assert model.models[0][0] == cl
+        
