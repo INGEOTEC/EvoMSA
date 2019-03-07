@@ -220,7 +220,7 @@ def test_predict_numbers():
             x['klass'] = y0
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]]}',
+                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]], "TR": false}',
                 '-ot.model', '-n1', 'ex.json']
     train(output=True)
     sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
@@ -238,7 +238,7 @@ def test_predict_NearestCentroid():
             x['klass'] = y0
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA',
-                '--kw={"evodag_class": "sklearn.neighbors.NearestCentroid", "models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]]}',
+                '--kw={"evodag_class": "sklearn.neighbors.NearestCentroid", "TR": false, "models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]]}',
                 '-ot.model', '-n1', 'ex.json']
     train(output=True)
     sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
@@ -305,7 +305,7 @@ def test_list_of_text():
             x['text'] = [x['text'], x['text']]
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA', '-ot.model', '-n2',
-                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"], ["EvoMSA.model.B4MSATextModel", "sklearn.svm.LinearSVC"]]}',
+                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]]}',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 't.json']
     train()
@@ -324,7 +324,7 @@ def test_train_ieee_cim():
         EmoSpaceEs.create_space(TWEETS, output=output)
     sys.argv = ['EvoMSA', '-ot.model', '-n1',
                 '--ieee-cim', 'ES',
-                '--kw', '{"models": [["EvoMSA.model.AggressivenessEs", "sklearn.svm.LinearSVC"]]}',
+                '--kw', '{"models": [["EvoMSA.model.AggressivenessEs", "sklearn.svm.LinearSVC"]], "TR": false}',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 15, "n_estimators": 5}',
                 TWEETS]
     c = train(output=True)
