@@ -21,7 +21,7 @@ from b4msa.textmodel import TextModel
 from b4msa.lang_dependency import get_lang
 from sklearn.model_selection import KFold
 from .model import Identity, BaseTextModel
-from .utils import LabelEncoderWrapper
+from .utils import LabelEncoderWrapper, download
 from microtc.utils import load_model
 try:
     from tqdm import tqdm
@@ -147,9 +147,8 @@ class EvoMSA(object):
             models.append(["EvoMSA.model.%s" % self._thumbsUpDown(lang),
                            "sklearn.svm.LinearSVC"])
         if HA:
-            models.append([os.path.join(os.path.dirname(__file__),
-                                        "models", "%s.evoha" % lang),
-                           "sklearn.svm.LinearSVC"])
+            fname = download("%s.evoha" % lang)
+            models.append([fname, "sklearn.svm.LinearSVC"])
         if b4msa_params is None:
             b4msa_params = os.path.join(os.path.dirname(__file__),
                                         'conf', 'default_parameters.json')

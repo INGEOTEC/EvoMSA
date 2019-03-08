@@ -66,7 +66,7 @@ class LabelEncoderWrapper(object):
         return np.array([self._inv[int(x)] for x in y])
 
 
-def get_model(model_fname):
+def download(model_fname):
     dirname = os.path.join(os.path.dirname(__file__), 'models')
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
@@ -74,4 +74,9 @@ def get_model(model_fname):
     if not os.path.isfile(fname):
         request.urlretrieve("http://ingeotec.mx/~mgraffg/models/%s" % model_fname,
                             fname)
+    return fname
+
+
+def get_model(model_fname):
+    fname = download(model_fname)
     return load_model(fname)
