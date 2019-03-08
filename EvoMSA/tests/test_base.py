@@ -42,8 +42,7 @@ def test_TextModel():
 def test_vector_space():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
-                 models=[['b4msa.textmodel.TextModel', 'sklearn.svm.LinearSVC'],
-                         ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
     evo.model(X)
     nrows = len(X)
     X = evo.vector_space(X)
@@ -56,8 +55,7 @@ def test_EvoMSA_kfold_decision_function():
     le = LabelEncoder().fit(y)
     y = le.transform(y)
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
-                 models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
-                         ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
     evo.model(X)
     X = evo.vector_space(X)
     cl = evo.models[1][1]
@@ -74,8 +72,7 @@ def test_EvoMSA_fit():
     print('iniciando')
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
                                   n_estimators=5),
-                 models=[['b4msa.textmodel.TextModel', 'sklearn.svm.LinearSVC'],
-                         ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                  n_jobs=1).fit(X, y)
     print("Termine fit")
     assert evo
@@ -117,8 +114,7 @@ def test_EvoMSA_predict():
     import numpy as np
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
-                 models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
-                         ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                  n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict(X)
@@ -132,7 +128,7 @@ def test_EvoMSA_bernulli_predict():
     import numpy as np
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
-                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']], TR=False,
                  n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict(X)
@@ -185,8 +181,7 @@ def test_EvoMSA_model():
     X, y = get_data()
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
-                   models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
-                           ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                    n_jobs=2)
     assert len(model.models) == 2
     model.model(X)
@@ -201,8 +196,7 @@ def test_EvoMSA_fit_svm():
     from EvoMSA.model import Bernulli
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
-                   models=[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
-                           ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                    n_jobs=2)
     le = LabelEncoder().fit(y)
     y = le.transform(y)
@@ -224,10 +218,12 @@ def test_EvoMSA_transform():
         Yn.append(_.transform(y0).tolist())
     X = Xn
     y = Yn
-    for m, shape in zip([[['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
-                          ['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
-                         [['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']]], [11, 6]):
-        evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
+    for m, shape, TR in zip([[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                             [['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']]], [11, 6],
+                            [True, False]):
+        evo = EvoMSA(evodag_args=dict(popsize=10,
+                                      early_stopping_rounds=10,
+                                      time_limit=15, n_estimators=10), TR=TR,
                      models=m,
                      n_jobs=1)
         evo.fit_svm(X, y)
@@ -242,7 +238,7 @@ def test_EvoMSA_evodag_class():
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
                    models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
-                   evodag_class="sklearn.neighbors.NearestCentroid",
+                   evodag_class="sklearn.neighbors.NearestCentroid", TR=False,
                    n_jobs=2).fit(X, y)
     assert isinstance(model._evodag_model, NearestCentroid)
     cl = model.predict(X)
@@ -257,7 +253,7 @@ def test_EvoMSA_multinomial():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
                                   n_estimators=5),
-                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Multinomial']],
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Multinomial']], TR=False,
                  n_jobs=1).fit(X, y)
     assert evo
     assert isinstance(evo._svc_models[0], Multinomial)
@@ -270,7 +266,7 @@ def test_EvoMSA_empty_string():
     y.append("NONE")
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
                                   n_estimators=5),
-                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Multinomial']],
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Multinomial']], TR=False,
                  n_jobs=1).fit(X, y)
     assert evo
     assert isinstance(evo._svc_models[0], Multinomial)
@@ -317,7 +313,7 @@ def test_EvoMSA_regression():
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                   time_limit=5, n_estimators=2),
                  classifier=False,
-                 models=[['EvoMSA.model.Identity', 'EvoMSA.model.EmoSpaceEs']],
+                 models=[['EvoMSA.model.Identity', 'EvoMSA.model.EmoSpaceEs']], TR=False,
                  n_jobs=1).fit(X, y)
     assert evo
     df = evo.decision_function(X)
@@ -331,7 +327,7 @@ def test_EvoMSA_identity():
     X, y = get_data()
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
-                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']], TR=False,
                    evodag_class="EvoMSA.model.Identity",
                    n_jobs=2).fit(X, y)
     assert isinstance(model._evodag_model, Identity)
@@ -341,3 +337,71 @@ def test_EvoMSA_identity():
     print(cl, cl2)
     assert np.all(cl == cl2)
     
+
+def test_EvoMSA_param_TR():
+    from EvoMSA.base import EvoMSA
+    from b4msa.textmodel import TextModel
+    X, y = get_data()
+    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                    n_estimators=3),
+                   TR=False, n_jobs=2)
+    assert len(model.models) == 0
+    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                    n_estimators=3),
+                   n_jobs=2)
+    assert len(model.models) == 1
+    print(model.models[0])
+    assert model.models[0][0] == TextModel
+
+
+def test_EvoMSA_param_Emo():
+    from EvoMSA.model import EmoSpaceEs, EmoSpaceEn, EmoSpaceAr
+    from EvoMSA.base import EvoMSA
+
+    X, y = get_data()
+    for cl, lang in zip([EmoSpaceAr, EmoSpaceEn, EmoSpaceEs],
+                        ['ar', 'en', 'es']):
+        model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                        n_estimators=3),
+                       TR=False, lang=lang, Emo=True, n_jobs=2)
+        assert len(model.models) == 1
+        assert model.models[0][0] == cl
+
+
+def test_EvoMSA_param_TH():
+    from EvoMSA.model import ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs
+    from EvoMSA.base import EvoMSA
+
+    X, y = get_data()
+    for cl, lang in zip([ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs],
+                        ['ar', 'en', 'es']):
+        model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                        n_estimators=3),
+                       TR=False, lang=lang, TH=True, n_jobs=2)
+        assert len(model.models) == 1
+        assert model.models[0][0] == cl
+
+
+def test_EvoMSA_param_HA():
+    from EvoMSA.model import ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs
+    from EvoMSA.model import EmoSpace, HA
+    from EvoMSA.base import EvoMSA
+    from b4msa.lang_dependency import get_lang
+    import os
+    X, y = get_data()
+    dirname = os.path.join(EmoSpace.DIRNAME(), 'models')
+    if not os.path.isdir(dirname):
+        os.mkdir(dirname)
+    for lang in ['ar', 'en', 'es']:
+        l = get_lang(lang)
+        model_fname = "%s.evoha" % l
+        HA.create_space(TWEETS, os.path.join(dirname, model_fname))
+    for cl, lang in zip([ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs],
+                        ['ar', 'en', 'es']):
+        model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                        n_estimators=3),
+                       TR=False, lang=lang, HA=True, n_jobs=2)
+        assert len(model.models) == 1
+        print(model.models[0][0])
+        assert os.path.isfile(model.models[0][0])
+        

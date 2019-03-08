@@ -479,6 +479,3 @@ def performance(output=False):
     c.parse_args()
     if output:
         return c
-
-
-
