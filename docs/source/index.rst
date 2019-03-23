@@ -30,8 +30,31 @@ generalisation algorithm specialised on text classification
 problems. It works by combining the output of different text models to
 produce the final prediction.
 
-:ref:`emospace`
 
+Citing
+======
+
+If you find EvoMSA useful for any academic/scientific purpose, we
+would appreciate citations to the following reference:
+  
+.. code:: bibtex
+
+	  @article{DBLP:journals/corr/abs-1812-02307,
+	  author = {Mario Graff and Sabino Miranda{-}Jim{\'{e}}nez
+	                 and Eric Sadit Tellez and Daniela Moctezuma},
+	  title     = {EvoMSA: {A} Multilingual Evolutionary Approach for Sentiment Analysis},
+	  journal   = {CoRR},
+	  volume    = {abs/1812.02307},
+	  year      = {2018},
+	  url       = {http://arxiv.org/abs/1812.02307},
+	  archivePrefix = {arXiv},
+	  eprint    = {1812.02307},
+	  timestamp = {Tue, 01 Jan 2019 15:01:25 +0100},
+	  biburl    = {https://dblp.org/rec/bib/journals/corr/abs-1812-02307},
+	  bibsource = {dblp computer science bibliography, https://dblp.org}
+	  }
+
+	
 Installing EvoMSA
 =======================
 
