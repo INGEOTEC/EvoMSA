@@ -230,6 +230,11 @@ class HA(BaseTextModel):
 class EmoSpace(BaseTextModel, BaseClassifier):
     """Spanish text model or classifier based on Emojis
 
+    :param docs: List of dict with text and klass, i.e., label
+    :type docs: list
+    :param model_cl: text model, classifers, and labels
+    :type model_cl: tuple
+
     Let us describe the procedure to use EmoSpace to create a model using it as text model
 
     Read the dataset
@@ -283,6 +288,8 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         key = self._text
         if isinstance(text, (list, tuple)):
             return " | ".join([x[key] for x in text])
+        elif isinstance(text, str):
+            return text
         return text[key]
 
     def decision_function(self, X):
