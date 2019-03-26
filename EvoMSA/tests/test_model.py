@@ -293,14 +293,20 @@ def test_emo_array():
     from array import array
     import numpy as np
     from EvoMSA.model import EmoSpace
+    from EvoMSA.cython_utils import Emo
+    import math
     emo = EmoSpace(model_cl=EmoSpace._create_space(TWEETS))
     tm = emo._textModel
     intercept = array('d', [x.intercept_[0] for x in emo._classifiers])
     coef = np.vstack([x.coef_[0] for x in emo._classifiers])
     coef = array('d', coef.T.flatten())
-
+    ee = Emo(coef, intercept)
+    output = []
+    ee.transform(tm, ['buenos dias'], output)
     for k, v in tm['buenos dias']:
         init = len(intercept) * k
         for j in range(len(intercept)):
             intercept[j] += coef[init + j] * v
-    
+    for a, b in zip(output[0], intercept):
+        print(a, b, a-b)
+        assert math.fabs(a - b) < 1e-6
