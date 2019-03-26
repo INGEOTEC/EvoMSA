@@ -28,7 +28,7 @@ test:
         - evodag
         - conceptmodelling
         - coverage
-	- cython
+        - cython
 
     imports:
         - EvoMSA
