@@ -232,7 +232,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
     :param docs: List of dict with text and klass, i.e., label
     :type docs: list
-    :param model_cl: text model, classifers, and labels
+    :param model_cl: text model, coefficients, intercept, and labels
     :type model_cl: tuple
 
     Let us describe the procedure to use EmoSpace to create a model using it as text model
@@ -267,10 +267,31 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
     def __init__(self, docs=None, model_cl=None, **kwargs):
         if model_cl is None:
-            self._textModel, self._classifiers, self._labels = self.get_model()
+            self._textModel, self._coef, self._intercept, self._labels = self.get_model()
         else:
-            self._textModel, self._classifiers, self._labels = model_cl
+            self._textModel, self._coef, self._intercept, self._labels = model_cl
         self._text = os.getenv('TEXT', default='text')
+
+    @property
+    def textModel(self):
+        from .cython_utils import TextModelPredict
+        try:
+            return self._textModelPredict
+        except AttributeError:
+            self._textModelPredict = TextModelPredict(self._textModel,
+                                                      self._coef,
+                                                      self._intercept)
+        return self._textModelPredict
+
+    def __getstate__(self):
+        """Remove attributes before the pickle"""
+
+        r = self.__dict__.copy()
+        try:
+            del r['_textModelPredict']
+        except KeyError:
+            pass
+        return r
 
     def fit(self, X, y):
         pass
@@ -293,24 +314,22 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         return text[key]
 
     def decision_function(self, X):
-        tm = self._textModel
-        _ = tm.tonp([tm[x] for x in X])
-        return np.array([m.decision_function(_) for m in self._classifiers]).T
+        return self.transform(X)
 
     def predict_proba(self, X):
         return self.decision_function(X)
 
+    def tonp(self, x):
+        """Identity tonp"""
+        return x
+
     def transform(self, X):
-        tm = self._textModel
-        D = tm.tonp([tm[self.get_text(x)] for x in X])
-        D = np.array([m.decision_function(D) for m in self._classifiers])
-        return [[[k, v] for k, v in enumerate(_)] for _ in D.T]
+        output = []
+        self.textModel.transform([self.get_text(x) for x in X], output)
+        return np.array(output)
 
     def __getitem__(self, x):
-        tm = self._textModel
-        _ = tm.tonp([tm[self.get_text(x)]])
-        _ = np.array([m.decision_function(_) for m in self._classifiers]).flatten()
-        return [[k, v] for k, v in enumerate(_)]
+        return np.array(self.textModel[self.get_text(x)])
 
     @classmethod
     def _create_space(cls, fname, **kwargs):
@@ -321,6 +340,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         :param kwargs: Keywords pass to TextModel
         """
         import random
+        from .utils import linearSVC_array
         from collections import Counter
         try:
             from tqdm import tqdm
@@ -355,7 +375,8 @@ class EmoSpace(BaseTextModel, BaseClassifier):
                 D.append((x, -1))
             m = LinearSVC().fit(tm.tonp([tm[x[0]['text']] for x in D]), [x[1] for x in D])
             MODELS.append(m)
-        return tm, MODELS, klass
+        coef, intercept = linearSVC_array(MODELS)
+        return tm, coef, intercept, klass
 
     @classmethod
     def create_space(cls, fname, output=None, **kwargs):
@@ -367,10 +388,10 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         :type output: str
         :param kwargs: Keywords pass to TextModel
         """
-        tm, MODELS, klass = cls._create_space(fname, **kwargs)
+        tm, coef, intercept, klass = cls._create_space(fname, **kwargs)
         if output is None:
             output = cls.model_fname()
-        save_model([tm, MODELS, klass], output)
+        save_model([tm, coef, intercept, klass], output)
 
 
 class EmoSpaceEs(EmoSpace):
@@ -688,9 +709,9 @@ class SemanticToken(BaseTextModel):
 
         words = self.tokens(corpus)
         self._weight = np.ones(len(words))
-        key = self.semantic_space._text
-        _ = self.semantic_space.transform([{key: x} for x in words])
-        X = self.semantic_space.tonp(_).toarray()
+        # key = self.semantic_space._text
+        X = self.semantic_space.transform([str(x) for x in words])
+        # X = self.semantic_space.tonp(_).toarray()
         self._kdtree = KDTree(X, metric='manhattan')
         w = self.entropy(self.transform(corpus), corpus, ntokens=X.shape[0])
         w = np.where(w > self.threshold)[0]
@@ -775,15 +796,16 @@ class SemanticToken(BaseTextModel):
         return textmodel.tokenize(text)
 
     def transform(self, X):
+        from collections import Counter
         w = self.weight
         kdtree = self._kdtree
         tokens_doc = [self.tokenize(x) for x in X]
         tokens = []
         [tokens.__iadd__(x) for x in tokens_doc]
-        tokens = np.unique(tokens)
-        key = self.semantic_space._text
-        _ = self.semantic_space.transform([{key: _} for _ in tokens])
-        xx = self.semantic_space.tonp(_).toarray()
+        tokens = [x for x in Counter(tokens).keys()]
+        # key = self.semantic_space._text
+        xx = self.semantic_space.transform(tokens)
+        # xx = self.semantic_space.tonp(_).toarray()
         m = {t: (ind[0], w[ind[0]] / (1 + d[0])) for t, d, ind in zip(tokens, *kdtree.query(xx))}
         Xt = []
         for x in tokens_doc:

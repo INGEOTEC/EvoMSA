@@ -80,3 +80,18 @@ def download(model_fname):
 def get_model(model_fname):
     fname = download(model_fname)
     return load_model(fname)
+
+
+def linearSVC_array(classifiers):
+    """Transform LinearSVC into weight stored in array.array
+
+    :param classifers: List of LinearSVC where each element is binary
+    :type classifers: list
+    """
+
+    import array
+    intercept = array.array('d', [x.intercept_[0] for x in classifiers])
+    coef = np.vstack([x.coef_[0] for x in classifiers])
+    coef = array.array('d', coef.T.flatten())
+    return coef, intercept
+    

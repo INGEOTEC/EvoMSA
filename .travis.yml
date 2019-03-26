@@ -28,7 +28,7 @@ before_install:
   - pip install coverage
   - pip install coveralls
   - conda config --append channels ingeotec  
-  - conda install --yes numpy scipy scikit-learn nltk nose b4msa evodag conceptmodelling
+  - conda install --yes numpy scipy scikit-learn nltk nose b4msa evodag conceptmodelling cython
   - python setup.py build_ext --inplace
   
 script:
