@@ -1,6 +1,6 @@
 package:
   name: evomsa
-  version: "0.31"
+  version: "0.40"
 
 requirements:
   build:
@@ -10,6 +10,7 @@ requirements:
     - evodag
     - conceptmodelling
     - scikit-learn
+    - cython
   run:
     - python
     - b4msa
@@ -27,6 +28,7 @@ test:
         - evodag
         - conceptmodelling
         - coverage
+        - cython
 
     imports:
         - EvoMSA

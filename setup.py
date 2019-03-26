@@ -13,7 +13,14 @@
 # limitations under the License.
 from setuptools import setup
 import EvoMSA
+import numpy as np
+from Cython.Build import cythonize
+from setuptools import Extension
 version = EvoMSA.__version__
+
+extension = [Extension('EvoMSA.cython_utils', ["EvoMSA/cython_utils.pyx"],
+                       include_dirs=[np.get_include()])]
+
 
 setup(
     name="EvoMSA",
@@ -35,8 +42,13 @@ setup(
     packages=['EvoMSA', 'EvoMSA/tests'],
     include_package_data=True,
     zip_safe=False,
+    ext_modules=cythonize(extension,
+                          compiler_directives={'profile': False,
+                                               'nonecheck': False,
+                                               'boundscheck': False}),
     package_data={'EvoMSA/conf': ['default_parameters.json'],
-                  'EvoMSA/tests': ['tweets.json']},
+                  'EvoMSA/tests': ['tweets.json'],
+                  '': ['*.pxd']},
     install_requires=['B4MSA', 'EvoDAG'],
     entry_points={
         'console_scripts': ['EvoMSA-train=EvoMSA.command_line:train',
