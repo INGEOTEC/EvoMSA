@@ -11,3 +11,4 @@ dependencies:
   - evodag
   - b4msa
   - conceptmodelling
+  - cython
