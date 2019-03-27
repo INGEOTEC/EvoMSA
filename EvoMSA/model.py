@@ -227,50 +227,25 @@ class HA(BaseTextModel):
         save_model(m, output)
 
 
-class EmoSpace(BaseTextModel, BaseClassifier):
-    """Spanish text model or classifier based on Emojis
+class LabeledDataSet(BaseTextModel, BaseClassifier):
+    """Create a text classifier using b4msa.textmodel.TextModel and LinearSVC
 
-    :param docs: List of dict with text and klass, i.e., label
-    :type docs: list
-    :param model_cl: text model, coefficients, intercept, and labels
-    :type model_cl: tuple
-
-    Let us describe the procedure to use EmoSpace to create a model using it as text model
-
-    Read the dataset
-
-    >>> from EvoMSA import base
-    >>> from microtc.utils import tweet_iterator
-    >>> import os
-    >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
-    >>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
-
-    Once the dataset is loaded, it is time to import the models and the classifier
-
-    >>> from EvoMSA.model import EmoSpace
-    >>> from b4msa.textmodel import TextModel
-    >>> from sklearn.svm import LinearSVC
-
-    The models one wishes to use are set in a list of lists, namely:
-
-    >>> models = [[TextModel, LinearSVC], [EmoSpace, LinearSVC]]
-
-    EvoMSA model is created using
-
-    >>> from EvoMSA.base import EvoMSA
-    >>> evo = EvoMSA(models=models).fit([dict(text=x[0]) for x in D], [x[1] for x in D])
-
-    Predict a sentence in Spanish
-
-    >>> evo.predict(['EvoMSA esta funcionando', 'EmoSpace esta funcionando'])
+    :param docs: do not use
+    :type docs: None
+    :param textModel: text model e.g., b4msa.textmodel.TextModel
+    :param coef: coefficients obtained from LinearSVC
+    :type coef: array
+    :param intercept: bias obtained from LinearSVC
+    :type intercept: array
+    :param labels: list of labels or classes
+    :type labels: list
     """
-
-    def __init__(self, docs=None, model_cl=None, **kwargs):
-        if model_cl is None:
-            self._textModel, self._coef, self._intercept, self._labels = self.get_model()
-        else:
-            self._textModel, self._coef, self._intercept, self._labels = model_cl
-        self._text = os.getenv('TEXT', default='text')
+    def __init__(self, docs=None, textModel=None, coef=None, intercept=None, labels=None):
+        assert docs is None
+        self._textModel = textModel
+        self._coef = coef
+        self._intercept = intercept
+        self._labels = labels
 
     @property
     def textModel(self):
@@ -295,15 +270,6 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
     def fit(self, X, y):
         pass
-
-    @staticmethod
-    def DIRNAME():
-        return os.path.dirname(__file__)
-
-    def get_model(self):
-        from .utils import get_model
-        model_fname = self.model_fname()
-        return get_model(model_fname)
 
     def get_text(self, text):
         key = self._text
@@ -350,9 +316,7 @@ class EmoSpace(BaseTextModel, BaseClassifier):
 
         data = [x for x in tweet_iterator(fname)]
         random.shuffle(data)
-        kw = dict(emo_option='delete')
-        kw.update(kwargs)
-        tm = TextModel(**kw).fit([x['text'] for x in data[:128000]])
+        tm = TextModel(**kwargs).fit([x['text'] for x in data[:128000]])
         tm._num_terms = tm.model.num_terms
         # klass, nele = np.unique([x['klass'] for x in data], return_counts=True)
         _ = [(k, v) for k, v in Counter([x['klass'] for x in data]).items()]
@@ -391,8 +355,91 @@ class EmoSpace(BaseTextModel, BaseClassifier):
         tm, coef, intercept, klass = cls._create_space(fname, **kwargs)
         if output is None:
             output = cls.model_fname()
-        save_model([tm, coef, intercept, klass], output)
+        ins = cls(textModel=tm, coef=coef, intercept=intercept, labels=klass)
+        save_model(ins, output)
 
+
+class EmoSpace(LabeledDataSet):
+    """Spanish text model or classifier based on Emojis
+
+    :param docs: List of dict with text and klass, i.e., label
+    :type docs: list
+    :param model_cl: text model, coefficients, intercept, and labels
+    :type model_cl: tuple
+
+    Let us describe the procedure to use EmoSpace to create a model using it as text model
+
+    Read the dataset
+
+    >>> from EvoMSA import base
+    >>> from microtc.utils import tweet_iterator
+    >>> import os
+    >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
+    >>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
+
+    Once the dataset is loaded, it is time to import the models and the classifier
+
+    >>> from EvoMSA.model import EmoSpace
+    >>> from b4msa.textmodel import TextModel
+    >>> from sklearn.svm import LinearSVC
+
+    The models one wishes to use are set in a list of lists, namely:
+
+    >>> models = [[TextModel, LinearSVC], [EmoSpace, LinearSVC]]
+
+    EvoMSA model is created using
+
+    >>> from EvoMSA.base import EvoMSA
+    >>> evo = EvoMSA(models=models).fit([dict(text=x[0]) for x in D], [x[1] for x in D])
+
+    Predict a sentence in Spanish
+
+    >>> evo.predict(['EvoMSA esta funcionando', 'EmoSpace esta funcionando'])
+    """
+
+    def __init__(self, docs=None, model_cl=None, **kwargs):
+        if model_cl is None:
+            textModel, coef, intercept, labels = self.get_model()
+        else:
+            textModel, coef, intercept, labels = model_cl
+        self._text = os.getenv('TEXT', default='text')
+        super(EmoSpace, self).__init__(textModel=textModel, coef=coef,
+                                       intercept=intercept, labels=labels)
+
+    @staticmethod
+    def DIRNAME():
+        return os.path.dirname(__file__)
+
+    def get_model(self):
+        from .utils import get_model
+        model_fname = self.model_fname()
+        return get_model(model_fname)
+
+    @classmethod
+    def _create_space(cls, fname, emo_option='delete', **kwargs):
+        """Create the space from a file of json
+
+        :param fname: Path to the file containing the json
+        :type fname: str
+        :param kwargs: Keywords pass to TextModel
+        """
+        return super(EmoSpace, cls)._create_space(fname, emo_option=emo_option, **kwargs)
+
+    @classmethod
+    def create_space(cls, fname, output=None, **kwargs):
+        """Create the space from a file of json
+
+        :param fname: Path to the file containing the json
+        :type fname: str
+        :param output: Path to store the model, it is cls.model_fname if None
+        :type output: str
+        :param kwargs: Keywords pass to TextModel
+        """
+        tm, coef, intercept, klass = cls._create_space(fname, **kwargs)
+        if output is None:
+            output = cls.model_fname()
+        save_model([tm, coef, intercept, klass], output)
+    
 
 class EmoSpaceEs(EmoSpace):
     @staticmethod

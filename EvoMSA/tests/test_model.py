@@ -289,6 +289,13 @@ def test_EmoSpace_model_cl():
     assert len(r) == 4
 
 
+def test_LabeledDataSet():
+    from EvoMSA.model import LabeledDataSet
+    import os
+    LabeledDataSet.create_space(TWEETS, 'lb.model')
+    assert os.path.isfile('lb.model')
+    os.unlink('lb.model')
+
 # def test_emo_array():
 #     import array
 #     import numpy as np

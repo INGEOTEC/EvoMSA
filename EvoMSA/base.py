@@ -17,7 +17,7 @@ import numpy as np
 import logging
 from multiprocessing import Pool
 from b4msa.command_line import load_json
-from b4msa.textmodel import TextModel
+from microtc.textmodel import TextModel
 from b4msa.lang_dependency import get_lang
 from sklearn.model_selection import KFold
 from .model import Identity, BaseTextModel
