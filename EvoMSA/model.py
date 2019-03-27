@@ -246,6 +246,7 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
         self._coef = coef
         self._intercept = intercept
         self._labels = labels
+        self._text = os.getenv('TEXT', default='text')        
 
     @property
     def textModel(self):
@@ -402,7 +403,6 @@ class EmoSpace(LabeledDataSet):
             textModel, coef, intercept, labels = self.get_model()
         else:
             textModel, coef, intercept, labels = model_cl
-        self._text = os.getenv('TEXT', default='text')
         super(EmoSpace, self).__init__(textModel=textModel, coef=coef,
                                        intercept=intercept, labels=labels)
 
