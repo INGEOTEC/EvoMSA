@@ -101,8 +101,6 @@ class EvoMSA(object):
 
     >>> evo.predict(['EvoMSA esta funcionando'])
 
-    :param b4msa_params: File in json containing TextModel's arguments, i.e., B4MSATextModel
-    :type b4msa_params: str
     :param b4msa_args: Arguments pass to TextModel updating the default arguments
     :type b4msa_args:  dict
     :param evodag_args: Arguments pass to EvoDAG
@@ -129,10 +127,8 @@ class EvoMSA(object):
     :type HA: bool
     """
 
-    def __init__(self, b4msa_params=None, b4msa_args=dict(),
-                 evodag_args=dict(), n_jobs=1, n_splits=5, seed=0,
-                 classifier=True,
-                 models=None, lang=None,
+    def __init__(self, b4msa_args=dict(), evodag_args=dict(), n_jobs=1,
+                 n_splits=5, seed=0, classifier=True, models=None, lang=None,
                  evodag_class="EvoDAG.model.EvoDAGE", TR=True, Emo=False, TH=False, HA=False):
         if models is None:
             models = []
@@ -149,12 +145,7 @@ class EvoMSA(object):
         if HA:
             fname = download("%s.evoha" % lang)
             models.append([fname, "sklearn.svm.LinearSVC"])
-        if b4msa_params is None:
-            b4msa_params = os.path.join(os.path.dirname(__file__),
-                                        'conf', 'default_parameters.json')
-        b4msa_params = self.read_json(b4msa_params)
-        b4msa_params.update(b4msa_args)
-        self._b4msa_args = b4msa_params
+        self._b4msa_args = b4msa_args
         self._evodag_args = evodag_args
         if classifier:
             _ = DEFAULT_CL.copy()

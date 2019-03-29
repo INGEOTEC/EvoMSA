@@ -109,8 +109,6 @@ class CommandLineTrain(CommandLine):
         super(CommandLineTrain, self).__init__()
         self.training_set()
         pa = self.parser.add_argument
-        pa('--ieee-cim', dest='ieee_cim', default=None, type=str,
-           help='Model used in Computational Intelligence Magazine avaiable language AR, EN, and ES')
         pa('--kw', dest='kwargs', default=None, type=str,
            help='Parameters in json that overwrite EvoMSA default parameters')
         pa('--evodag-kw', dest='evo_kwargs', default=None, type=str,
@@ -119,8 +117,6 @@ class CommandLineTrain(CommandLine):
            help='Parameters in json that overwrite B4MSA default parameters')
         pa('--test_set', dest='test_set', default=None, type=str,
            help='Test set to do transductive learning')
-        pa('-P', '--parameters', dest='parameters', type=str,
-           help='B4MSA parameters')
         pa('--exogenous-model', help='Exogenous model(s) - pickle.dump with gzip',
            dest='exogenous_model', default=None, type=str, nargs='*')
 
@@ -130,36 +126,7 @@ class CommandLineTrain(CommandLine):
         pa('training_set',  nargs='+',
            default=None, help=cdn)
 
-    def params_ieee_cim(self):
-        lang = self.data.ieee_cim.lower()
-        assert lang in ['ar', 'en', 'es']
-        if lang == 'ar':
-            emo = 'EvoMSA.model.EmoSpaceAr'
-            th = 'EvoMSA.model.ThumbsUpDownAr'
-            # ha = 'EvoMSA.model.HaSpaceAr'
-        elif lang == 'en':
-            emo = 'EvoMSA.model.EmoSpaceEn'
-            th = 'EvoMSA.model.ThumbsUpDownEn'
-            # ha = 'EvoMSA.model.HaSpaceEn'
-        elif lang == 'es':
-            emo = 'EvoMSA.model.EmoSpaceEs'
-            th = 'EvoMSA.model.ThumbsUpDownEs'
-            # ha = 'EvoMSA.model.HaSpace'
-        kw = json.loads(self.data.kwargs) if self.data.kwargs is not None else dict()
-        models = kw.get('models', list())
-        h = {":".join(tt_cl) for tt_cl in models}
-        for tt_cl in [['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
-                      [emo, 'sklearn.svm.LinearSVC'],
-                      [th, 'EvoMSA.model.Identity']]:
-            if ":".join(tt_cl) in h:
-                continue
-            models.append(tt_cl)
-        kw.update(models=models)
-        self.data.kwargs = json.dumps(kw)
-
     def main(self):
-        if self.data.ieee_cim is not None:
-            self.params_ieee_cim()
         fnames = self.data.training_set
         if not isinstance(fnames, list):
             fnames = [fnames]
@@ -188,8 +155,7 @@ class CommandLineTrain(CommandLine):
         if self.data.b4msa_kwargs is not None:
             _ = json.loads(self.data.b4msa_kwargs)
             b4msa_kwargs.update(_)
-        evo = base.EvoMSA(b4msa_params=self.data.parameters,
-                          b4msa_args=b4msa_kwargs, evodag_args=evo_kwargs, **kwargs)
+        evo = base.EvoMSA(b4msa_args=b4msa_kwargs, evodag_args=evo_kwargs, **kwargs)
         evo.exogenous = self._exogenous
         if self.data.exogenous_model is not None:
             evo.exogenous_model = [self.load_model(x) for x in self.data.exogenous_model]
@@ -254,7 +220,7 @@ class CommandLineUtils(CommandLineTrain):
         if self.data.b4msa_kwargs is not None:
             _ = json.loads(self.data.b4msa_kwargs)
             b4msa_kwargs.update(_)
-        evo = base.EvoMSA(b4msa_params=self.data.parameters, b4msa_args=b4msa_kwargs, **kwargs)
+        evo = base.EvoMSA(b4msa_args=b4msa_kwargs, **kwargs)
         evo.fit_svm(D, Y)
         output = self.data.output_file
         if self.data.test_set is None:

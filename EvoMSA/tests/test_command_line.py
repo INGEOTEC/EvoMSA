@@ -69,16 +69,6 @@ def test_evo_test_set():
     os.unlink('t.model')
 
 
-def test_evo_parameters():
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                '-ot.model', '-Pnada.json', '-n2', TWEETS]
-    try:
-        train(output=True)
-    except FileNotFoundError:
-        return
-    assert False
-
-
 def test_utils_b4msa_df():
     from EvoMSA.command_line import utils
     import shutil
