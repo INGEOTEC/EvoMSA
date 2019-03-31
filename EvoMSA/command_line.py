@@ -23,7 +23,7 @@ from scipy.stats import pearsonr
 import json
 import os
 import numpy as np
-from scipy.stats import wilcoxon
+from .utils import compute_p
 from multiprocessing import Pool
 try:
     from tqdm import tqdm
@@ -349,7 +349,7 @@ class CommandLinePerformance(CommandLine):
         if len(I):
             D.append(I)
         D = np.array(D).T
-        p, alpha = self.compute_p(D)
+        p, alpha = compute_p(D)
         self._p = p
         self._alpha = alpha
         for _p, _alpha, mu in zip(p, alpha, D.mean(axis=0)):
@@ -385,7 +385,7 @@ class CommandLinePerformance(CommandLine):
             models = [self.load_model(d) for d in self.data.model]
             D = np.array([[x.fitness_vs for x in m._evodag_model._m.models] for m in models]).T
         # print(D, '***')
-        p, alpha = self.compute_p(D)
+        p, alpha = compute_p(D)
         self._p = p
         self._alpha = alpha
         for m, _p, _alpha, mu in zip(self.data.model, p, alpha, D.mean(axis=0)):
@@ -393,30 +393,6 @@ class CommandLinePerformance(CommandLine):
             if np.isfinite(_alpha):
                 cdn = " *"
             print("%0.4f" % mu, m, cdn)
-
-    @staticmethod
-    def compute_p(syss):
-        p = []
-        mu = syss.mean(axis=0)
-        best = mu.argmax()
-        for i in range(syss.shape[1]):
-            if i == best:
-                p.append(np.inf)
-                continue
-            try:
-                pv = wilcoxon(syss[:, best], syss[:, i])[1]
-                p.append(pv)
-            except ValueError:
-                p.append(np.inf)
-        ps = np.argsort(p)
-        alpha = [np.inf for _ in ps]
-        m = ps.shape[0] - 1
-        for r, i in enumerate(ps[:-1]):
-            alpha_c = (0.05 / (m + 1 - (r + 1)))
-            if p[i] > alpha_c:
-                break
-            alpha[i] = alpha_c
-        return p, alpha
 
 
 def train(output=False):
