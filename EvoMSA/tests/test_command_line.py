@@ -301,24 +301,3 @@ def test_list_of_text():
     train()
     os.unlink('t.json')
 
-
-def test_train_ieee_cim():
-    import json
-    from EvoMSA.model import EmoSpaceEs
-    import os
-    dirname = os.path.join(EmoSpaceEs.DIRNAME(), 'models')
-    if not os.path.isdir(dirname):
-        os.mkdir(dirname)
-    output = os.path.join(dirname, EmoSpaceEs.model_fname())
-    if not os.path.isfile(output):
-        EmoSpaceEs.create_space(TWEETS, output=output)
-    sys.argv = ['EvoMSA', '-ot.model', '-n1',
-                '--ieee-cim', 'ES',
-                '--kw', '{"models": [["EvoMSA.model.AggressivenessEs", "sklearn.svm.LinearSVC"]], "TR": false}',
-                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 15, "n_estimators": 5}',
-                TWEETS]
-    c = train(output=True)
-    kw = json.loads(c.data.kwargs)
-    assert len(kw['models']) == 4
-    os.unlink('t.model')
-    
