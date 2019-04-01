@@ -23,7 +23,7 @@ from scipy.stats import pearsonr
 import json
 import os
 import numpy as np
-from scipy.stats import wilcoxon
+from .utils import compute_p
 from multiprocessing import Pool
 try:
     from tqdm import tqdm
@@ -109,8 +109,6 @@ class CommandLineTrain(CommandLine):
         super(CommandLineTrain, self).__init__()
         self.training_set()
         pa = self.parser.add_argument
-        pa('--ieee-cim', dest='ieee_cim', default=None, type=str,
-           help='Model used in Computational Intelligence Magazine avaiable language AR, EN, and ES')
         pa('--kw', dest='kwargs', default=None, type=str,
            help='Parameters in json that overwrite EvoMSA default parameters')
         pa('--evodag-kw', dest='evo_kwargs', default=None, type=str,
@@ -119,8 +117,6 @@ class CommandLineTrain(CommandLine):
            help='Parameters in json that overwrite B4MSA default parameters')
         pa('--test_set', dest='test_set', default=None, type=str,
            help='Test set to do transductive learning')
-        pa('-P', '--parameters', dest='parameters', type=str,
-           help='B4MSA parameters')
         pa('--exogenous-model', help='Exogenous model(s) - pickle.dump with gzip',
            dest='exogenous_model', default=None, type=str, nargs='*')
 
@@ -130,36 +126,7 @@ class CommandLineTrain(CommandLine):
         pa('training_set',  nargs='+',
            default=None, help=cdn)
 
-    def params_ieee_cim(self):
-        lang = self.data.ieee_cim.lower()
-        assert lang in ['ar', 'en', 'es']
-        if lang == 'ar':
-            emo = 'EvoMSA.model.EmoSpaceAr'
-            th = 'EvoMSA.model.ThumbsUpDownAr'
-            # ha = 'EvoMSA.model.HaSpaceAr'
-        elif lang == 'en':
-            emo = 'EvoMSA.model.EmoSpaceEn'
-            th = 'EvoMSA.model.ThumbsUpDownEn'
-            # ha = 'EvoMSA.model.HaSpaceEn'
-        elif lang == 'es':
-            emo = 'EvoMSA.model.EmoSpaceEs'
-            th = 'EvoMSA.model.ThumbsUpDownEs'
-            # ha = 'EvoMSA.model.HaSpace'
-        kw = json.loads(self.data.kwargs) if self.data.kwargs is not None else dict()
-        models = kw.get('models', list())
-        h = {":".join(tt_cl) for tt_cl in models}
-        for tt_cl in [['EvoMSA.model.B4MSATextModel', 'sklearn.svm.LinearSVC'],
-                      [emo, 'sklearn.svm.LinearSVC'],
-                      [th, 'EvoMSA.model.Identity']]:
-            if ":".join(tt_cl) in h:
-                continue
-            models.append(tt_cl)
-        kw.update(models=models)
-        self.data.kwargs = json.dumps(kw)
-
     def main(self):
-        if self.data.ieee_cim is not None:
-            self.params_ieee_cim()
         fnames = self.data.training_set
         if not isinstance(fnames, list):
             fnames = [fnames]
@@ -188,8 +155,7 @@ class CommandLineTrain(CommandLine):
         if self.data.b4msa_kwargs is not None:
             _ = json.loads(self.data.b4msa_kwargs)
             b4msa_kwargs.update(_)
-        evo = base.EvoMSA(b4msa_params=self.data.parameters,
-                          b4msa_args=b4msa_kwargs, evodag_args=evo_kwargs, **kwargs)
+        evo = base.EvoMSA(b4msa_args=b4msa_kwargs, evodag_args=evo_kwargs, **kwargs)
         evo.exogenous = self._exogenous
         if self.data.exogenous_model is not None:
             evo.exogenous_model = [self.load_model(x) for x in self.data.exogenous_model]
@@ -254,7 +220,7 @@ class CommandLineUtils(CommandLineTrain):
         if self.data.b4msa_kwargs is not None:
             _ = json.loads(self.data.b4msa_kwargs)
             b4msa_kwargs.update(_)
-        evo = base.EvoMSA(b4msa_params=self.data.parameters, b4msa_args=b4msa_kwargs, **kwargs)
+        evo = base.EvoMSA(b4msa_args=b4msa_kwargs, **kwargs)
         evo.fit_svm(D, Y)
         output = self.data.output_file
         if self.data.test_set is None:
@@ -383,7 +349,7 @@ class CommandLinePerformance(CommandLine):
         if len(I):
             D.append(I)
         D = np.array(D).T
-        p, alpha = self.compute_p(D)
+        p, alpha = compute_p(D)
         self._p = p
         self._alpha = alpha
         for _p, _alpha, mu in zip(p, alpha, D.mean(axis=0)):
@@ -419,7 +385,7 @@ class CommandLinePerformance(CommandLine):
             models = [self.load_model(d) for d in self.data.model]
             D = np.array([[x.fitness_vs for x in m._evodag_model._m.models] for m in models]).T
         # print(D, '***')
-        p, alpha = self.compute_p(D)
+        p, alpha = compute_p(D)
         self._p = p
         self._alpha = alpha
         for m, _p, _alpha, mu in zip(self.data.model, p, alpha, D.mean(axis=0)):
@@ -427,30 +393,6 @@ class CommandLinePerformance(CommandLine):
             if np.isfinite(_alpha):
                 cdn = " *"
             print("%0.4f" % mu, m, cdn)
-
-    @staticmethod
-    def compute_p(syss):
-        p = []
-        mu = syss.mean(axis=0)
-        best = mu.argmax()
-        for i in range(syss.shape[1]):
-            if i == best:
-                p.append(np.inf)
-                continue
-            try:
-                pv = wilcoxon(syss[:, best], syss[:, i])[1]
-                p.append(pv)
-            except ValueError:
-                p.append(np.inf)
-        ps = np.argsort(p)
-        alpha = [np.inf for _ in ps]
-        m = ps.shape[0] - 1
-        for r, i in enumerate(ps[:-1]):
-            alpha_c = (0.05 / (m + 1 - (r + 1)))
-            if p[i] > alpha_c:
-                break
-            alpha[i] = alpha_c
-        return p, alpha
 
 
 def train(output=False):

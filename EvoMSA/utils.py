@@ -94,4 +94,28 @@ def linearSVC_array(classifiers):
     coef = np.vstack([x.coef_[0] for x in classifiers])
     coef = array.array('d', coef.T.flatten())
     return coef, intercept
-    
+
+
+def compute_p(syss):
+    from scipy.stats import wilcoxon
+    p = []
+    mu = syss.mean(axis=0)
+    best = mu.argmax()
+    for i in range(syss.shape[1]):
+        if i == best:
+            p.append(np.inf)
+            continue
+        try:
+            pv = wilcoxon(syss[:, best], syss[:, i])[1]
+            p.append(pv)
+        except ValueError:
+            p.append(np.inf)
+    ps = np.argsort(p)
+    alpha = [np.inf for _ in ps]
+    m = ps.shape[0] - 1
+    for r, i in enumerate(ps[:-1]):
+        alpha_c = (0.05 / (m + 1 - (r + 1)))
+        if p[i] > alpha_c:
+            break
+        alpha[i] = alpha_c
+    return p, alpha
