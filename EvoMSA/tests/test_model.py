@@ -74,8 +74,10 @@ def test_EmoSpace():
 
 
 def test_EmoSpace_create_space():
+    from EvoMSA import base
+    import os
     from EvoMSA.model import EmoSpaceEs
-    dirname = os.path.join(EmoSpaceEs.DIRNAME(), 'models')
+    dirname = os.path.join(os.path.dirname(base.__file__), 'models')
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
     output = os.path.join(dirname, EmoSpaceEs.model_fname())
@@ -94,7 +96,7 @@ def test_EmoSpaceEs():
     import EvoMSA
     from EvoMSA.model import EmoSpaceEs
     emo = EmoSpaceEs
-    assert emo.model_fname() == 'emo-v%s-es.evoemo' % EvoMSA.__version__
+    assert emo.model_fname() == 'emo-v%s-es.evoemo' % EvoMSA.__version__[:3]
 
 
 def test_EmoSpace_transform():
@@ -117,7 +119,7 @@ def test_EmoSpaceEn():
     import EvoMSA
     cls = EmoSpaceEn
     assert cls
-    assert cls.model_fname() == 'emo-v%s-en.evoemo' % EvoMSA.__version__
+    assert cls.model_fname() == 'emo-v%s-en.evoemo' % EvoMSA.__version__[:3]
 
 
 def test_EmoSpaceAr():
@@ -125,7 +127,7 @@ def test_EmoSpaceAr():
     import EvoMSA
     cls = EmoSpaceAr
     assert cls
-    assert cls.model_fname() == 'emo-v%s-ar.evoemo' % EvoMSA.__version__
+    assert cls.model_fname() == 'emo-v%s-ar.evoemo' % EvoMSA.__version__[:3]
 
 
 def test_tonp():

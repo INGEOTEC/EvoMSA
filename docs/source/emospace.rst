@@ -1,6 +1,6 @@
 .. _emospace:
 
-Emoji Space
+Emoji space
 ===========
 
 This text model is inspired by `DeepMoji
@@ -26,7 +26,7 @@ Inside EvoMSA these models can be selected using the parameters
 :py:attr:`lang` specifies the language and can be either *ar*, *en*, or *es*. 
     
   
-Emoji Space - Classes
+Emoji space's classes
 =======================
 
 .. autoclass:: EvoMSA.model.EmoSpace

@@ -372,10 +372,6 @@ class EmoSpace(LabeledDataSet):
         super(EmoSpace, self).__init__(textModel=textModel, coef=coef,
                                        intercept=intercept, labels=labels)
 
-    @staticmethod
-    def DIRNAME():
-        return os.path.dirname(__file__)
-
     def get_model(self):
         from .utils import get_model
         model_fname = self.model_fname()
@@ -405,7 +401,7 @@ class EmoSpace(LabeledDataSet):
         if output is None:
             output = cls.model_fname()
         save_model([tm, coef, intercept, klass], output)
-    
+
 
 class EmoSpaceEs(EmoSpace):
     """Spanish text model or classifier based on a Emoji Space
@@ -413,7 +409,7 @@ class EmoSpaceEs(EmoSpace):
     @staticmethod
     def model_fname():
         import EvoMSA
-        return 'emo-v%s-es.evoemo' % EvoMSA.__version__
+        return 'emo-v%s-es.evoemo' % EvoMSA.__version__[:3]
 
     @classmethod
     def create_space(cls, fname, output=None, lang='es', **kwargs):
@@ -426,7 +422,7 @@ class EmoSpaceEn(EmoSpace):
     @staticmethod
     def model_fname():
         import EvoMSA
-        return 'emo-v%s-en.evoemo' % EvoMSA.__version__
+        return 'emo-v%s-en.evoemo' % EvoMSA.__version__[:3]
 
     @classmethod
     def create_space(cls, fname, output=None, lang='en', **kwargs):
@@ -439,7 +435,7 @@ class EmoSpaceAr(EmoSpace):
     @staticmethod
     def model_fname():
         import EvoMSA
-        return 'emo-v%s-ar.evoemo' % EvoMSA.__version__
+        return 'emo-v%s-ar.evoemo' % EvoMSA.__version__[:3]
 
     @classmethod
     def create_space(cls, fname, output=None, lang='ar', **kwargs):
