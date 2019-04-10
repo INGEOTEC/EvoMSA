@@ -21,10 +21,13 @@ version = EvoMSA.__version__
 extension = [Extension('EvoMSA.cython_utils', ["EvoMSA/cython_utils.pyx"],
                        include_dirs=[np.get_include()])]
 
+with open('README.rst') as fpt:
+    long_desc = fpt.read()
 
 setup(
     name="EvoMSA",
     description="""Sentiment Analysis System based on B4MSA and EvoDAG""",
+    long_description=long_desc,    
     version=version,
     classifiers=[
         "Development Status :: 3 - Alpha",

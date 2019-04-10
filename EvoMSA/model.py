@@ -361,41 +361,7 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
 
 
 class EmoSpace(LabeledDataSet):
-    """Spanish text model or classifier based on Emojis
-
-    :param docs: List of dict with text and klass, i.e., label
-    :type docs: list
-    :param model_cl: text model, coefficients, intercept, and labels
-    :type model_cl: tuple
-
-    Let us describe the procedure to use EmoSpace to create a model using it as text model
-
-    Read the dataset
-
-    >>> from EvoMSA import base
-    >>> from microtc.utils import tweet_iterator
-    >>> import os
-    >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
-    >>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
-
-    Once the dataset is loaded, it is time to import the models and the classifier
-
-    >>> from EvoMSA.model import EmoSpace
-    >>> from b4msa.textmodel import TextModel
-    >>> from sklearn.svm import LinearSVC
-
-    The models one wishes to use are set in a list of lists, namely:
-
-    >>> models = [[TextModel, LinearSVC], [EmoSpace, LinearSVC]]
-
-    EvoMSA model is created using
-
-    >>> from EvoMSA.base import EvoMSA
-    >>> evo = EvoMSA(models=models).fit([dict(text=x[0]) for x in D], [x[1] for x in D])
-
-    Predict a sentence in Spanish
-
-    >>> evo.predict(['EvoMSA esta funcionando', 'EmoSpace esta funcionando'])
+    """Base class of Emoji Space. Use EmoSpaceAr or EmoSpaceEn or EmoSpaceEs instead of this class
     """
 
     def __init__(self, docs=None, model_cl=None, **kwargs):
@@ -405,10 +371,6 @@ class EmoSpace(LabeledDataSet):
             textModel, coef, intercept, labels = model_cl
         super(EmoSpace, self).__init__(textModel=textModel, coef=coef,
                                        intercept=intercept, labels=labels)
-
-    @staticmethod
-    def DIRNAME():
-        return os.path.dirname(__file__)
 
     def get_model(self):
         from .utils import get_model
@@ -439,13 +401,15 @@ class EmoSpace(LabeledDataSet):
         if output is None:
             output = cls.model_fname()
         save_model([tm, coef, intercept, klass], output)
-    
+
 
 class EmoSpaceEs(EmoSpace):
+    """Spanish text model or classifier based on a Emoji Space
+    """
     @staticmethod
     def model_fname():
         import EvoMSA
-        return 'emo-v%s-es.evoemo' % EvoMSA.__version__
+        return 'emo-v%s-es.evoemo' % EvoMSA.__version__[:3]
 
     @classmethod
     def create_space(cls, fname, output=None, lang='es', **kwargs):
@@ -453,12 +417,12 @@ class EmoSpaceEs(EmoSpace):
 
 
 class EmoSpaceEn(EmoSpace):
-    """English text model or classifier based on a Emojis"""
+    """English text model or classifier based on a Emoji Space"""
 
     @staticmethod
     def model_fname():
         import EvoMSA
-        return 'emo-v%s-en.evoemo' % EvoMSA.__version__
+        return 'emo-v%s-en.evoemo' % EvoMSA.__version__[:3]
 
     @classmethod
     def create_space(cls, fname, output=None, lang='en', **kwargs):
@@ -466,12 +430,12 @@ class EmoSpaceEn(EmoSpace):
 
 
 class EmoSpaceAr(EmoSpace):
-    """Arabic text model or classifier based on a Emojis"""
+    """Arabic text model or classifier based on a Emoji Space"""
 
     @staticmethod
     def model_fname():
         import EvoMSA
-        return 'emo-v%s-ar.evoemo' % EvoMSA.__version__
+        return 'emo-v%s-ar.evoemo' % EvoMSA.__version__[:3]
 
     @classmethod
     def create_space(cls, fname, output=None, lang='ar', **kwargs):

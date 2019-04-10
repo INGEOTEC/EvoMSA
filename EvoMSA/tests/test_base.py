@@ -296,11 +296,17 @@ def test_label_encoder_kwargs():
     assert not l.classifier
 
 
+def get_dirname():
+    from EvoMSA import base
+    import os
+    return os.path.dirname(base.__file__)
+
+
 def test_EvoMSA_regression():
     from EvoMSA.base import LabelEncoderWrapper
     from EvoMSA.model import EmoSpaceEs
     import os
-    dirname = os.path.join(EmoSpaceEs.DIRNAME(), 'models')
+    dirname = os.path.join(get_dirname(), 'models')
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
     output = os.path.join(dirname, EmoSpaceEs.model_fname())
@@ -384,12 +390,12 @@ def test_EvoMSA_param_TH():
 
 def test_EvoMSA_param_HA():
     from EvoMSA.model import ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs
-    from EvoMSA.model import EmoSpace, HA
+    from EvoMSA.model import HA
     from EvoMSA.base import EvoMSA
     from b4msa.lang_dependency import get_lang
     import os
     X, y = get_data()
-    dirname = os.path.join(EmoSpace.DIRNAME(), 'models')
+    dirname = os.path.join(get_dirname(), 'models')
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
     for lang in ['ar', 'en', 'es']:
