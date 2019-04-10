@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+from multiprocessing import cpu_count
 import importlib
 import numpy as np
 import logging
@@ -105,7 +106,7 @@ class EvoMSA(object):
     :type b4msa_args:  dict
     :param evodag_args: Arguments pass to EvoDAG
     :type evodag_args: dict
-    :param n_jobs: Multiprocessing default 1 process
+    :param n_jobs: Multiprocessing default 1 process, <= 0 to use all processors
     :type n_jobs: int
     :param n_splits: Number of folds to train EvoDAG or evodag_class
     :type n_splits: int
@@ -153,7 +154,8 @@ class EvoMSA(object):
             _ = DEFAULT_R.copy()
         _.update(self._evodag_args)
         self._evodag_args = _
-        self._n_jobs = n_jobs
+        
+        self._n_jobs = n_jobs if n_jobs > 0 else cpu_count()
         self._n_splits = n_splits
         self._seed = seed
         self._svc_models = None
