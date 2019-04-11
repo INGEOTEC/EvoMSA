@@ -26,7 +26,7 @@ EvoMSA
 EvoMSA is a Sentiment Analysis System based on `B4MSA
 <https://github.com/ingeotec/b4msa>`_ and `EvoDAG
 <https://github.com/mgraffg/EvoDAG>`_. EvoMSA is a stack
-generalisation algorithm specialised on text classification
+generalization algorithm specialized on text classification
 problems. It works by combining the output of different text models to
 produce the final prediction. These text models are:
 
@@ -36,7 +36,7 @@ produce the final prediction. These text models are:
 * :ref:`ha` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(HA=True, lang="en")`)
 
 where :py:attr:`lang` specifies the language and can be either *ar*,
-*en*, or *es*, that corresponds to Arabic, English and Spanish,
+*en*, or, *es* that corresponds to Arabic, English, and Spanish,
 respectively.
 
 Usage
