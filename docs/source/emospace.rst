@@ -50,6 +50,17 @@ These models can be download from
 
 These models can be used in EvoMSA as follows:
 
+Let us read the dataset.
+
+>>> from EvoMSA import base
+>>> from microtc.utils import tweet_iterator
+>>> import os
+>>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
+>>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
+
+Once the dataset is loaded, and the `English Emoji Space <http://ingeotec.mx/~mgraffg/models/emo-static-en.evoemo>`_
+has been downloaded and saved on the current directory, the EvoMSA model is built as:
+
 >>> from EvoMSA.base import EvoMSA
 >>> evo = EvoMSA(models=[['emo-static-en.evoemo', 'sklearn.svm.LinearSVC']]).fit([x[0] for x in D], [x[1] for x in D])
 >>> evo.predict(['good morning'])
