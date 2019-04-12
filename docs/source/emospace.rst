@@ -16,6 +16,22 @@ The Emoji Space is created for Arabic, English and
 Spanish. These models can be selected using the parameters
 :py:attr:`EvoMSA.base.EvoMSA(Emo=True, lang="en")` where
 :py:attr:`lang` specifies the language and can be either *ar*, *en*, or *es*. 
+
+For example, let us read a dataset to train EvoMSA.
+
+>>> from EvoMSA import base
+>>> from microtc.utils import tweet_iterator
+>>> import os
+>>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
+>>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
+
+Once the dataset is load, EvoMSA using Emoji Space in Spanish is
+trained as follows:
+
+>>> from EvoMSA.base import EvoMSA
+>>> evo = EvoMSA(Emo=True, lang='es').fit([x[0] for x in D], [x[1] for x in D])
+>>> evo.predict(['buenos dias'])
+
     
 Particularly, the following classes implement the Emoji Space:
 
@@ -35,6 +51,22 @@ stored in the following list
 
 >>> emo._labels
 
+The three best-ranked emoji for *good morning* and *I love that song* are:
+
+>>> import numpy as np
+>>> [emo._labels[x] for x in np.argsort(emo['good morning'])[::-1][:3]]
+['😘', '😊', '😇']
+>>> [emo._labels[x] for x in np.argsort(emo['I love that song!!'])[::-1][:3]]
+['🎶', '😍', '💙']
+
+Playing around with the Emoji Space, it is interesting to note that
+two sentences with the same words changed the best-rank emojis.
+
+>>> [emo._labels[x] for x in np.argsort(emo['Mary loves John and John loves Peter'])[::-1][:8]]
+['♥', '💞', '🎶', '❤', '😍', '♡', '💓', '💕']
+>>> [emo._labels[x] for x in np.argsort(emo['John loves Mary and Mary loves Peter'])[::-1][:8]]
+['💞', '😍', '♥', '♡', '🎶', '💓', '❤', '💕']
+
 Emoji fixed for all languages
 =====================================
 
@@ -47,16 +79,6 @@ These models can be download from
 * `Arabic Emoji Space <http://ingeotec.mx/~mgraffg/models/emo-static-ar.evoemo>`_
 * `English Emoji Space <http://ingeotec.mx/~mgraffg/models/emo-static-en.evoemo>`_
 * `Spanish Emoji Space <http://ingeotec.mx/~mgraffg/models/emo-static-es.evoemo>`_
-
-These models can be used in EvoMSA as follows:
-
-Let us read the dataset.
-
->>> from EvoMSA import base
->>> from microtc.utils import tweet_iterator
->>> import os
->>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
->>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
 
 Once the dataset is loaded, and the `English Emoji Space <http://ingeotec.mx/~mgraffg/models/emo-static-en.evoemo>`_
 has been downloaded and saved on the current directory, the EvoMSA model is built as:
