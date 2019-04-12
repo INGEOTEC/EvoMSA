@@ -30,7 +30,7 @@ generalization algorithm specialized on text classification
 problems. It works by combining the output of different text models to
 produce the final prediction. These text models are:
 
-* B4MSA model trained with the training set (it is set by default)
+* `B4MSA <https://github.com/ingeotec/b4msa>`_ model trained with the training set (it is set by default)
 * :ref:`emospace` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(Emo=True, lang="en")`)
 * :ref:`th` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(TH=True, lang="en")`)  
 * :ref:`ha` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(HA=True, lang="en")`)
