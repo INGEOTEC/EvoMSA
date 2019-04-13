@@ -411,3 +411,14 @@ def test_EvoMSA_param_HA():
         print(model.models[0][0])
         assert os.path.isfile(model.models[0][0])
         
+
+def test_EvoMSA_cpu_count():
+    from EvoMSA.base import EvoMSA
+    from multiprocessing import cpu_count
+    X, y = get_data()
+    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                    n_estimators=3),
+                   TR=False, n_jobs=-1)
+    print(model.n_jobs, cpu_count())
+    assert model.n_jobs == cpu_count()
+        
