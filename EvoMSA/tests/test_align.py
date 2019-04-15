@@ -13,7 +13,26 @@
 # limitations under the License.
 
 
+from test_base import StoreDelete, TWEETS
+from EvoMSA.model import LabeledDataSet
+
+
 def test_read_words():
     from EvoMSA.align import _read_words
     for lang in ['ar', 'en', 'es']:
         assert len(_read_words(lang))
+
+
+def labeledDataSet(*args, output=None):
+    return LabeledDataSet.create_space(*args, output=output,
+                                       emo_option='delete',
+                                       token_list=[-3, -1, 4])
+
+
+def test_projection():
+    from EvoMSA.align import projection
+    with StoreDelete(LabeledDataSet.create_space, TWEETS, 'emo-static-es.evoemo') as sd2:
+        with StoreDelete(labeledDataSet, TWEETS, 'emo-static-en.evoemo') as sd1:
+            res = projection('es', 'en')
+            assert res.ndim == 2
+            assert res.shape[0] == res.shape[1]

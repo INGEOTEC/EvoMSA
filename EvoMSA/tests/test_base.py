@@ -186,19 +186,6 @@ def test_binary_labels_json():
     print(_)
 
 
-def test_EvoMSA_exogenous_model():
-    X, y = get_data()
-    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
-                   n_jobs=2).fit(X, y)
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
-                                  n_estimators=5),
-                 n_jobs=2)
-    evo.exogenous_model = model
-    evo.fit(X, y)
-    D = evo.transform(X)
-    assert D.shape[1] == 8
-
-
 def test_EvoMSA_model():
     X, y = get_data()
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,

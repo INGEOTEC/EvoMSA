@@ -30,7 +30,7 @@ def _read_words(lang):
     return corpus
 
 
-def projection(lang_from, lang_to):
+def projection(lang_from, lang_to, func=_read_words):
     """
     Compute the coefficients to project the output of a Emoji Space in the origin language to the objetive language
 
@@ -40,5 +40,29 @@ def projection(lang_from, lang_to):
     :type lang_to: str [ar|en|es]
     """
 
+    from microtc.utils import load_model
+    import numpy as np
+    from sklearn.metrics.pairwise import euclidean_distances
     model_from = os.path.join(os.path.dirname(__file__), 'models', 'emo-static-%s.evoemo' % lang_from)
+    model_from = load_model(model_from)
     model_to = os.path.join(os.path.dirname(__file__), 'models', 'emo-static-%s.evoemo' % lang_to)
+    model_to = load_model(model_to)
+    words_from = _read_words(lang_from)
+    words_to = _read_words(lang_to)
+    vec_from = model_from.transform(words_from)
+    vec_to = model_to.transform(words_to)
+    dis = euclidean_distances(vec_from, vec_to)
+    ss = dis.argsort(axis=1)
+    done = set()
+    output = []
+    X = []
+    for k, j in enumerate(ss[:, 0]):
+        if j in done:
+            continue
+        X.append(vec_from[k])
+        output.append(vec_to[j])
+        done.add(j)
+    output = np.stack(output)
+    X = np.stack(X)
+    return np.linalg.lstsq(X, output, rcond=None)[0]
+

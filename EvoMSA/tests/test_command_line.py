@@ -87,47 +87,24 @@ def test_utils_b4msa_df():
     os.unlink('model.json')
 
 
-def test_train_exogenous():
-    from EvoMSA.base import EvoMSA
-    import json
-    with open('ex.json', 'w') as fpt:
-        for x in tweet_iterator(TWEETS):
-            x['decision_function'] = x['q_voc_ratio']
-            fpt.write(json.dumps(x) + '\n')
-    sys.argv = ['EvoMSA', '-ot.model', '-n2',
-                '--exogenous', 'ex.json', 'ex.json',
-                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                TWEETS]
-    train(output=True)
-    evo = load_model('t.model')
-    assert isinstance(evo, EvoMSA)
-    os.unlink('t.model')
-    m = evo._evodag_model._m.models[0]
-    os.unlink('ex.json')
-    print(m.nvar)
-    assert m.nvar == 6
-    assert evo.n_jobs == 2
-
-
 def test_utils_transform():
     import json
     with open('ex.json', 'w') as fpt:
         for x in tweet_iterator(TWEETS):
             x['decision_function'] = x['q_voc_ratio']
             fpt.write(json.dumps(x) + '\n')
-    sys.argv = ['EvoMSA', '-ot.model', '-n2', '--exogenous', 'ex.json', 'ex.json',
+    sys.argv = ['EvoMSA', '-ot.model', '-n2',
                 '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
                 TWEETS, TWEETS]
     train(output=True)
 
-    sys.argv = ['EvoMSA', '-mt.model', '-ot.json', '--exogenous', 'ex.json', 'ex.json',
-                '--transform', TWEETS]
+    sys.argv = ['EvoMSA', '-mt.model', '-ot.json', '--transform', TWEETS]
     utils()
     os.unlink('t.model')
     vec = [x['vec'] for x in tweet_iterator('t.json')]
     os.unlink('t.json')
     print(len(vec[0]))
-    assert len(vec[0]) == 10
+    assert len(vec[0]) == 8
 
 
 def test_raw_outputs():
@@ -161,23 +138,6 @@ def test_fitness():
     sys.argv = ['EvoMSA', '--fitness', 't.model']
     utils()
     os.unlink('t.model')
-
-
-def test_exogenous_model():
-    from EvoMSA.command_line import CommandLine
-    from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                '-ot.model', '-n2', TWEETS]
-    train()
-    sys.argv = ['EvoMSA', '--exogenous-model', 't.model',
-                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}', '-ot2.model', '-n2', TWEETS]
-    train()
-    evo = CommandLine.load_model('t2.model')
-    assert isinstance(evo, EvoMSA)
-    assert isinstance(evo.exogenous_model, list)
-    assert isinstance(evo.exogenous_model[0], EvoMSA)
-    os.unlink('t.model')
-    os.unlink('t2.model')
 
 
 def test_max_lines():
