@@ -34,6 +34,7 @@ def projection(model_from, model_to, text_from, text_to):
 
     from microtc.utils import load_model
     import numpy as np
+    from sklearn.neighbors import KDTree
     model_from = load_model(model_from)
     model_to = load_model(model_to)
     vec_from = model_from.transform(text_from)
@@ -41,11 +42,12 @@ def projection(model_from, model_to, text_from, text_to):
     done = set()
     output = []
     X = []
-    for k, vec in tqdm(enumerate(vec_from)):
-        j = np.fabs(vec - vec_to).sum(axis=1).argmin()
+    kdtree = KDTree(vec_to, metric='manhattan')
+    ss = kdtree.query(vec_from)[1].flatten()
+    for k, j in tqdm(enumerate(ss)):
         if j in done:
             continue
-        X.append(vec)
+        X.append(vec_from[k])
         output.append(vec_to[j])
         done.add(j)
     output = np.stack(output)
