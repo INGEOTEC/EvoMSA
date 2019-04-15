@@ -42,7 +42,6 @@ def projection(lang_from, lang_to, func=_read_words):
 
     from microtc.utils import load_model
     import numpy as np
-    from sklearn.metrics.pairwise import euclidean_distances
     model_from = os.path.join(os.path.dirname(__file__), 'models', 'emo-static-%s.evoemo' % lang_from)
     model_from = load_model(model_from)
     model_to = os.path.join(os.path.dirname(__file__), 'models', 'emo-static-%s.evoemo' % lang_to)
@@ -51,15 +50,16 @@ def projection(lang_from, lang_to, func=_read_words):
     words_to = func(lang_to)
     vec_from = model_from.transform(words_from)
     vec_to = model_to.transform(words_to)
-    dis = euclidean_distances(vec_from, vec_to)
-    ss = dis.argsort(axis=1)
+    # dis = euclidean_distances(vec_from, vec_to)
+    # ss = dis.argsort(axis=1)
     done = set()
     output = []
     X = []
-    for k, j in enumerate(ss[:, 0]):
+    for k, vec in enumerate(vec_from):
+        j = np.fabs(vec - vec_to).sum(axis=1).argmin()
         if j in done:
             continue
-        X.append(vec_from[k])
+        X.append(vec)
         output.append(vec_to[j])
         done.add(j)
     output = np.stack(output)
