@@ -11,51 +11,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+try:
+    from tqdm import tqdm
+except ImportError:
+    def tqdm(x, **kwargs):
+        return x
 
 
-from microtc.utils import tweet_iterator
-import os
-
-
-def _read_words(lang):
-    """Read the words from our aggressive lexicon
-
-    :param lang: Language
-    :type lang: str [ar|en|es]
-    """
-    fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.%s' % lang)
-    corpus = []
-    for x in tweet_iterator(fname):
-        corpus += x['words']
-    return corpus
-
-
-def projection(lang_from, lang_to, func=_read_words):
+def projection(model_from, model_to, text_from, text_to):
     """
     Compute the coefficients to project the output of a Emoji Space in the origin language to the objetive language
 
-    :param lang_from: Origin language
-    :type lang_from: str [ar|en|es]
-    :param lang_to: Objective language
+    :param lang_from: Origin model
+    :type lang_from: str
+    :param lang_to: Objective model
     :type lang_to: str [ar|en|es]
+    :param text_from: Text in the origin language
+    :type text_from: list
+    :param text_from: Text in the objective language
+    :type text_from: list
     """
 
     from microtc.utils import load_model
     import numpy as np
-    model_from = os.path.join(os.path.dirname(__file__), 'models', 'emo-static-%s.evoemo' % lang_from)
     model_from = load_model(model_from)
-    model_to = os.path.join(os.path.dirname(__file__), 'models', 'emo-static-%s.evoemo' % lang_to)
     model_to = load_model(model_to)
-    words_from = func(lang_from)
-    words_to = func(lang_to)
-    vec_from = model_from.transform(words_from)
-    vec_to = model_to.transform(words_to)
-    # dis = euclidean_distances(vec_from, vec_to)
-    # ss = dis.argsort(axis=1)
+    vec_from = model_from.transform(text_from)
+    vec_to = model_to.transform(text_to)
     done = set()
     output = []
     X = []
-    for k, vec in enumerate(vec_from):
+    for k, vec in tqdm(enumerate(vec_from)):
         j = np.fabs(vec - vec_to).sum(axis=1).argmin()
         if j in done:
             continue
