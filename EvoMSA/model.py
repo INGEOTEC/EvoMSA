@@ -233,6 +233,9 @@ class Projection(BaseTextModel):
         self._textModel = textModel
         self._projection = projection
 
+    def tonp(self, X):
+        return X
+
     def transform(self, X):
         return np.dot(self._textModel.transform(X), self._projection)
 
