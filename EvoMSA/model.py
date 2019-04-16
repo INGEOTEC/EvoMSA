@@ -227,6 +227,19 @@ class HA(BaseTextModel):
         save_model(m, output)
 
 
+class Projection(BaseTextModel):
+    def __init__(self, docs=None, textModel=None, projection=None):
+        assert docs is None
+        self._textModel = textModel
+        self._projection = projection
+
+    def transform(self, X):
+        return np.dot(self._textModel.transform(X), self._projection)
+
+    def __getitem__(self, x):
+        return np.dot(self._textModel[x], self._projection)
+
+
 class LabeledDataSet(BaseTextModel, BaseClassifier):
     """Create a text classifier using b4msa.textmodel.TextModel and LinearSVC
 

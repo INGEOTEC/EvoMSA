@@ -13,6 +13,7 @@
 # limitations under the License.
 import os
 from microtc.utils import tweet_iterator
+from test_base import StoreDelete
 TWEETS = os.path.join(os.path.dirname(__file__), 'tweets.json')
 
 
@@ -297,6 +298,23 @@ def test_LabeledDataSet():
     LabeledDataSet.create_space(TWEETS, 'lb.model')
     assert os.path.isfile('lb.model')
     os.unlink('lb.model')
+
+
+def test_projection():
+    from EvoMSA.model import LabeledDataSet
+    from EvoMSA.model import Projection
+    from EvoMSA.utils import download
+    from microtc.utils import load_model, tweet_iterator
+    import numpy as np
+    D = [x for x in tweet_iterator(TWEETS)]
+    with StoreDelete(LabeledDataSet.create_space, TWEETS, 'lb.model') as sd:
+        model = load_model(download('lb.model'))
+        pr = np.diag([1, 1, 1, 1])
+        projection = Projection(textModel=model, projection=pr)
+        m = projection.transform(D)
+        m1 = model.transform(D)
+        print(m == m1)
+        assert np.all(m == m1)
 
 # def test_emo_array():
 #     import array
