@@ -22,6 +22,24 @@ from microtc.utils import save_model
 from sklearn.neighbors import KDTree
 
 
+def create_space(args):
+    ident, klass, nele, data, k, tm = args
+    elepklass = [0 for __ in klass]
+    cnt = nele[ident]
+    cntpklass = int(cnt / (len(klass) - 1))
+    h = {v: k for k, v in enumerate(klass)}
+    D = [(x, 1) for x in data if x['klass'] == k]
+    for x in data:
+        if x['klass'] == k:
+            continue
+        if elepklass[h[x['klass']]] > cntpklass:
+            continue
+        elepklass[h[x['klass']]] = elepklass[h[x['klass']]] + 1
+        D.append((x, -1))
+    m = LinearSVC().fit(tm.tonp([x[0]['vec'] for x in D]), [x[1] for x in D])
+    return (ident, m)
+
+
 class BaseTextModel(object):
     """Base class for text model
 
@@ -328,14 +346,17 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
         return np.array(self.textModel[self.get_text(x)])
 
     @classmethod
-    def _create_space(cls, fname, **kwargs):
+    def _create_space(cls, fname, n_jobs=1, **kwargs):
         """Create the space from a file of json
 
         :param fname: Path to the file containing the json
         :type fname: str
         :param kwargs: Keywords pass to TextModel
+        :param n_jobs: number of jobs, default 1
+        :type n_jobs: int
         """
         import random
+        from multiprocessing import Pool
         from .utils import linearSVC_array
         from collections import Counter
         try:
@@ -348,27 +369,21 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
         random.shuffle(data)
         tm = TextModel(**kwargs).fit([x['text'] for x in data[:128000]])
         tm._num_terms = tm.model.num_terms
-        # klass, nele = np.unique([x['klass'] for x in data], return_counts=True)
+        data = [dict(klass=x['klass'], vec=tm[x['text']]) for x in tqdm(data)]
         _ = [(k, v) for k, v in Counter([x['klass'] for x in data]).items()]
         _.sort(key=lambda x: x[0])
         klass = [x[0] for x in _]
         nele = [x[1] for x in _]
-        h = {v: k for k, v in enumerate(klass)}
         MODELS = []
-        for ident, k in tqdm(enumerate(klass)):
-            elepklass = [0 for __ in klass]
-            cnt = nele[ident]
-            cntpklass = int(cnt / (len(klass) - 1))
-            D = [(x, 1) for x in data if x['klass'] == k]
-            for x in data:
-                if x['klass'] == k:
-                    continue
-                if elepklass[h[x['klass']]] > cntpklass:
-                    continue
-                elepklass[h[x['klass']]] = elepklass[h[x['klass']]] + 1
-                D.append((x, -1))
-            m = LinearSVC().fit(tm.tonp([tm[x[0]['text']] for x in D]), [x[1] for x in D])
-            MODELS.append(m)
+        args = [(ident, klass, nele, data, k, tm) for ident, k in tqdm(enumerate(klass))]
+        if n_jobs == 1:
+            res = [create_space(x) for x in tqdm(args)]
+        else:
+            p = Pool(n_jobs, maxtasksperchild=1)
+            res = [x for x in tqdm(p.imap_unordered(create_space, args), total=len(args))]
+            p.close()
+        res.sort(key=lambda x: x[0])
+        MODELS = [x[1] for x in res]
         coef, intercept = linearSVC_array(MODELS)
         return tm, coef, intercept, klass
 
