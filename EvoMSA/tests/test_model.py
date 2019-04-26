@@ -316,32 +316,23 @@ def test_projection():
         print(m == m1)
         assert np.all(m == m1)
 
-# def test_emo_array():
-#     import array
-#     import numpy as np
-#     from EvoMSA.model import EmoSpace
-#     from EvoMSA.cython_utils import TextModelPredict
-#     import math
-#     emo = EmoSpace(model_cl=EmoSpace._create_space(TWEETS))
-#     tm = emo._textModel
-#     intercept = array.array('d', [x.intercept_[0] for x in emo._classifiers])
-#     coef = np.vstack([x.coef_[0] for x in emo._classifiers])
-#     coef = array.array('d', coef.T.flatten())
-#     ee = TextModelPredict(tm, coef, array.array('d', intercept))
-#     output = []
-#     ee.transform(['buenos dias', 'cabron'], output)
-#     for k, v in tm['buenos dias']:
-#         init = len(intercept) * k
-#         for j in range(len(intercept)):
-#             intercept[j] += coef[init + j] * v
-#     for a, b in zip(output[0], intercept):
-#         print(a, b, a-b)
-#         assert math.fabs(a - b) < 1e-6
-#     for a, b in zip(output[1], intercept):
-#         print(a, b, a-b)
-#         assert math.fabs(a - b) > 1e-6
-#     print('***')
-#     for a, b in zip(ee['buenos dias'], intercept):
-#         print(a, b, a-b)
-#         assert math.fabs(a - b) < 1e-6
 
+def test_evomsa_wrapper():
+    from microtc.utils import save_model
+    from EvoMSA.model import EvoMSAWrapper
+    from EvoMSA.base import EvoMSA
+    from test_base import get_data
+    X, y = get_data()
+    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                    n_estimators=3),
+                   evodag_class="sklearn.naive_bayes.GaussianNB",
+                   n_jobs=2).fit(X, y)
+    save_model(EvoMSAWrapper(evomsa=model), 'tmp.evomsa')
+    assert os.path.isfile('tmp.evomsa')
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                  n_estimators=3),
+                 models=[["tmp.evomsa", "EvoMSA.model.Identity"]],
+                 evodag_class="sklearn.naive_bayes.GaussianNB",
+                 n_jobs=2).fit(X, y)
+    assert evo
+    os.unlink("tmp.evomsa")

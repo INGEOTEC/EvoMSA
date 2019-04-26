@@ -418,4 +418,3 @@ def test_EvoMSA_cpu_count():
                    TR=False, n_jobs=-1)
     print(model.n_jobs, cpu_count())
     assert model.n_jobs == cpu_count()
-        

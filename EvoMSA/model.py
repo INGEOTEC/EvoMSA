@@ -137,6 +137,19 @@ class OutputClassifier(object):
         return hy
 
 
+class EvoMSAWrapper(BaseTextModel):
+    def __init__(self, evomsa=None):
+        assert evomsa is not None
+        evomsa.n_jobs = 1
+        self._evomsa = evomsa
+
+    def transform(self, X):
+        return self._evomsa.predict_proba(X)
+
+    def tonp(self, X):
+        return X
+
+
 class Identity(BaseTextModel, BaseClassifier):
     """Identity function used as either text model or classifier or regressor"""
 
