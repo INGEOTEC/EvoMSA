@@ -21,7 +21,7 @@ from b4msa.command_line import load_json
 from microtc.textmodel import TextModel
 from b4msa.lang_dependency import get_lang
 from sklearn.model_selection import KFold
-from .model import Identity, BaseTextModel
+from .model import Identity, BaseTextModel, EvoMSAWrapper
 from .utils import LabelEncoderWrapper, download
 from microtc.utils import load_model
 try:
@@ -318,7 +318,10 @@ class EvoMSA(object):
         for x in X:
             for tm, cl in self.models:
                 if isinstance(tm, str):
-                    m.append(load_model(tm))
+                    _ = load_model(tm)
+                    if isinstance(_, EvoMSA):
+                        _ = EvoMSAWrapper(evomsa=_)
+                    m.append(_)
                 else:
                     m.append(tm(x, **kwargs))
         self._textModel = m

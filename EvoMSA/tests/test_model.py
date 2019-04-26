@@ -315,24 +315,3 @@ def test_projection():
         m1 = model.transform(D)
         print(m == m1)
         assert np.all(m == m1)
-
-
-def test_evomsa_wrapper():
-    from microtc.utils import save_model
-    from EvoMSA.model import EvoMSAWrapper
-    from EvoMSA.base import EvoMSA
-    from test_base import get_data
-    X, y = get_data()
-    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                    n_estimators=3),
-                   evodag_class="sklearn.naive_bayes.GaussianNB",
-                   n_jobs=2).fit(X, y)
-    save_model(EvoMSAWrapper(evomsa=model), 'tmp.evomsa')
-    assert os.path.isfile('tmp.evomsa')
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                  n_estimators=3),
-                 models=[["tmp.evomsa", "EvoMSA.model.Identity"]],
-                 evodag_class="sklearn.naive_bayes.GaussianNB",
-                 n_jobs=2).fit(X, y)
-    assert evo
-    os.unlink("tmp.evomsa")
