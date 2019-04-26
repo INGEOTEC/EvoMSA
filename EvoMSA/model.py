@@ -22,6 +22,11 @@ from microtc.utils import save_model
 from sklearn.neighbors import KDTree
 
 
+def tm_transform(args):
+    tm, data = args
+    return [dict(klass=x['klass'], vec=tm[x['text']]) for x in data]
+
+
 def create_space(args):
     ident, klass, nele, data, k, tm = args
     elepklass = [0 for __ in klass]
@@ -36,7 +41,7 @@ def create_space(args):
             continue
         elepklass[h[x['klass']]] = elepklass[h[x['klass']]] + 1
         D.append((x, -1))
-    m = LinearSVC().fit(tm.tonp([tm[x[0]['text']] for x in D]), [x[1] for x in D])
+    m = LinearSVC().fit(tm.tonp([x[0]['vec'] for x in D]), [x[1] for x in D])
     return (ident, m)
 
 
@@ -369,6 +374,17 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
         random.shuffle(data)
         tm = TextModel(**kwargs).fit([x['text'] for x in data[:128000]])
         tm._num_terms = tm.model.num_terms
+        if n_jobs == 1:
+            data = [dict(klass=x['klass'], vec=tm[x['text']]) for x in tqdm(data)]
+        else:
+            ssize = int(len(data) / n_jobs)
+            blocks = [(tm, data[i: i+ssize]) for i in range(0, len(data), ssize)]
+            p = Pool(n_jobs, maxtasksperchild=1)
+            res = [x for x in tqdm(p.imap_unordered(tm_transform, blocks), total=len(blocks))]
+            p.close()
+            data = []
+            for _ in res:
+                data += _
         _ = [(k, v) for k, v in Counter([x['klass'] for x in data]).items()]
         _.sort(key=lambda x: x[0])
         klass = [x[0] for x in _]
