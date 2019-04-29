@@ -298,8 +298,6 @@ def test_LabeledDataSet():
     LabeledDataSet.create_space(TWEETS, 'lb.model')
     assert os.path.isfile('lb.model')
     os.unlink('lb.model')
-    LabeledDataSet.create_space(TWEETS, 'lb.model', n_jobs=2)
-    os.unlink('lb.model')
 
 
 def test_projection():
