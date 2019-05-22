@@ -12,7 +12,8 @@
 [![Documentation Status](https://readthedocs.org/projects/evomsa/badge/?version=latest)](https://evomsa.readthedocs.io/en/latest/?badge=latest)
 
 # EvoMSA
-Sentiment Analysis System based on [B4MSA](https://github.com/ingeotec/b4msa) and [EvoDAG](https://github.com/mgraffg/EvoDAG).
+Sentiment Analysis System based on [B4MSA](https://github.com/ingeotec/b4msa) and
+[EvoDAG](https://github.com/mgraffg/EvoDAG).
 
 ## Quick Start ##
 
