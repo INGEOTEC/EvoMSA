@@ -32,6 +32,17 @@ class BaseTextModel(object):
     def __init__(self, corpus=None, **kwargs):
         pass
 
+    def fit(self, X):
+        """
+        Train the model
+
+        :param X: Corpus
+        :type X: list
+        :rtype: instance
+        """
+
+        pass
+
     @property
     def num_terms(self):
         """Dimension which is the number of terms of the corpus
@@ -474,21 +485,22 @@ class EmoSpaceAr(EmoSpace):
 class Corpus(BaseTextModel):
     """Text model using only words"""
 
-    def __init__(self, corpus, **kwargs):
+    def __init__(self, corpus=None, **kwargs):
         self._text = os.getenv('TEXT', default='text')
         self._m = {}
         self._num_terms = 0
         self._training = True
         self._textModel = TextModel([''], token_list=[-1])
-        self.fit(corpus)
+        if corpus is not None:
+            self.fit(corpus)
 
     def get_text(self, text):
         return text[self._text]
 
     def fit(self, c):
-        r = [self.__getitem__(x) for x in c]
+        [self.__getitem__(x) for x in c]
         self._training = False
-        return r
+        return self
 
     @property
     def num_terms(self):
