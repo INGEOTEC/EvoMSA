@@ -93,8 +93,8 @@ class BaseClassifier(object):
         pass
 
     def fit(self, X, y):
-        """Method to train the classifier
 
+        """Method to train the classifier
         :param X: Independent variable
         :type X: np.array or csc_matrix
         :param y: Dependent variable
@@ -195,6 +195,9 @@ class B4MSATextModel(TextModel, BaseTextModel):
         """
 
         return text[self._text]
+
+    def fit(self, X, y=None):
+        pass
 
     def tokenize(self, text):
         """Tokenize a text
