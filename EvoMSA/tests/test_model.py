@@ -132,11 +132,13 @@ def test_EmoSpaceAr():
 
 
 def test_tonp():
-    from EvoMSA.model import B4MSATextModel
-    c = B4MSATextModel([x for x in tweet_iterator(TWEETS)])
+    from microtc.textmodel import TextModel
+    from EvoMSA.model import BaseTextModel
+    c = TextModel().fit([x for x in tweet_iterator(TWEETS)])
     X = [c[x] for x in tweet_iterator(TWEETS)]
-    Xp = c.tonp(X)
-    assert Xp.shape[0] == len(X) and Xp.shape[1] == c.num_terms
+    d = BaseTextModel()
+    Xp = d.tonp(X)
+    assert Xp.shape[0] == len(X) and Xp.shape[1] == d.num_terms
 
 
 def test_ThumbsUpDownEs():
