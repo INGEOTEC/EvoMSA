@@ -170,6 +170,9 @@ class Identity(BaseTextModel, BaseClassifier):
     def __getitem__(self, x):
         return x
 
+    def fit(self, X, y=None):
+        return self
+
     def decision_function(self, X):
         try:
             return X.toarray()
@@ -180,41 +183,38 @@ class Identity(BaseTextModel, BaseClassifier):
         return self.decision_function(X)
 
 
-class B4MSATextModel(TextModel, BaseTextModel):
-    """Text model based on B4MSA"""
+# class B4MSATextModel(TextModel, BaseTextModel):
+#     """Text model based on B4MSA"""
 
-    def __init__(self, *args, **kwargs):
-        self._text = os.getenv('TEXT', default='text')
-        TextModel.__init__(self, *args, **kwargs)
+#     def __init__(self, *args, **kwargs):
+#         self._text = os.getenv('TEXT', default='text')
+#         TextModel.__init__(self, *args, **kwargs)
 
-    def get_text(self, text):
-        """Return self._text key from text
+#     def get_text(self, text):
+#         """Return self._text key from text
 
-        :param text: Text
-        :type text: dict
-        """
+#         :param text: Text
+#         :type text: dict
+#         """
 
-        return text[self._text]
+#         return text[self._text]
 
-    def fit(self, X, y=None):
-        pass
+#     def tokenize(self, text):
+#         """Tokenize a text
 
-    def tokenize(self, text):
-        """Tokenize a text
+#         :param text: Text
+#         :type text: dict or str
+#         """
 
-        :param text: Text
-        :type text: dict or str
-        """
-
-        if isinstance(text, dict):
-            text = self.get_text(text)
-        if isinstance(text, (list, tuple)):
-            tokens = []
-            for _text in text:
-                tokens.extend(TextModel.tokenize(self, _text))
-            return tokens
-        else:
-            return TextModel.tokenize(self, text)
+#         if isinstance(text, dict):
+#             text = self.get_text(text)
+#         if isinstance(text, (list, tuple)):
+#             tokens = []
+#             for _text in text:
+#                 tokens.extend(TextModel.tokenize(self, _text))
+#             return tokens
+#         else:
+#             return TextModel.tokenize(self, text)
 
 
 class HA(BaseTextModel):
@@ -313,7 +313,7 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
         return r
 
     def fit(self, X, y):
-        pass
+        return self
 
     def get_text(self, text):
         key = self._text
@@ -659,6 +659,9 @@ class ThumbsUpDownEs(ThumbsUpDown, BaseTextModel):
     def __init__(self, *args, **kwargs):
         super(ThumbsUpDownEs, self).__init__(lang=_SPANISH, stemming=False)
 
+    def fit(self, X):
+        return self
+
     def tonp(self, X):
         """Convert list to np
 
@@ -675,6 +678,9 @@ class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
 
     def __init__(self, *args, **kwargs):
         super(ThumbsUpDownEn, self).__init__(lang=_ENGLISH, stemming=False)
+
+    def fit(self, X):
+        return self        
 
     def tonp(self, X):
         """Convert list to np
@@ -693,6 +699,9 @@ class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
     def __init__(self, *args, **kwargs):
         super(ThumbsUpDownAr, self).__init__(lang=_ARABIC, stemming=False)
 
+    def fit(self, X):
+        return self        
+
     def tonp(self, X):
         """Convert list to np
 
@@ -710,6 +719,9 @@ class Vec(BaseTextModel):
     def __getitem__(self, x):
         return x['vec']
 
+    def fit(self, X):
+        return self
+
     def tonp(self, X):
         """Convert list to np
 
@@ -722,7 +734,7 @@ class Vec(BaseTextModel):
 
 
 class SemanticToken(BaseTextModel):
-    def __init__(self, corpus, threshold=0.001, token_min_filter=0.001,
+    def __init__(self, corpus=None, threshold=0.001, token_min_filter=0.001,
                  token_list=[-2, -1],
                  num_option='delete', usr_option='delete',
                  url_option='delete', emo_option='delete', **kwargs):
@@ -734,7 +746,12 @@ class SemanticToken(BaseTextModel):
                                     url_option=url_option, emo_option=emo_option,
                                     **kwargs)
         self._threshold = threshold
-        self.init(corpus)
+        if corpus is not None:
+            self.fit(corpus)
+
+    def fit(self, X):
+        self.init(X)
+        return self
 
     @property
     def threshold(self):
@@ -877,14 +894,14 @@ class SemanticToken(BaseTextModel):
 
 
 class SemanticTokenEs(SemanticToken):
-    def __init__(self, corpus, stopwords='delete', **kwargs):
-        super(SemanticTokenEs, self).__init__(corpus, stopwords=stopwords,
+    def __init__(self, corpus=None, stopwords='delete', **kwargs):
+        super(SemanticTokenEs, self).__init__(corpus=corpus, stopwords=stopwords,
                                               lang='es', **kwargs)
 
 
 class SemanticTokenEn(SemanticToken):
-    def __init__(self, corpus, del_dup=False, stopwords='delete', **kwargs):
-        super(SemanticTokenEn, self).__init__(corpus, del_dup=del_dup,
+    def __init__(self, corpus=None, del_dup=False, stopwords='delete', **kwargs):
+        super(SemanticTokenEn, self).__init__(corpus=corpus, del_dup=del_dup,
                                               stopwords=stopwords,
                                               lang='en', **kwargs)
 
@@ -903,8 +920,8 @@ class SemanticTokenEn(SemanticToken):
 
 
 class SemanticTokenAr(SemanticToken):
-    def __init__(self, corpus, stopwords='delete', **kwargs):
-        super(SemanticTokenAr, self).__init__(corpus, stopwords=stopwords,
+    def __init__(self, corpus=None, stopwords='delete', **kwargs):
+        super(SemanticTokenAr, self).__init__(corpus=corpus, stopwords=stopwords,
                                               lang='ar', **kwargs)
 
     @property
