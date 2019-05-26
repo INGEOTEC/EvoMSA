@@ -177,7 +177,7 @@ class Identity(BaseTextModel, BaseClassifier):
         return self.decision_function(X)
 
     def transform(self, X):
-        return np.array([self.__getitem__(x) for x in X])
+        return [self.__getitem__(x) for x in X]
 
 
 # class B4MSATextModel(TextModel, BaseTextModel):
