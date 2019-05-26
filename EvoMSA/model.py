@@ -56,28 +56,28 @@ class BaseTextModel(object):
             self._num_terms = None
         return None
 
-    def tonp(self, X):
-        """Sparse representation to sparce matrix
+    # def tonp(self, X):
+    #     """Sparse representation to sparce matrix
 
-        :param X: Sparse representation of matrix
-        :type X: list
-        :rtype: csr_matrix
-        """
+    #     :param X: Sparse representation of matrix
+    #     :type X: list
+    #     :rtype: csr_matrix
+    #     """
 
-        data = []
-        row = []
-        col = []
-        for r, x in enumerate(X):
-            cc = [_[0] for _ in x if np.isfinite(_[1])]
-            col += cc
-            data += [_[1] for _ in x if np.isfinite(_[1])]
-            _ = [r] * len(cc)
-            row += _
-        if self.num_terms is None:
-            _ = csr_matrix((data, (row, col)))
-            self._num_terms = _.shape[1]
-            return _
-        return csr_matrix((data, (row, col)), shape=(len(X), self.num_terms))
+    #     data = []
+    #     row = []
+    #     col = []
+    #     for r, x in enumerate(X):
+    #         cc = [_[0] for _ in x if np.isfinite(_[1])]
+    #         col += cc
+    #         data += [_[1] for _ in x if np.isfinite(_[1])]
+    #         _ = [r] * len(cc)
+    #         row += _
+    #     if self.num_terms is None:
+    #         _ = csr_matrix((data, (row, col)))
+    #         self._num_terms = _.shape[1]
+    #         return _
+    #     return csr_matrix((data, (row, col)), shape=(len(X), self.num_terms))
 
     def __getitem__(self, x):
         pass
@@ -157,15 +157,9 @@ class EvoMSAWrapper(BaseTextModel):
     def transform(self, X):
         return self._evomsa.predict_proba(X)
 
-    def tonp(self, X):
-        return X
-
 
 class Identity(BaseTextModel, BaseClassifier):
     """Identity function used as either text model or classifier or regressor"""
-
-    def tonp(self, x):
-        return x
 
     def __getitem__(self, x):
         return x
@@ -228,9 +222,6 @@ class HA(BaseTextModel):
         self._cl.fit(self._tm.transform(X), y)
         return self
 
-    def tonp(self, X):
-        return X
-
     def transform(self, X):
         res = self._cl.decision_function(self._tm.transform(X))
         if res.ndim == 1:
@@ -259,9 +250,6 @@ class Projection(BaseTextModel):
         assert docs is None
         self._textModel = textModel
         self._projection = projection
-
-    def tonp(self, X):
-        return X
 
     def transform(self, X):
         return np.dot(self._textModel.transform(X), self._projection)
@@ -328,10 +316,6 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
 
     def predict_proba(self, X):
         return self.decision_function(X)
-
-    def tonp(self, x):
-        """Identity tonp"""
-        return x
 
     def transform(self, X):
         output = []
@@ -520,6 +504,23 @@ class Corpus(BaseTextModel):
         else:
             return self._textModel.tokenize(text)
 
+    def transform(self, texts):
+        """Convert test into a vector
+
+        :param texts: List of text to be transformed
+        :type text: list
+
+        :rtype: list
+
+        Example:
+
+        >>> from microtc.textmodel import TextModel
+        >>> corpus = ['buenos dias catedras', 'catedras conacyt']
+        >>> textmodel = TextModel().fit(corpus)
+        >>> X = textmodel.transform(corpus)
+        """
+        return self._textModel.tonp([self.__getitem__(x) for x in texts])        
+
     def __getitem__(self, d):
         tokens = []
         for t in self.tokenize(d):
@@ -662,16 +663,6 @@ class ThumbsUpDownEs(ThumbsUpDown, BaseTextModel):
     def fit(self, X):
         return self
 
-    def tonp(self, X):
-        """Convert list to np
-
-        :param X: list of tuples
-        :type X: list
-        :rtype: np.array
-        """
-
-        return np.array(X)
-
 
 class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
     """English thumbs up and down model"""
@@ -680,17 +671,7 @@ class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
         super(ThumbsUpDownEn, self).__init__(lang=_ENGLISH, stemming=False)
 
     def fit(self, X):
-        return self        
-
-    def tonp(self, X):
-        """Convert list to np
-
-        :param X: list of tuples
-        :type X: list
-        :rtype: np.array
-        """
-
-        return np.array(X)
+        return self
 
 
 class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
@@ -700,17 +681,7 @@ class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
         super(ThumbsUpDownAr, self).__init__(lang=_ARABIC, stemming=False)
 
     def fit(self, X):
-        return self        
-
-    def tonp(self, X):
-        """Convert list to np
-
-        :param X: list of tuples
-        :type X: list
-        :rtype: np.array
-        """
-
-        return np.array(X)
+        return self
 
 
 class Vec(BaseTextModel):
@@ -721,16 +692,6 @@ class Vec(BaseTextModel):
 
     def fit(self, X):
         return self
-
-    def tonp(self, X):
-        """Convert list to np
-
-        :param X: list of tuples
-        :type X: list
-        :rtype: np.array
-        """
-
-        return np.array(X)
 
 
 class SemanticToken(BaseTextModel):
@@ -783,7 +744,6 @@ class SemanticToken(BaseTextModel):
         self._weight = np.ones(len(words))
         # key = self.semantic_space._text
         X = self.semantic_space.transform([str(x) for x in words])
-        # X = self.semantic_space.tonp(_).toarray()
         self._kdtree = KDTree(X, metric='manhattan')
         w = self.entropy(self.transform(corpus), corpus, ntokens=X.shape[0])
         w = np.where(w > self.threshold)[0]
@@ -877,7 +837,6 @@ class SemanticToken(BaseTextModel):
         tokens = [x for x in Counter(tokens).keys()]
         # key = self.semantic_space._text
         xx = self.semantic_space.transform(tokens)
-        # xx = self.semantic_space.tonp(_).toarray()
         m = {t: (ind[0], w[ind[0]] / (1 + d[0])) for t, d, ind in zip(tokens, *kdtree.query(xx))}
         Xt = []
         for x in tokens_doc:

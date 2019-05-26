@@ -30,7 +30,7 @@ def test_bernulli():
     from EvoMSA.model import Corpus, Bernulli
     from sklearn.preprocessing import LabelEncoder
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
-    X = c.tonp([c[x['text']] for x in tweet_iterator(TWEETS)])
+    X = c.transform([x['text'] for x in tweet_iterator(TWEETS)])
     y = [x['klass'] for x in tweet_iterator(TWEETS)]
     le = LabelEncoder().fit(y)
     y = le.transform(y)
@@ -46,7 +46,7 @@ def test_multinomial():
     from EvoMSA.model import Corpus, Multinomial
     from sklearn.preprocessing import LabelEncoder
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
-    X = c.tonp([c[x['text']] for x in tweet_iterator(TWEETS)])
+    X = c.transform([x['text'] for x in tweet_iterator(TWEETS)])
     y = [x['klass'] for x in tweet_iterator(TWEETS)]
     le = LabelEncoder().fit(y)
     y = le.transform(y)
@@ -131,16 +131,6 @@ def test_EmoSpaceAr():
     assert cls.model_fname() == 'emo-v%s-ar.evoemo' % EvoMSA.__version__[:3]
 
 
-def test_tonp():
-    from microtc.textmodel import TextModel
-    from EvoMSA.model import BaseTextModel
-    c = TextModel().fit([x for x in tweet_iterator(TWEETS)])
-    X = [c[x] for x in tweet_iterator(TWEETS)]
-    d = BaseTextModel()
-    Xp = d.tonp(X)
-    assert Xp.shape[0] == len(X) and Xp.shape[1] == d.num_terms
-
-
 def test_ThumbsUpDownEs():
     from EvoMSA.model import ThumbsUpDownEs
     thumbs = ThumbsUpDownEs()
@@ -167,7 +157,7 @@ def test_OutputClassifier():
     from EvoMSA.model import Corpus, OutputClassifier
     from sklearn.preprocessing import LabelEncoder
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
-    X = c.tonp([c[x['text']] for x in tweet_iterator(TWEETS)])
+    X = c.transform([x['text'] for x in tweet_iterator(TWEETS)])
     y = [x['klass'] for x in tweet_iterator(TWEETS)]
     le = LabelEncoder().fit(y)
     y = le.transform(y)

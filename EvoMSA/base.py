@@ -50,7 +50,7 @@ def kfold_decision_function(args):
 def transform(args):
     k, m, t, X = args
     try:
-        x = t.tonp(t.transform(X))
+        x = t.transform(X)
     except AttributeError:
         x = t.tonp([t[_] for _ in X])
     df = m.decision_function(x)
@@ -61,7 +61,7 @@ def transform(args):
 def vector_space(args):
     k, t, X = args
     try:
-        res = t.tonp(t.transform(X))
+        res = t.transform(X)
     except AttributeError:
         res = t.tonp([t[_] for _ in X])
     return k, res
@@ -391,7 +391,7 @@ class EvoMSA(object):
             for t_cl, t in zip(self.models, self._textModel):
                 cl = t_cl[1]
                 try:
-                    x = t.tonp(t.transform(X))
+                    x = t.transform(X)
                 except AttributeError:
                     x = t.tonp([t[_] for _ in X])
                 d = self.kfold_decision_function(cl, x, y)
