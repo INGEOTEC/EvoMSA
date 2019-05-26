@@ -176,6 +176,9 @@ class Identity(BaseTextModel, BaseClassifier):
     def predict_proba(self, X):
         return self.decision_function(X)
 
+    def transform(self, X):
+        return np.array([self.__getitem__(x) for x in X])
+
 
 # class B4MSATextModel(TextModel, BaseTextModel):
 #     """Text model based on B4MSA"""
@@ -519,7 +522,7 @@ class Corpus(BaseTextModel):
         >>> textmodel = TextModel().fit(corpus)
         >>> X = textmodel.transform(corpus)
         """
-        return self._textModel.tonp([self.__getitem__(x) for x in texts])        
+        return self._textModel.tonp([self.__getitem__(x) for x in texts])
 
     def __getitem__(self, d):
         tokens = []
