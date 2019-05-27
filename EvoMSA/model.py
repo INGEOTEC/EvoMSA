@@ -85,6 +85,9 @@ class BaseTextModel(object):
     def tokenize(self, text):
         pass
 
+    def transform(self, X):
+        return np.array([self.__getitem__(x) for x in X])
+
 
 class BaseClassifier(object):
     """Base class for the classifier"""
@@ -175,9 +178,6 @@ class Identity(BaseTextModel, BaseClassifier):
 
     def predict_proba(self, X):
         return self.decision_function(X)
-
-    def transform(self, X):
-        return [self.__getitem__(x) for x in X]
 
 
 # class B4MSATextModel(TextModel, BaseTextModel):

@@ -270,7 +270,7 @@ class EvoMSA(object):
             else:
                 tm = Identity
                 cl = self.get_class(m)
-            assert isinstance(tm, str) or issubclass(tm, BaseTextModel) or issubclass(tm, TextModel)
+            assert isinstance(tm, str) or (hasattr(tm, 'transform') and hasattr(tm, 'fit'))
             # assert issubclass(cl, BaseClassifier)
             self._models.append([tm, cl])
 
