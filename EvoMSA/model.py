@@ -43,42 +43,6 @@ class BaseTextModel(object):
 
         pass
 
-    @property
-    def num_terms(self):
-        """Dimension which is the number of terms of the corpus
-
-        :rtype: int
-        """
-
-        try:
-            return self._num_terms
-        except AttributeError:
-            self._num_terms = None
-        return None
-
-    # def tonp(self, X):
-    #     """Sparse representation to sparce matrix
-
-    #     :param X: Sparse representation of matrix
-    #     :type X: list
-    #     :rtype: csr_matrix
-    #     """
-
-    #     data = []
-    #     row = []
-    #     col = []
-    #     for r, x in enumerate(X):
-    #         cc = [_[0] for _ in x if np.isfinite(_[1])]
-    #         col += cc
-    #         data += [_[1] for _ in x if np.isfinite(_[1])]
-    #         _ = [r] * len(cc)
-    #         row += _
-    #     if self.num_terms is None:
-    #         _ = csr_matrix((data, (row, col)))
-    #         self._num_terms = _.shape[1]
-    #         return _
-    #     return csr_matrix((data, (row, col)), shape=(len(X), self.num_terms))
-
     def __getitem__(self, x):
         pass
 
@@ -180,40 +144,6 @@ class Identity(BaseTextModel, BaseClassifier):
         return self.decision_function(X)
 
 
-# class B4MSATextModel(TextModel, BaseTextModel):
-#     """Text model based on B4MSA"""
-
-#     def __init__(self, *args, **kwargs):
-#         self._text = os.getenv('TEXT', default='text')
-#         TextModel.__init__(self, *args, **kwargs)
-
-#     def get_text(self, text):
-#         """Return self._text key from text
-
-#         :param text: Text
-#         :type text: dict
-#         """
-
-#         return text[self._text]
-
-#     def tokenize(self, text):
-#         """Tokenize a text
-
-#         :param text: Text
-#         :type text: dict or str
-#         """
-
-#         if isinstance(text, dict):
-#             text = self.get_text(text)
-#         if isinstance(text, (list, tuple)):
-#             tokens = []
-#             for _text in text:
-#                 tokens.extend(TextModel.tokenize(self, _text))
-#             return tokens
-#         else:
-#             return TextModel.tokenize(self, text)
-
-
 class HA(BaseTextModel):
     """Wrapper of b4msa.textmodel.TextModel and LinearSVC"""
     def __init__(self, **kwargs):
@@ -303,7 +233,7 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
             pass
         return r
 
-    def fit(self, X, y):
+    def fit(self, X, y=None):
         return self
 
     def get_text(self, text):
