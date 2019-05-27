@@ -27,7 +27,7 @@ with open('README.rst') as fpt:
 setup(
     name="EvoMSA",
     description="""Sentiment Analysis System based on B4MSA and EvoDAG""",
-    long_description=long_desc,    
+    long_description=long_desc,
     version=version,
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -52,7 +52,7 @@ setup(
     package_data={'EvoMSA/conf': ['default_parameters.json'],
                   'EvoMSA/tests': ['tweets.json'],
                   '': ['*.pxd']},
-    install_requires=['B4MSA', 'EvoDAG'],
+    install_requires=['B4MSA', 'ConceptModelling', 'EvoDAG'],
     entry_points={
         'console_scripts': ['EvoMSA-train=EvoMSA.command_line:train',
                             'EvoMSA-predict=EvoMSA.command_line:predict',
