@@ -67,6 +67,8 @@ class LabelEncoderWrapper(object):
 
 
 def download(model_fname):
+    if os.path.isfile(model_fname):
+        return model_fname
     dirname = os.path.join(os.path.dirname(__file__), 'models')
     if not os.path.isdir(dirname):
         os.mkdir(dirname)

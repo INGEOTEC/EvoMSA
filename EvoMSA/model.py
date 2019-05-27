@@ -32,6 +32,17 @@ class BaseTextModel(object):
     def __init__(self, corpus=None, **kwargs):
         pass
 
+    def fit(self, X):
+        """
+        Train the model
+
+        :param X: Corpus
+        :type X: list
+        :rtype: instance
+        """
+
+        pass
+
     @property
     def num_terms(self):
         """Dimension which is the number of terms of the corpus
@@ -45,34 +56,37 @@ class BaseTextModel(object):
             self._num_terms = None
         return None
 
-    def tonp(self, X):
-        """Sparse representation to sparce matrix
+    # def tonp(self, X):
+    #     """Sparse representation to sparce matrix
 
-        :param X: Sparse representation of matrix
-        :type X: list
-        :rtype: csr_matrix
-        """
+    #     :param X: Sparse representation of matrix
+    #     :type X: list
+    #     :rtype: csr_matrix
+    #     """
 
-        data = []
-        row = []
-        col = []
-        for r, x in enumerate(X):
-            cc = [_[0] for _ in x if np.isfinite(_[1])]
-            col += cc
-            data += [_[1] for _ in x if np.isfinite(_[1])]
-            _ = [r] * len(cc)
-            row += _
-        if self.num_terms is None:
-            _ = csr_matrix((data, (row, col)))
-            self._num_terms = _.shape[1]
-            return _
-        return csr_matrix((data, (row, col)), shape=(len(X), self.num_terms))
+    #     data = []
+    #     row = []
+    #     col = []
+    #     for r, x in enumerate(X):
+    #         cc = [_[0] for _ in x if np.isfinite(_[1])]
+    #         col += cc
+    #         data += [_[1] for _ in x if np.isfinite(_[1])]
+    #         _ = [r] * len(cc)
+    #         row += _
+    #     if self.num_terms is None:
+    #         _ = csr_matrix((data, (row, col)))
+    #         self._num_terms = _.shape[1]
+    #         return _
+    #     return csr_matrix((data, (row, col)), shape=(len(X), self.num_terms))
 
     def __getitem__(self, x):
         pass
 
     def tokenize(self, text):
         pass
+
+    def transform(self, X):
+        return np.array([self.__getitem__(x) for x in X])
 
 
 class BaseClassifier(object):
@@ -82,8 +96,8 @@ class BaseClassifier(object):
         pass
 
     def fit(self, X, y):
-        """Method to train the classifier
 
+        """Method to train the classifier
         :param X: Independent variable
         :type X: np.array or csc_matrix
         :param y: Dependent variable
@@ -137,14 +151,24 @@ class OutputClassifier(object):
         return hy
 
 
+class EvoMSAWrapper(BaseTextModel):
+    def __init__(self, evomsa=None):
+        assert evomsa is not None
+        evomsa.n_jobs = 1
+        self._evomsa = evomsa
+
+    def transform(self, X):
+        return self._evomsa.predict_proba(X)
+
+
 class Identity(BaseTextModel, BaseClassifier):
     """Identity function used as either text model or classifier or regressor"""
 
-    def tonp(self, x):
-        return x
-
     def __getitem__(self, x):
         return x
+
+    def fit(self, X, y=None):
+        return self
 
     def decision_function(self, X):
         try:
@@ -156,38 +180,38 @@ class Identity(BaseTextModel, BaseClassifier):
         return self.decision_function(X)
 
 
-class B4MSATextModel(TextModel, BaseTextModel):
-    """Text model based on B4MSA"""
+# class B4MSATextModel(TextModel, BaseTextModel):
+#     """Text model based on B4MSA"""
 
-    def __init__(self, *args, **kwargs):
-        self._text = os.getenv('TEXT', default='text')
-        TextModel.__init__(self, *args, **kwargs)
+#     def __init__(self, *args, **kwargs):
+#         self._text = os.getenv('TEXT', default='text')
+#         TextModel.__init__(self, *args, **kwargs)
 
-    def get_text(self, text):
-        """Return self._text key from text
+#     def get_text(self, text):
+#         """Return self._text key from text
 
-        :param text: Text
-        :type text: dict
-        """
+#         :param text: Text
+#         :type text: dict
+#         """
 
-        return text[self._text]
+#         return text[self._text]
 
-    def tokenize(self, text):
-        """Tokenize a text
+#     def tokenize(self, text):
+#         """Tokenize a text
 
-        :param text: Text
-        :type text: dict or str
-        """
+#         :param text: Text
+#         :type text: dict or str
+#         """
 
-        if isinstance(text, dict):
-            text = self.get_text(text)
-        if isinstance(text, (list, tuple)):
-            tokens = []
-            for _text in text:
-                tokens.extend(TextModel.tokenize(self, _text))
-            return tokens
-        else:
-            return TextModel.tokenize(self, text)
+#         if isinstance(text, dict):
+#             text = self.get_text(text)
+#         if isinstance(text, (list, tuple)):
+#             tokens = []
+#             for _text in text:
+#                 tokens.extend(TextModel.tokenize(self, _text))
+#             return tokens
+#         else:
+#             return TextModel.tokenize(self, text)
 
 
 class HA(BaseTextModel):
@@ -200,9 +224,6 @@ class HA(BaseTextModel):
         self._tm.fit(X)
         self._cl.fit(self._tm.transform(X), y)
         return self
-
-    def tonp(self, X):
-        return X
 
     def transform(self, X):
         res = self._cl.decision_function(self._tm.transform(X))
@@ -225,6 +246,19 @@ class HA(BaseTextModel):
         m = cls(**kwargs)
         m.fit(X, [x['klass'] for x in X])
         save_model(m, output)
+
+
+class Projection(BaseTextModel):
+    def __init__(self, docs=None, textModel=None, projection=None):
+        assert docs is None
+        self._textModel = textModel
+        self._projection = projection
+
+    def transform(self, X):
+        return np.dot(self._textModel.transform(X), self._projection)
+
+    def __getitem__(self, x):
+        return np.dot(self._textModel[x], self._projection)
 
 
 class LabeledDataSet(BaseTextModel, BaseClassifier):
@@ -270,7 +304,7 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
         return r
 
     def fit(self, X, y):
-        pass
+        return self
 
     def get_text(self, text):
         key = self._text
@@ -285,10 +319,6 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
 
     def predict_proba(self, X):
         return self.decision_function(X)
-
-    def tonp(self, x):
-        """Identity tonp"""
-        return x
 
     def transform(self, X):
         output = []
@@ -445,21 +475,22 @@ class EmoSpaceAr(EmoSpace):
 class Corpus(BaseTextModel):
     """Text model using only words"""
 
-    def __init__(self, corpus, **kwargs):
+    def __init__(self, corpus=None, **kwargs):
         self._text = os.getenv('TEXT', default='text')
         self._m = {}
         self._num_terms = 0
         self._training = True
         self._textModel = TextModel([''], token_list=[-1])
-        self.fit(corpus)
+        if corpus is not None:
+            self.fit(corpus)
 
     def get_text(self, text):
         return text[self._text]
 
     def fit(self, c):
-        r = [self.__getitem__(x) for x in c]
+        [self.__getitem__(x) for x in c]
         self._training = False
-        return r
+        return self
 
     @property
     def num_terms(self):
@@ -475,6 +506,23 @@ class Corpus(BaseTextModel):
             return tokens
         else:
             return self._textModel.tokenize(text)
+
+    def transform(self, texts):
+        """Convert test into a vector
+
+        :param texts: List of text to be transformed
+        :type text: list
+
+        :rtype: list
+
+        Example:
+
+        >>> from microtc.textmodel import TextModel
+        >>> corpus = ['buenos dias catedras', 'catedras conacyt']
+        >>> textmodel = TextModel().fit(corpus)
+        >>> X = textmodel.transform(corpus)
+        """
+        return self._textModel.tonp([self.__getitem__(x) for x in texts])
 
     def __getitem__(self, d):
         tokens = []
@@ -615,15 +663,8 @@ class ThumbsUpDownEs(ThumbsUpDown, BaseTextModel):
     def __init__(self, *args, **kwargs):
         super(ThumbsUpDownEs, self).__init__(lang=_SPANISH, stemming=False)
 
-    def tonp(self, X):
-        """Convert list to np
-
-        :param X: list of tuples
-        :type X: list
-        :rtype: np.array
-        """
-
-        return np.array(X)
+    def fit(self, X):
+        return self
 
 
 class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
@@ -632,15 +673,8 @@ class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
     def __init__(self, *args, **kwargs):
         super(ThumbsUpDownEn, self).__init__(lang=_ENGLISH, stemming=False)
 
-    def tonp(self, X):
-        """Convert list to np
-
-        :param X: list of tuples
-        :type X: list
-        :rtype: np.array
-        """
-
-        return np.array(X)
+    def fit(self, X):
+        return self
 
 
 class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
@@ -649,15 +683,8 @@ class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
     def __init__(self, *args, **kwargs):
         super(ThumbsUpDownAr, self).__init__(lang=_ARABIC, stemming=False)
 
-    def tonp(self, X):
-        """Convert list to np
-
-        :param X: list of tuples
-        :type X: list
-        :rtype: np.array
-        """
-
-        return np.array(X)
+    def fit(self, X):
+        return self
 
 
 class Vec(BaseTextModel):
@@ -666,19 +693,12 @@ class Vec(BaseTextModel):
     def __getitem__(self, x):
         return x['vec']
 
-    def tonp(self, X):
-        """Convert list to np
-
-        :param X: list of tuples
-        :type X: list
-        :rtype: np.array
-        """
-
-        return np.array(X)
+    def fit(self, X):
+        return self
 
 
 class SemanticToken(BaseTextModel):
-    def __init__(self, corpus, threshold=0.001, token_min_filter=0.001,
+    def __init__(self, corpus=None, threshold=0.001, token_min_filter=0.001,
                  token_list=[-2, -1],
                  num_option='delete', usr_option='delete',
                  url_option='delete', emo_option='delete', **kwargs):
@@ -690,7 +710,12 @@ class SemanticToken(BaseTextModel):
                                     url_option=url_option, emo_option=emo_option,
                                     **kwargs)
         self._threshold = threshold
-        self.init(corpus)
+        if corpus is not None:
+            self.fit(corpus)
+
+    def fit(self, X):
+        self.init(X)
+        return self
 
     @property
     def threshold(self):
@@ -722,7 +747,6 @@ class SemanticToken(BaseTextModel):
         self._weight = np.ones(len(words))
         # key = self.semantic_space._text
         X = self.semantic_space.transform([str(x) for x in words])
-        # X = self.semantic_space.tonp(_).toarray()
         self._kdtree = KDTree(X, metric='manhattan')
         w = self.entropy(self.transform(corpus), corpus, ntokens=X.shape[0])
         w = np.where(w > self.threshold)[0]
@@ -816,7 +840,6 @@ class SemanticToken(BaseTextModel):
         tokens = [x for x in Counter(tokens).keys()]
         # key = self.semantic_space._text
         xx = self.semantic_space.transform(tokens)
-        # xx = self.semantic_space.tonp(_).toarray()
         m = {t: (ind[0], w[ind[0]] / (1 + d[0])) for t, d, ind in zip(tokens, *kdtree.query(xx))}
         Xt = []
         for x in tokens_doc:
@@ -833,14 +856,14 @@ class SemanticToken(BaseTextModel):
 
 
 class SemanticTokenEs(SemanticToken):
-    def __init__(self, corpus, stopwords='delete', **kwargs):
-        super(SemanticTokenEs, self).__init__(corpus, stopwords=stopwords,
+    def __init__(self, corpus=None, stopwords='delete', **kwargs):
+        super(SemanticTokenEs, self).__init__(corpus=corpus, stopwords=stopwords,
                                               lang='es', **kwargs)
 
 
 class SemanticTokenEn(SemanticToken):
-    def __init__(self, corpus, del_dup=False, stopwords='delete', **kwargs):
-        super(SemanticTokenEn, self).__init__(corpus, del_dup=del_dup,
+    def __init__(self, corpus=None, del_dup=False, stopwords='delete', **kwargs):
+        super(SemanticTokenEn, self).__init__(corpus=corpus, del_dup=del_dup,
                                               stopwords=stopwords,
                                               lang='en', **kwargs)
 
@@ -859,8 +882,8 @@ class SemanticTokenEn(SemanticToken):
 
 
 class SemanticTokenAr(SemanticToken):
-    def __init__(self, corpus, stopwords='delete', **kwargs):
-        super(SemanticTokenAr, self).__init__(corpus, stopwords=stopwords,
+    def __init__(self, corpus=None, stopwords='delete', **kwargs):
+        super(SemanticTokenAr, self).__init__(corpus=corpus, stopwords=stopwords,
                                               lang='ar', **kwargs)
 
     @property

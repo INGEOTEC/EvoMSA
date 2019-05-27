@@ -13,6 +13,7 @@
 # limitations under the License.
 import os
 from microtc.utils import tweet_iterator
+from test_base import StoreDelete
 TWEETS = os.path.join(os.path.dirname(__file__), 'tweets.json')
 
 
@@ -29,7 +30,7 @@ def test_bernulli():
     from EvoMSA.model import Corpus, Bernulli
     from sklearn.preprocessing import LabelEncoder
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
-    X = c.tonp([c[x['text']] for x in tweet_iterator(TWEETS)])
+    X = c.transform([x['text'] for x in tweet_iterator(TWEETS)])
     y = [x['klass'] for x in tweet_iterator(TWEETS)]
     le = LabelEncoder().fit(y)
     y = le.transform(y)
@@ -45,7 +46,7 @@ def test_multinomial():
     from EvoMSA.model import Corpus, Multinomial
     from sklearn.preprocessing import LabelEncoder
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
-    X = c.tonp([c[x['text']] for x in tweet_iterator(TWEETS)])
+    X = c.transform([x['text'] for x in tweet_iterator(TWEETS)])
     y = [x['klass'] for x in tweet_iterator(TWEETS)]
     le = LabelEncoder().fit(y)
     y = le.transform(y)
@@ -130,14 +131,6 @@ def test_EmoSpaceAr():
     assert cls.model_fname() == 'emo-v%s-ar.evoemo' % EvoMSA.__version__[:3]
 
 
-def test_tonp():
-    from EvoMSA.model import B4MSATextModel
-    c = B4MSATextModel([x for x in tweet_iterator(TWEETS)])
-    X = [c[x] for x in tweet_iterator(TWEETS)]
-    Xp = c.tonp(X)
-    assert Xp.shape[0] == len(X) and Xp.shape[1] == c.num_terms
-
-
 def test_ThumbsUpDownEs():
     from EvoMSA.model import ThumbsUpDownEs
     thumbs = ThumbsUpDownEs()
@@ -164,7 +157,7 @@ def test_OutputClassifier():
     from EvoMSA.model import Corpus, OutputClassifier
     from sklearn.preprocessing import LabelEncoder
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
-    X = c.tonp([c[x['text']] for x in tweet_iterator(TWEETS)])
+    X = c.transform([x['text'] for x in tweet_iterator(TWEETS)])
     y = [x['klass'] for x in tweet_iterator(TWEETS)]
     le = LabelEncoder().fit(y)
     y = le.transform(y)
@@ -298,32 +291,19 @@ def test_LabeledDataSet():
     assert os.path.isfile('lb.model')
     os.unlink('lb.model')
 
-# def test_emo_array():
-#     import array
-#     import numpy as np
-#     from EvoMSA.model import EmoSpace
-#     from EvoMSA.cython_utils import TextModelPredict
-#     import math
-#     emo = EmoSpace(model_cl=EmoSpace._create_space(TWEETS))
-#     tm = emo._textModel
-#     intercept = array.array('d', [x.intercept_[0] for x in emo._classifiers])
-#     coef = np.vstack([x.coef_[0] for x in emo._classifiers])
-#     coef = array.array('d', coef.T.flatten())
-#     ee = TextModelPredict(tm, coef, array.array('d', intercept))
-#     output = []
-#     ee.transform(['buenos dias', 'cabron'], output)
-#     for k, v in tm['buenos dias']:
-#         init = len(intercept) * k
-#         for j in range(len(intercept)):
-#             intercept[j] += coef[init + j] * v
-#     for a, b in zip(output[0], intercept):
-#         print(a, b, a-b)
-#         assert math.fabs(a - b) < 1e-6
-#     for a, b in zip(output[1], intercept):
-#         print(a, b, a-b)
-#         assert math.fabs(a - b) > 1e-6
-#     print('***')
-#     for a, b in zip(ee['buenos dias'], intercept):
-#         print(a, b, a-b)
-#         assert math.fabs(a - b) < 1e-6
 
+def test_projection():
+    from EvoMSA.model import LabeledDataSet
+    from EvoMSA.model import Projection
+    from EvoMSA.utils import download
+    from microtc.utils import load_model, tweet_iterator
+    import numpy as np
+    D = [x for x in tweet_iterator(TWEETS)]
+    with StoreDelete(LabeledDataSet.create_space, TWEETS, 'lb.model') as sd:
+        model = load_model(download('lb.model'))
+        pr = np.diag([1, 1, 1, 1])
+        projection = Projection(textModel=model, projection=pr)
+        m = projection.transform(D)
+        m1 = model.transform(D)
+        print(m == m1)
+        assert np.all(m == m1)

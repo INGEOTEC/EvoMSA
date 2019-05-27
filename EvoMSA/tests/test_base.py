@@ -17,6 +17,28 @@ import os
 TWEETS = os.path.join(os.path.dirname(__file__), 'tweets.json')
 
 
+class StoreDelete(object):
+    def __init__(self, func, data, output):
+        self._func = func
+        self._data = data
+        self._output = output
+        self._delete = False
+        
+    def __enter__(self):
+        dirname = os.path.join(get_dirname(), 'models')
+        if not os.path.isdir(dirname):
+            os.mkdir(dirname)
+        self._output = os.path.join(dirname, self._output)
+        if not os.path.isfile(self._output):
+            self._func(self._data, output=self._output)
+            self._delete = True
+        return self
+    
+    def __exit__(self, *args):
+        if self._delete:
+            os.unlink(self._output)
+
+
 def get_data():
     D = [[x['text'], x['klass']] for x in tweet_iterator(TWEETS)]
     X = [x[0] for x in D]
@@ -164,19 +186,6 @@ def test_binary_labels_json():
     print(_)
 
 
-def test_EvoMSA_exogenous_model():
-    X, y = get_data()
-    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10),
-                   n_jobs=2).fit(X, y)
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
-                                  n_estimators=5),
-                 n_jobs=2)
-    evo.exogenous_model = model
-    evo.fit(X, y)
-    D = evo.transform(X)
-    assert D.shape[1] == 8
-
-
 def test_EvoMSA_model():
     X, y = get_data()
     model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
@@ -305,26 +314,20 @@ def get_dirname():
 def test_EvoMSA_regression():
     from EvoMSA.base import LabelEncoderWrapper
     from EvoMSA.model import EmoSpaceEs
-    import os
-    dirname = os.path.join(get_dirname(), 'models')
-    if not os.path.isdir(dirname):
-        os.mkdir(dirname)
-    output = os.path.join(dirname, EmoSpaceEs.model_fname())
-    if not os.path.isfile(output):
-        EmoSpaceEs.create_space(TWEETS, output=output)
-    X, y = get_data()
-    X = [dict(text=x) for x in X]
-    l = LabelEncoderWrapper().fit(y)
-    y = l.transform(y) - 1.5
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                  time_limit=5, n_estimators=2),
-                 classifier=False,
-                 models=[['EvoMSA.model.Identity', 'EvoMSA.model.EmoSpaceEs']], TR=False,
-                 n_jobs=1).fit(X, y)
-    assert evo
-    df = evo.decision_function(X)
-    print(df.shape, df.ndim)
-    assert df.shape[0] == len(X) and df.ndim == 1
+    with StoreDelete(EmoSpaceEs.create_space, TWEETS, EmoSpaceEs.model_fname()) as st:
+        X, y = get_data()
+        X = [dict(text=x) for x in X]
+        l = LabelEncoderWrapper().fit(y)
+        y = l.transform(y) - 1.5
+        evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                      time_limit=5, n_estimators=2),
+                     classifier=False,
+                     models=[['EvoMSA.model.Identity', 'EvoMSA.model.EmoSpaceEs']], TR=False,
+                     n_jobs=1).fit(X, y)
+        assert evo
+        df = evo.decision_function(X)
+        print(df.shape, df.ndim)
+        assert df.shape[0] == len(X) and df.ndim == 1
 
 
 def test_EvoMSA_identity():
@@ -395,22 +398,16 @@ def test_EvoMSA_param_HA():
     from b4msa.lang_dependency import get_lang
     import os
     X, y = get_data()
-    dirname = os.path.join(get_dirname(), 'models')
-    if not os.path.isdir(dirname):
-        os.mkdir(dirname)
-    for lang in ['ar', 'en', 'es']:
-        l = get_lang(lang)
-        model_fname = "%s.evoha" % l
-        HA.create_space(TWEETS, os.path.join(dirname, model_fname))
     for cl, lang in zip([ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs],
                         ['ar', 'en', 'es']):
-        model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                        n_estimators=3),
-                       TR=False, lang=lang, HA=True, n_jobs=2)
-        assert len(model.models) == 1
-        print(model.models[0][0])
-        assert os.path.isfile(model.models[0][0])
-        
+        with StoreDelete(HA.create_space, TWEETS, "%s.evoha" % get_lang(lang)) as sd:
+            model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                            n_estimators=3),
+                           TR=False, lang=lang, HA=True, n_jobs=2)
+            assert len(model.models) == 1
+            print(model.models[0][0])
+            assert os.path.isfile(model.models[0][0])
+
 
 def test_EvoMSA_cpu_count():
     from EvoMSA.base import EvoMSA
@@ -421,4 +418,24 @@ def test_EvoMSA_cpu_count():
                    TR=False, n_jobs=-1)
     print(model.n_jobs, cpu_count())
     assert model.n_jobs == cpu_count()
-        
+
+
+def test_evomsa_wrapper():
+    from microtc.utils import save_model
+    from EvoMSA.base import EvoMSA
+    from test_base import get_data
+    X, y = get_data()
+    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                    n_estimators=3),
+                   evodag_class="sklearn.naive_bayes.GaussianNB",
+                   n_jobs=2).fit(X, y)
+    save_model(model, 'tmp.evomsa')
+    assert os.path.isfile('tmp.evomsa')
+    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+                                  n_estimators=3),
+                 models=[["tmp.evomsa", "EvoMSA.model.Identity"]],
+                 evodag_class="sklearn.naive_bayes.GaussianNB",
+                 n_jobs=2).fit(X, y)
+    assert evo
+    os.unlink("tmp.evomsa")
+    

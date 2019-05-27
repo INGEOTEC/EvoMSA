@@ -18,9 +18,9 @@ EvoMSA
 .. image:: https://readthedocs.org/projects/evomsa/badge/?version=latest
 	   :target: https://evomsa.readthedocs.io/en/latest/?badge=latest
 
-EvoMSA is a Sentiment Analysis System based on `B4MSA
-<https://github.com/ingeotec/b4msa>`_ and `EvoDAG
-<https://github.com/mgraffg/EvoDAG>`_. EvoMSA is a stack
+EvoMSA is a Sentiment Analysis System based on
+`B4MSA <https://github.com/ingeotec/b4msa>`_  and
+`EvoDAG <https://github.com/mgraffg/EvoDAG>`_. EvoMSA is a stack
 generalisation algorithm specialised on text classification
 problems. It works by combining the output of different text models to
 produce the final prediction.

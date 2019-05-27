@@ -21,7 +21,7 @@ from b4msa.command_line import load_json
 from microtc.textmodel import TextModel
 from b4msa.lang_dependency import get_lang
 from sklearn.model_selection import KFold
-from .model import Identity, BaseTextModel
+from .model import Identity, BaseTextModel, EvoMSAWrapper
 from .utils import LabelEncoderWrapper, download
 from microtc.utils import load_model
 try:
@@ -50,7 +50,7 @@ def kfold_decision_function(args):
 def transform(args):
     k, m, t, X = args
     try:
-        x = t.tonp(t.transform(X))
+        x = t.transform(X)
     except AttributeError:
         x = t.tonp([t[_] for _ in X])
     df = m.decision_function(x)
@@ -61,7 +61,7 @@ def transform(args):
 def vector_space(args):
     k, t, X = args
     try:
-        res = t.tonp(t.transform(X))
+        res = t.transform(X)
     except AttributeError:
         res = t.tonp([t[_] for _ in X])
     return k, res
@@ -162,10 +162,7 @@ class EvoMSA(object):
         self._evodag_model = None
         self._logger = logging.getLogger('EvoMSA')
         self._le = None
-        self._logistic_regression = None
         self._classifier = classifier
-        self._exogenous = None
-        self._exogenous_model = None
         self.models = models
         self._evodag_class = self.get_class(evodag_class)
 
@@ -232,8 +229,6 @@ class EvoMSA(object):
             self._evodag_model = _
         except TypeError:
             self._evodag_model = self._evodag_class().fit(D, y)
-        if self._logistic_regression is not None:
-            self._logistic_regression.fit(self._evodag_model.raw_decision_function(D), y)
         return self
 
     @property
@@ -275,7 +270,7 @@ class EvoMSA(object):
             else:
                 tm = Identity
                 cl = self.get_class(m)
-            assert isinstance(tm, str) or issubclass(tm, BaseTextModel) or issubclass(tm, TextModel)
+            assert isinstance(tm, str) or (hasattr(tm, 'transform') and hasattr(tm, 'fit'))
             # assert issubclass(cl, BaseClassifier)
             self._models.append([tm, cl])
 
@@ -313,46 +308,6 @@ class EvoMSA(object):
         X = self.transform(X)
         return self._evodag_model.decision_function(X)
 
-    @property
-    def exogenous_model(self):
-        return self._exogenous_model
-
-    @exogenous_model.setter
-    def exogenous_model(self, v):
-        if isinstance(v, list):
-            for x in v:
-                x.n_jobs = self.n_jobs
-        else:
-            v.n_jobs = self.n_jobs
-        self._exogenous_model = v
-
-    @property
-    def exogenous(self):
-        return self._exogenous
-
-    @exogenous.setter
-    def exogenous(self, a):
-        self._exogenous = a
-
-    def append_exogenous(self, d):
-        e = self.exogenous
-        if e is not None:
-            return np.concatenate((d, e), axis=1)
-        return d
-
-    def append_exogenous_model(self, D, X):
-        if self.exogenous_model is None:
-            return D
-        ex = self.exogenous_model
-        if not isinstance(ex, list):
-            ex = [ex]
-        L = [D]
-        for x in ex:
-            _ = x.predict_proba(X)
-            L.append(_)
-        _ = np.concatenate(L, axis=1)
-        return _
-
     def model(self, X):
         if not isinstance(X[0], list):
             X = [X]
@@ -363,9 +318,12 @@ class EvoMSA(object):
         for x in X:
             for tm, cl in self.models:
                 if isinstance(tm, str):
-                    m.append(load_model(tm))
+                    _ = load_model(tm)
+                    if isinstance(_, EvoMSA):
+                        _ = EvoMSAWrapper(evomsa=_)
+                    m.append(_)
                 else:
-                    m.append(tm(x, **kwargs))
+                    m.append(tm(**kwargs).fit(x))
         self._textModel = m
 
     def vector_space(self, X):
@@ -433,7 +391,7 @@ class EvoMSA(object):
             for t_cl, t in zip(self.models, self._textModel):
                 cl = t_cl[1]
                 try:
-                    x = t.tonp(t.transform(X))
+                    x = t.transform(X)
                 except AttributeError:
                     x = t.tonp([t[_] for _ in X])
                 d = self.kfold_decision_function(cl, x, y)
@@ -444,7 +402,6 @@ class EvoMSA(object):
             [v.__iadd__(w) for v, w in zip(Di, D)]
             D = Di
         _ = np.array(D)
-        _ = self.append_exogenous_model(self.append_exogenous(_), X)
         _[~np.isfinite(_)] = 0
         return _
 

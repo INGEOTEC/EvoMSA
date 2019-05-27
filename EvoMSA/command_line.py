@@ -57,9 +57,6 @@ class CommandLine(object):
         pa('-o', '--output-file',
            help='File / directory to store the result(s)', dest='output_file',
            default=None, type=str)
-        pa('--exogenous',
-           help='Exogenous variables', dest='exogenous',
-           default=None, type=str, nargs='*')
 
     def parse_args(self):
         self.data = self.parser.parse_args()
@@ -69,21 +66,7 @@ class CommandLine(object):
                 logger = logging.getLogger(k)
                 logger.setLevel(self.data.verbose)
                 logger.info('Logging to: %s', self.data.verbose)
-        self.exogenous()
         self.main()
-
-    def exogenous(self):
-        self._exogenous = None
-        if self.data.exogenous is None:
-            return
-        D = None
-        for fname in self.data.exogenous:
-            d = [base.EvoMSA.tolist(x[self._decision_function]) for x in tweet_iterator(fname)]
-            if D is None:
-                D = d
-            else:
-                [v.__iadd__(w) for v, w in zip(D, d)]
-        self._exogenous = np.array(D)
 
     @staticmethod
     def get_class(m):
@@ -117,8 +100,6 @@ class CommandLineTrain(CommandLine):
            help='Parameters in json that overwrite B4MSA default parameters')
         pa('--test_set', dest='test_set', default=None, type=str,
            help='Test set to do transductive learning')
-        pa('--exogenous-model', help='Exogenous model(s) - pickle.dump with gzip',
-           dest='exogenous_model', default=None, type=str, nargs='*')
 
     def training_set(self):
         cdn = 'File containing the training set.'
@@ -156,11 +137,7 @@ class CommandLineTrain(CommandLine):
             _ = json.loads(self.data.b4msa_kwargs)
             b4msa_kwargs.update(_)
         evo = base.EvoMSA(b4msa_args=b4msa_kwargs, evodag_args=evo_kwargs, **kwargs)
-        evo.exogenous = self._exogenous
-        if self.data.exogenous_model is not None:
-            evo.exogenous_model = [self.load_model(x) for x in self.data.exogenous_model]
         evo.fit(D, Y, test_set=test_set)
-        evo.exogenous = None
         save_model(evo, self.data.output_file)
 
 
@@ -178,7 +155,6 @@ class CommandLineUtils(CommandLineTrain):
         predict_file = self.data.training_set[0]
         D = [x for x in tweet_iterator(predict_file)]
         evo = self.load_model(self.data.model)
-        evo.exogenous = self._exogenous
         D = evo.transform(D)
         with open(self.data.output_file, 'w') as fpt:
             for x, v in zip(tweet_iterator(predict_file), D):
@@ -295,7 +271,6 @@ class CommandLinePredict(CommandLine):
         predict_file = self.data.predict_file[0]
         D = [x for x in tweet_iterator(predict_file)]
         evo = self.load_model(self.data.model)
-        evo.exogenous = self._exogenous
         if self.data.raw_outputs:
             return self.raw_outputs(evo, D)
         elif self.data.decision_function:
