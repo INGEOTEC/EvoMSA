@@ -15,6 +15,10 @@ from EvoMSA.base import EvoMSA
 from microtc.utils import tweet_iterator
 import os
 TWEETS = os.path.join(os.path.dirname(__file__), 'tweets.json')
+try:
+    from mock import MagicMock
+except ImportError:
+    from unittest.mock import MagicMock
 
 
 class StoreDelete(object):
@@ -438,4 +442,22 @@ def test_evomsa_wrapper():
                  n_jobs=2).fit(X, y)
     assert evo
     os.unlink("tmp.evomsa")
-    
+
+
+def test_tm_njobs():
+    X, y = get_data()
+    evo = EvoMSA(tm_n_jobs=2, n_jobs=1, TH=True, lang="es",
+                 evodag_class="sklearn.svm.LinearSVC").fit(X, y)
+    evo.predict(X)
+    assert evo.n_jobs == 1
+    assert evo.tm_n_jobs == 2
+
+
+def test_sklearn_kfold():
+    import numpy as np
+    evo = EvoMSA(tm_n_jobs=2, n_jobs=1, TH=True, lang="es",
+                 n_splits=3, evodag_class="sklearn.svm.LinearSVC")
+    D = np.array([0, 1, 1, 1, 2, 2, 2])
+    res = evo.sklearn_kfold(None, D, D)
+    for _, _, _, tr, _, _ in res:
+        assert np.unique(D[tr]).shape[0] == 3
