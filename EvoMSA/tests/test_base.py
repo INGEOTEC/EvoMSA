@@ -462,4 +462,3 @@ def test_sklearn_kfold():
     for _, _, _, tr, ts, _ in res:
         print(tr, ts)
         assert np.unique(D[tr]).shape[0] == 3
-    assert False
