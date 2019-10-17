@@ -372,9 +372,6 @@ class EvoMSA(object):
                 for k in klasses:
                     if k not in tr_klasses:
                         candidate = [(i, x) for i, x in enumerate(ts) if y[x] == k][0]
-                        ts = ts.tolist()
-                        del ts[candidate[0]]
-                        ts = np.array(ts)
                         tr = tr.tolist()
                         tr.append(candidate[1])
                         tr = np.array(tr)

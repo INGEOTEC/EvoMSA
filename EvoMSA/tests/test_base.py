@@ -459,5 +459,7 @@ def test_sklearn_kfold():
                  n_splits=3, evodag_class="sklearn.svm.LinearSVC")
     D = np.array([0, 1, 1, 1, 2, 2, 2])
     res = evo.sklearn_kfold(None, D, D)
-    for _, _, _, tr, _, _ in res:
+    for _, _, _, tr, ts, _ in res:
+        print(tr, ts)
         assert np.unique(D[tr]).shape[0] == 3
+    assert False
