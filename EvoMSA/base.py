@@ -334,8 +334,10 @@ class EvoMSA(object):
                     if isinstance(_, EvoMSA):
                         _ = EvoMSAWrapper(evomsa=_)
                     m.append(_)
-                else:
+                elif isinstance(tm, type):
                     m.append(tm(**kwargs).fit(x))
+                else:
+                    m.append(tm)
         self._textModel = m
 
     def vector_space(self, X):

@@ -462,3 +462,13 @@ def test_sklearn_kfold():
     for _, _, _, tr, ts, _ in res:
         print(tr, ts)
         assert np.unique(D[tr]).shape[0] == 3
+
+
+def test_model_instance():
+    from microtc.textmodel import TextModel
+    X, y = get_data()
+    tm = TextModel().fit(X)
+    evo = EvoMSA(tm_n_jobs=1, n_jobs=1, TR=False, lang="es",
+                 models=[[tm, "sklearn.svm.LinearSVC"]],
+                 evodag_class="sklearn.svm.LinearSVC").fit(X, y)
+    assert evo.models[0][0] == tm
