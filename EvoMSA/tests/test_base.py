@@ -150,20 +150,6 @@ def test_EvoMSA_predict():
     assert (np.array(y) == hy).mean() > 0.8
 
 
-def test_EvoMSA_bernulli_predict():
-    import numpy as np
-    X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
-                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']], TR=False,
-                 n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
-                               [y, [x for x in y if x in ['P', 'N']]])
-    hy = evo.predict(X)
-    assert len(hy) == 1000
-    print((np.array(y) == hy).mean(), hy)
-    print(evo.predict_proba(X))
-    assert (np.array(y) == hy).mean() > 0.8
-
-
 def test_EvoMSA_predict_proba():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=100, early_stopping_rounds=100, time_limit=5,
