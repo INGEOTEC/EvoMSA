@@ -126,11 +126,14 @@ class EvoMSA(object):
     :type TH: bool
     :param HA: Use HA datasets, sklearn.svm.LinearSVC
     :type HA: bool
+    :param tm_n_jobs: Multiprocessing using on the Text Models, <= 0 to use all processors
+    :type tm_n_jobs: int
     """
 
     def __init__(self, b4msa_args=dict(), evodag_args=dict(), n_jobs=1,
                  n_splits=5, seed=0, classifier=True, models=None, lang=None,
-                 evodag_class="EvoDAG.model.EvoDAGE", TR=True, Emo=False, TH=False, HA=False):
+                 evodag_class="EvoDAG.model.EvoDAGE", TR=True, Emo=False, TH=False, HA=False,
+                 tm_n_jobs=None):
         if models is None:
             models = []
         if TR:
@@ -156,6 +159,7 @@ class EvoMSA(object):
         self._evodag_args = _
         
         self._n_jobs = n_jobs if n_jobs > 0 else cpu_count()
+        self._tm_n_jobs = tm_n_jobs if tm_n_jobs is None or tm_n_jobs > 0 else cpu_count()
         self._n_splits = n_splits
         self._seed = seed
         self._svc_models = None
@@ -286,6 +290,14 @@ class EvoMSA(object):
         except AttributeError:
             pass
 
+    @property
+    def tm_n_jobs(self):
+        return self._tm_n_jobs
+
+    @tm_n_jobs.setter
+    def tm_n_jobs(self, v):
+        self._tm_n_jobs = v
+
     def predict(self, X):
         pr = self.predict_proba(X)
         return self._le.inverse_transform(pr.argmax(axis=1))
@@ -322,8 +334,10 @@ class EvoMSA(object):
                     if isinstance(_, EvoMSA):
                         _ = EvoMSAWrapper(evomsa=_)
                     m.append(_)
-                else:
+                elif isinstance(tm, type):
                     m.append(tm(**kwargs).fit(x))
+                else:
+                    m.append(tm)
         self._textModel = m
 
     def vector_space(self, X):
@@ -339,7 +353,8 @@ class EvoMSA(object):
                 k += 1
                 args.append((i, t, x))
                 i += 1
-        if self.n_jobs > 1:
+        n_jobs = self.n_jobs if self.tm_n_jobs is None else self.tm_n_jobs
+        if n_jobs > 1:
             p = Pool(self.n_jobs, maxtasksperchild=1)
             res = [x for x in tqdm(p.imap_unordered(vector_space, args), total=len(args))]
             res.sort(key=lambda x: x[0])
@@ -348,12 +363,26 @@ class EvoMSA(object):
             res = [vector_space(x) for x in tqdm(args)]
         return [x[1] for x in res]
 
-    def kfold_decision_function(self, cl, X, y):
-        hy = [None for x in y]
+    def sklearn_kfold(self, cl, X, y):
         args = []
+        klasses = np.unique(y)
+        nclass = klasses.shape[0]
         for tr, ts in KFold(n_splits=self._n_splits,
                             shuffle=True, random_state=self._seed).split(X):
+            tr_klasses = np.unique([y[i] for i in tr])
+            if tr_klasses.shape[0] != nclass:
+                for k in klasses:
+                    if k not in tr_klasses:
+                        candidate = [(i, x) for i, x in enumerate(ts) if y[x] == k][0]
+                        tr = tr.tolist()
+                        tr.append(candidate[1])
+                        tr = np.array(tr)
             args.append([cl, X, y, tr, ts, self._seed])
+        return args
+
+    def kfold_decision_function(self, cl, X, y):
+        hy = [None for x in y]
+        args = self.sklearn_kfold(cl, X, y)
         if self.n_jobs == 1:
             res = [kfold_decision_function(x) for x in tqdm(args, total=len(args))]
         else:
@@ -369,8 +398,9 @@ class EvoMSA(object):
         if len(models) == 0:
             return []
         args = [[i_m[0], i_m[1], t, X] for i_m, t in zip(enumerate(models), textModel) if i_m[1] is not None]
-        if self.n_jobs > 1:
-            p = Pool(self.n_jobs, maxtasksperchild=1)
+        n_jobs = self.n_jobs if self.tm_n_jobs is None else self.tm_n_jobs
+        if n_jobs > 1:
+            p = Pool(n_jobs, maxtasksperchild=1)
             res = [x for x in tqdm(p.imap_unordered(transform, args), total=len(args))]
             res.sort(key=lambda x: x[0])
             p.close()

@@ -15,6 +15,10 @@ from EvoMSA.base import EvoMSA
 from microtc.utils import tweet_iterator
 import os
 TWEETS = os.path.join(os.path.dirname(__file__), 'tweets.json')
+try:
+    from mock import MagicMock
+except ImportError:
+    from unittest.mock import MagicMock
 
 
 class StoreDelete(object):
@@ -137,20 +141,6 @@ def test_EvoMSA_predict():
     X, y = get_data()
     evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
                  models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
-                 n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
-                               [y, [x for x in y if x in ['P', 'N']]])
-    hy = evo.predict(X)
-    assert len(hy) == 1000
-    print((np.array(y) == hy).mean(), hy)
-    print(evo.predict_proba(X))
-    assert (np.array(y) == hy).mean() > 0.8
-
-
-def test_EvoMSA_bernulli_predict():
-    import numpy as np
-    X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
-                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']], TR=False,
                  n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
                                [y, [x for x in y if x in ['P', 'N']]])
     hy = evo.predict(X)
@@ -438,4 +428,33 @@ def test_evomsa_wrapper():
                  n_jobs=2).fit(X, y)
     assert evo
     os.unlink("tmp.evomsa")
-    
+
+
+def test_tm_njobs():
+    X, y = get_data()
+    evo = EvoMSA(tm_n_jobs=2, n_jobs=1, TH=True, lang="es",
+                 evodag_class="sklearn.svm.LinearSVC").fit(X, y)
+    evo.predict(X)
+    assert evo.n_jobs == 1
+    assert evo.tm_n_jobs == 2
+
+
+def test_sklearn_kfold():
+    import numpy as np
+    evo = EvoMSA(tm_n_jobs=2, n_jobs=1, TH=True, lang="es",
+                 n_splits=3, evodag_class="sklearn.svm.LinearSVC")
+    D = np.array([0, 1, 1, 1, 2, 2, 2])
+    res = evo.sklearn_kfold(None, D, D)
+    for _, _, _, tr, ts, _ in res:
+        print(tr, ts)
+        assert np.unique(D[tr]).shape[0] == 3
+
+
+def test_model_instance():
+    from microtc.textmodel import TextModel
+    X, y = get_data()
+    tm = TextModel().fit(X)
+    evo = EvoMSA(tm_n_jobs=1, n_jobs=1, TR=False, lang="es",
+                 models=[[tm, "sklearn.svm.LinearSVC"]],
+                 evodag_class="sklearn.svm.LinearSVC").fit(X, y)
+    assert evo.models[0][0] == tm

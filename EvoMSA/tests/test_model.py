@@ -226,7 +226,7 @@ def test_semantic_token():
     corpus = [x for x in tweet_iterator(TWEETS)]
     semantic = STest(corpus)
     print(semantic._weight.shape[0])
-    assert semantic._weight.shape[0] == 999
+    assert semantic._weight.shape[0] == 995
     tr = semantic.transform([dict(text='buenos dias')])[0]
     print(tr)
     assert len(tr) == 3
