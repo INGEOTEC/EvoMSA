@@ -16,6 +16,7 @@ import EvoMSA
 import numpy as np
 from Cython.Build import cythonize
 from setuptools import Extension
+import sys
 version = EvoMSA.__version__
 
 extension = [Extension('EvoMSA.cython_utils', ["EvoMSA/cython_utils.pyx"],
@@ -46,7 +47,8 @@ setup(
     include_package_data=True,
     zip_safe=False,
     ext_modules=cythonize(extension,
-                          compiler_directives={'profile': False,
+                          compiler_directives={'language_level': sys.version_info[0],
+                                               'profile': False,
                                                'nonecheck': False,
                                                'boundscheck': False}),
     package_data={'EvoMSA/conf': ['default_parameters.json'],

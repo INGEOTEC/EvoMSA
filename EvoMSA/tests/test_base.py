@@ -318,6 +318,8 @@ def test_EvoMSA_regression():
         df = evo.decision_function(X)
         print(df.shape, df.ndim)
         assert df.shape[0] == len(X) and df.ndim == 1
+        df = evo.predict(X)
+        assert df.shape[0] == len(X) and df.ndim == 1
 
 
 def test_EvoMSA_identity():

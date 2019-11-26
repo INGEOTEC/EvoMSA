@@ -299,8 +299,10 @@ class EvoMSA(object):
         self._tm_n_jobs = v
 
     def predict(self, X):
-        pr = self.predict_proba(X)
-        return self._le.inverse_transform(pr.argmax(axis=1))
+        if self.classifier:
+            pr = self.predict_proba(X)
+            return self._le.inverse_transform(pr.argmax(axis=1))
+        return self.decision_function(X)
 
     def predict_proba(self, X):
         X = self.transform(X)
