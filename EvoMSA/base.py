@@ -104,8 +104,8 @@ class EvoMSA(object):
 
     :param b4msa_args: Arguments pass to TextModel updating the default arguments
     :type b4msa_args:  dict
-    :param evodag_args: Arguments pass to EvoDAG
-    :type evodag_args: dict
+    :param stacked_method_args: Arguments pass to the stacked method
+    :type stacked_method_args: dict
     :param n_jobs: Multiprocessing default 1 process, <= 0 to use all processors
     :type n_jobs: int
     :param n_splits: Number of folds to train EvoDAG or evodag_class
@@ -116,8 +116,8 @@ class EvoMSA(object):
     :type classifier: bool
     :param models: Models used as list of pairs (see flags: TR, TH and Emo)
     :type models: list
-    :param evodag_class: Classifier or regressor used to ensemble the outputs of :attr:`models` default :class:`EvoDAG.model.EvoDAGE`
-    :type evodag_class: str or class
+    :param stacked_method: Classifier or regressor used to ensemble the outputs of :attr:`models` default :class:`EvoDAG.model.EvoDAGE`
+    :type stacked_method: str or class
     :param TR: Use b4msa.textmodel.TextModel, sklearn.svm.LinearSVC on the training set
     :type TR: bool
     :param Emo: Use EvoMSA.model.EmoSpace[Ar|En|Es], sklearn.svm.LinearSVC
@@ -130,14 +130,15 @@ class EvoMSA(object):
     :type tm_n_jobs: int
     """
 
-    def __init__(self, b4msa_args=dict(), evodag_args=dict(), n_jobs=1,
+    def __init__(self, b4msa_args=dict(), stacked_method_args=dict(), n_jobs=1,
                  n_splits=5, seed=0, classifier=True, models=None, lang=None,
-                 evodag_class="EvoDAG.model.EvoDAGE", TR=True, Emo=False, TH=False, HA=False,
-                 tm_n_jobs=None):
+                 stacked_method="EvoDAG.model.EvoDAGE", TR=True, Emo=False,
+                 TH=False, HA=False, tm_n_jobs=None):
         if models is None:
             models = []
         if TR:
-            models.insert(0, ["b4msa.textmodel.TextModel", "sklearn.svm.LinearSVC"])
+            models.insert(0, ["b4msa.textmodel.TextModel",
+                              "sklearn.svm.LinearSVC"])
         lang = lang if lang is None else get_lang(lang)
         b4msa_args['lang'] = lang
         if Emo:
@@ -150,14 +151,16 @@ class EvoMSA(object):
             fname = download("%s.evoha" % lang)
             models.append([fname, "sklearn.svm.LinearSVC"])
         self._b4msa_args = b4msa_args
-        self._evodag_args = evodag_args
-        if classifier:
-            _ = DEFAULT_CL.copy()
+        self._evodag_args = stacked_method_args
+        if stacked_method == "EvoDAG.model.EvoDAGE":
+            if classifier:
+                _ = DEFAULT_CL.copy()
+            else:
+                _ = DEFAULT_R.copy()
         else:
-            _ = DEFAULT_R.copy()
+            _ = dict()
         _.update(self._evodag_args)
         self._evodag_args = _
-        
         self._n_jobs = n_jobs if n_jobs > 0 else cpu_count()
         self._tm_n_jobs = tm_n_jobs if tm_n_jobs is None or tm_n_jobs > 0 else cpu_count()
         self._n_splits = n_splits
@@ -168,7 +171,7 @@ class EvoMSA(object):
         self._le = None
         self._classifier = classifier
         self.models = models
-        self._evodag_class = self.get_class(evodag_class)
+        self._evodag_class = self.get_class(stacked_method)
 
     def _emoSpace(self, lang):
         m = None
@@ -204,17 +207,18 @@ class EvoMSA(object):
         """
 
         if isinstance(y[0], list):
-            le = []
-            Y = []
-            for y0 in y:
-                _ = LabelEncoderWrapper(classifier=self.classifier).fit(y0)
-                le.append(_)
-                Y.append(_.transform(y0).tolist())
-            self._le = le[0]
-            y = Y
-        else:
-            self._le = LabelEncoderWrapper(classifier=self.classifier).fit(y)
-            y = self._le.transform(y).tolist()
+            raise NotImplementedError()
+        #     le = []
+        #     Y = []
+        #     for y0 in y:
+        #         _ = LabelEncoderWrapper(classifier=self.classifier).fit(y0)
+        #         le.append(_)
+        #         Y.append(_.transform(y0).tolist())
+        #     self._le = le[0]
+        #     y = Y
+        # else:
+        self._le = LabelEncoderWrapper(classifier=self.classifier).fit(y)
+        y = self._le.transform(y).tolist()
         self.fit_svm(X, y)
         if isinstance(y[0], list):
             y = y[0]

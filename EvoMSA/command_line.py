@@ -136,7 +136,8 @@ class CommandLineTrain(CommandLine):
         if self.data.b4msa_kwargs is not None:
             _ = json.loads(self.data.b4msa_kwargs)
             b4msa_kwargs.update(_)
-        evo = base.EvoMSA(b4msa_args=b4msa_kwargs, evodag_args=evo_kwargs, **kwargs)
+        evo = base.EvoMSA(b4msa_args=b4msa_kwargs,
+                          stacked_method_args=evo_kwargs, **kwargs)
         evo.fit(D, Y, test_set=test_set)
         save_model(evo, self.data.output_file)
 

@@ -188,7 +188,7 @@ def test_predict_NearestCentroid():
             x['klass'] = y0
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA',
-                '--kw={"evodag_class": "sklearn.neighbors.NearestCentroid", "TR": false, "models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]]}',
+                '--kw={"stacked_method": "sklearn.neighbors.NearestCentroid", "TR": false, "models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]]}',
                 '-ot.model', '-n1', 'ex.json']
     train(output=True)
     sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]

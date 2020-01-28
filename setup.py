@@ -51,8 +51,7 @@ setup(
                                                'profile': False,
                                                'nonecheck': False,
                                                'boundscheck': False}),
-    package_data={'EvoMSA/conf': ['default_parameters.json'],
-                  'EvoMSA/tests': ['tweets.json'],
+    package_data={'EvoMSA/tests': ['tweets.json'],
                   '': ['*.pxd']},
     install_requires=['B4MSA', 'ConceptModelling', 'EvoDAG'],
     entry_points={
