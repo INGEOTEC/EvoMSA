@@ -48,12 +48,8 @@ def kfold_decision_function(args):
 
 
 def transform(args):
-    k, m, t, X = args
-    try:
-        x = t.transform(X)
-    except AttributeError:
-        x = t.tonp([t[_] for _ in X])
-    df = m.decision_function(x)
+    k, cl, X = args
+    df = cl.decision_function(X)
     d = [EvoMSA.tolist(_) for _ in df]
     return (k, d)
 
@@ -224,7 +220,8 @@ class EvoMSA(object):
         """
 
         self._le = LabelEncoderWrapper(classifier=self.classifier).fit(y)
-        y = self._le.transform(y).tolist()
+        y = self._le.transform(y)
+        # Training first stage
         D = self.first_stage(X, y)
         # Transform test set to do transductive learning
         if test_set is not None:
@@ -234,7 +231,7 @@ class EvoMSA(object):
         # Start of the second stage
         _ = dict(n_jobs=self.n_jobs, seed=self._seed)
         self._evodag_args.update(_)
-        y = np.array(y)
+        # y = np.array(y)
         try:
             _ = self._evodag_class(**self._evodag_args)
             _.fit(D, y, test_set=test_set)
@@ -417,14 +414,15 @@ class EvoMSA(object):
         D[~np.isfinite(D)] = 0
         return D
 
-    def _transform(self, X, models, textModel):
-        if len(models) == 0:
-            return []
-        args = [[i_m[0], i_m[1], t, X] for i_m, t in zip(enumerate(models), textModel) if i_m[1] is not None]
+    def transform(self, X):
+        Xvs = self.vector_space(X)
+        args = [(i, cl, X) for (i, cl), X in zip(enumerate(self._svc_models),
+                                                 Xvs)]
         n_jobs = self.n_jobs if self.tm_n_jobs is None else self.tm_n_jobs
         if n_jobs > 1:
             p = Pool(n_jobs, maxtasksperchild=1)
-            res = [x for x in tqdm(p.imap_unordered(transform, args), total=len(args))]
+            res = [x for x in tqdm(p.imap_unordered(transform, args),
+                                   total=len(args))]
             res.sort(key=lambda x: x[0])
             p.close()
         else:
@@ -432,10 +430,6 @@ class EvoMSA(object):
         res = [x[1] for x in res]
         D = res[0]
         [[v.__iadd__(w) for v, w in zip(D, d)] for d in res[1:]]
-        return D
-
-    def transform(self, X):
-        D = self._transform(X, self._svc_models, self._textModel)
         _ = np.array(D)
         _[~np.isfinite(_)] = 0
         return _
