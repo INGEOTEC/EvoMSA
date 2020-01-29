@@ -220,10 +220,10 @@ class EvoMSA(object):
         self._le = LabelEncoderWrapper(classifier=self.classifier).fit(y)
         y = self._le.transform(y).tolist()
         self.fit_svm(X, y)
-        if isinstance(y[0], list):
-            y = y[0]
-        if isinstance(X[0], list):
-            X = X[0]
+        # if isinstance(y[0], list):
+        #     y = y[0]
+        # if isinstance(X[0], list):
+        #     X = X[0]
         D = self.transform(X, y)
         if test_set is not None:
             if isinstance(test_set, list):

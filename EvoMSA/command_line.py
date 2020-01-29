@@ -94,10 +94,6 @@ class CommandLineTrain(CommandLine):
         pa = self.parser.add_argument
         pa('--kw', dest='kwargs', default=None, type=str,
            help='Parameters in json that overwrite EvoMSA default parameters')
-        pa('--evodag-kw', dest='evo_kwargs', default=None, type=str,
-           help='Parameters in json that overwrite EvoDAG default parameters')
-        pa('--b4msa-kw', dest='b4msa_kwargs', default=None, type=str,
-           help='Parameters in json that overwrite B4MSA default parameters')
         pa('--test_set', dest='test_set', default=None, type=str,
            help='Test set to do transductive learning')
 
@@ -125,18 +121,10 @@ class CommandLineTrain(CommandLine):
             _ = json.loads(self.data.kwargs)
             kwargs.update(_)
         evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
-        if self.data.evo_kwargs is not None:
-            _ = json.loads(self.data.evo_kwargs)
-            evo_kwargs.update(_)
         if "stacked_method_args" in kwargs:
             evo_kwargs.update(kwargs["stacked_method_args"])
             del kwargs["stacked_method_args"]
-        b4msa_kwargs = {}
-        if self.data.b4msa_kwargs is not None:
-            _ = json.loads(self.data.b4msa_kwargs)
-            b4msa_kwargs.update(_)
-        evo = base.EvoMSA(b4msa_args=b4msa_kwargs,
-                          stacked_method_args=evo_kwargs, **kwargs)
+        evo = base.EvoMSA(stacked_method_args=evo_kwargs, **kwargs)
         evo.fit(D, Y, test_set=test_set)
         save_model(evo, self.data.output_file)
 

@@ -23,7 +23,7 @@ from nose.tools import assert_almost_equals
 def test_train():
     from EvoMSA.base import EvoMSA
     sys.argv = ['EvoMSA', '-ot.model', '-n2',
-                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
                 TWEETS]
     train(output=True)
     evo = load_model('t.model')
@@ -33,8 +33,8 @@ def test_train():
 
 def test_evo_kwargs():
     from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
-                '-ot.model', '--b4msa-kw={"del_dup":false}',
+    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}, "b4msa_args": {"del_dup":false}}',
+                '-ot.model',
                 '-n2', TWEETS]
     train(output=True)
     evo = load_model('t.model')
@@ -72,7 +72,8 @@ def test_evo_test_set():
 def test_utils_b4msa_df():
     from EvoMSA.command_line import utils
     import shutil
-    sys.argv = ['EvoMSA', '--kw={"seed": 1}', '-omodel.json', '--b4msa-df', TWEETS]
+    sys.argv = ['EvoMSA', '--kw={"seed": 1}', '-omodel.json',
+                '--b4msa-df', TWEETS]
     utils(output=True)
     assert os.path.isfile('model.json')
     sys.argv = ['EvoMSA', '-omodel', '--b4msa-df', '--test_set', TWEETS, TWEETS]
@@ -94,8 +95,8 @@ def test_utils_transform():
             x['decision_function'] = x['q_voc_ratio']
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA', '-ot.model', '-n2',
-                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                TWEETS, TWEETS]
+                '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
+                TWEETS]
     train(output=True)
 
     sys.argv = ['EvoMSA', '-mt.model', '-ot.json', '--transform', TWEETS]
@@ -104,12 +105,12 @@ def test_utils_transform():
     vec = [x['vec'] for x in tweet_iterator('t.json')]
     os.unlink('t.json')
     print(len(vec[0]))
-    assert len(vec[0]) == 8
+    assert len(vec[0]) == 4
 
 
 def test_raw_outputs():
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 60, "n_estimators": 30}',
-                '-ot.model', '-n2', TWEETS, TWEETS]
+    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 60, "n_estimators": 30}}',
+                '-ot.model', '-n2', TWEETS]
     train(output=True)
     sys.argv = ['EvoMSA', '--raw-outputs', '-mt.model', '-ot1.json', TWEETS]
     predict()
@@ -120,8 +121,8 @@ def test_raw_outputs():
 
 
 def test_decision_function():
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                '-ot.model', '-n2', TWEETS, TWEETS]
+    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
+                '-ot.model', '-n2', TWEETS]
     train(output=True)
     sys.argv = ['EvoMSA', '--decision-function', '-mt.model', '-ot1.json', TWEETS]
     predict()
@@ -132,8 +133,8 @@ def test_decision_function():
 
 
 def test_fitness():
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                '-ot.model', '-n2', TWEETS, TWEETS]
+    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
+                '-ot.model', '-n2', TWEETS]
     train(output=True)
     sys.argv = ['EvoMSA', '--fitness', 't.model']
     utils()
@@ -141,7 +142,7 @@ def test_fitness():
 
 
 def test_max_lines():
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}', '-ot.model', '-n2', TWEETS]
+    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}', '-ot.model', '-n2', TWEETS]
     train()
     sys.argv = ['EvoMSA', '-mt.model', '--max-lines', '500', '-ot.json', TWEETS]
     predict()
@@ -151,7 +152,7 @@ def test_max_lines():
 
 def test_evo_test_set_shuffle():
     from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
                 '-ot.model', '--test_set', 'shuffle', '-n2', TWEETS]
     train(output=True)
     evo = load_model('t.model')
@@ -169,8 +170,7 @@ def test_predict_numbers():
         for x, y0 in zip(d, y):
             x['klass'] = y0
             fpt.write(json.dumps(x) + '\n')
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]], "TR": false}',
+    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}, "models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]], "TR": false}',
                 '-ot.model', '-n1', 'ex.json']
     train(output=True)
     sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
@@ -201,8 +201,8 @@ def test_performance_validation_set():
     for seed in range(3):
         # if os.path.isfile('t-%s.model' % seed):
         #     continue
-        sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "n_estimators": 5}',
-                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '-n1', TWEETS]
+        sys.argv = ['EvoMSA', '--kw={"seed": %s, "stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "n_estimators": 5}}' % seed,
+                    '-ot-%s.model' % seed, '-n1', TWEETS]
         train()
     sys.argv = ['EvoMSA', '-m'] + ['t-%s.model' % seed for seed in range(3)]
     print(fitness_vs((0, 't-0.model')))
@@ -218,8 +218,8 @@ def test_performance_validation_set2():
         print('haciendo', seed)
         if os.path.isfile('t-%s.model' % seed):
             continue
-        sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 3}',
-                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '-n1', TWEETS]
+        sys.argv = ['EvoMSA', '--kw={"seed": %s, "stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 3}}' % seed,
+                    '-ot-%s.model' % seed, '-n1', TWEETS]
         train()
     sys.argv = ['EvoMSA', '-n2', '-m'] + ['t-%s.model' % seed for seed in range(2)] + ['-'] + ['t-%s.model' % seed for seed in range(2, 4)]
     m = performance(output=True)
@@ -232,8 +232,8 @@ def test_performance_public_set():
     for seed in range(4):
         if os.path.isfile('t-%s.model' % seed):
             continue
-        sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 3}',
-                    '--kw={"seed": %s}' % seed, '-ot-%s.model' % seed, '-n1', TWEETS]
+        sys.argv = ['EvoMSA', '--kw={"seed": %s, "stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 3}}' % seed,
+                    '-ot-%s.model' % seed, '-n1', TWEETS]
         train(output=True)
     for seed in range(4):
         if os.path.isfile('t-%s.predict' % seed):
@@ -255,8 +255,7 @@ def test_list_of_text():
             x['text'] = [x['text'], x['text']]
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA', '-ot.model', '-n2',
-                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]], "lang": "es", "TR": false}',
-                '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]], "lang": "es", "TR": false, "stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
                 't.json']
     train()
     os.unlink('t.json')
