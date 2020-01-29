@@ -104,19 +104,15 @@ class CommandLineTrain(CommandLine):
     def training_set(self):
         cdn = 'File containing the training set.'
         pa = self.parser.add_argument
-        pa('training_set',  nargs='+',
+        pa('training_set',  nargs=1,
            default=None, help=cdn)
 
     def main(self):
         fnames = self.data.training_set
-        if not isinstance(fnames, list):
-            fnames = [fnames]
-        D = []
-        Y = []
-        for fname in fnames:
-            _ = [[x, x[self._klass]] for x in tweet_iterator(fname)]
-            D.append([x[0] for x in _])
-            Y.append([x[1] for x in _])
+        fname = fnames[0]
+        _ = [[x, x[self._klass]] for x in tweet_iterator(fname)]
+        D = [x[0] for x in _]
+        Y = [x[1] for x in _]
         if self.data.test_set is not None:
             if os.path.isfile(self.data.test_set):
                 test_set = [x for x in tweet_iterator(self.data.test_set)]
@@ -128,7 +124,7 @@ class CommandLineTrain(CommandLine):
         if self.data.kwargs is not None:
             _ = json.loads(self.data.kwargs)
             kwargs.update(_)
-        evo_kwargs = dict(tmpdir=self.data.output_file + '_dir', fitness_function='macro-F1')
+        evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
         if self.data.evo_kwargs is not None:
             _ = json.loads(self.data.evo_kwargs)
             evo_kwargs.update(_)
