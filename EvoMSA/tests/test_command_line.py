@@ -33,9 +33,9 @@ def test_train():
 
 def test_evo_kwargs():
     from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
                 '-ot.model', '--b4msa-kw={"del_dup":false}',
-                '-n2', TWEETS, TWEETS]
+                '-n2', TWEETS]
     train(output=True)
     evo = load_model('t.model')
     assert isinstance(evo, EvoMSA)
@@ -44,8 +44,8 @@ def test_evo_kwargs():
 
 def test_predict():
     import numpy as np
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
-                '-ot.model', '-n2', TWEETS, TWEETS]
+    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
+                '-ot.model', '-n2', TWEETS]
     train(output=True)
     sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
     predict()
@@ -61,7 +61,7 @@ def test_predict():
 
 def test_evo_test_set():
     from EvoMSA.base import EvoMSA
-    sys.argv = ['EvoMSA', '--evodag-kw={"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}',
+    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
                 '-ot.model', '--test_set', TWEETS, '-n2', TWEETS]
     train(output=True)
     evo = load_model('t.model')

@@ -128,6 +128,9 @@ class CommandLineTrain(CommandLine):
         if self.data.evo_kwargs is not None:
             _ = json.loads(self.data.evo_kwargs)
             evo_kwargs.update(_)
+        if "stacked_method_args" in kwargs:
+            evo_kwargs.update(kwargs["stacked_method_args"])
+            del kwargs["stacked_method_args"]
         b4msa_kwargs = {}
         if self.data.b4msa_kwargs is not None:
             _ = json.loads(self.data.b4msa_kwargs)
