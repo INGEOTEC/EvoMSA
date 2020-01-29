@@ -75,15 +75,13 @@ would appreciate citations to the following reference:
 	  author = {Mario Graff and Sabino Miranda{-}Jim{\'{e}}nez
 	                 and Eric Sadit Tellez and Daniela Moctezuma},
 	  title     = {EvoMSA: {A} Multilingual Evolutionary Approach for Sentiment Analysis},
-	  journal   = {CoRR},
-	  volume    = {abs/1812.02307},
-	  year      = {2018},
-	  url       = {http://arxiv.org/abs/1812.02307},
-	  archivePrefix = {arXiv},
-	  eprint    = {1812.02307},
-	  timestamp = {Tue, 01 Jan 2019 15:01:25 +0100},
-	  biburl    = {https://dblp.org/rec/bib/journals/corr/abs-1812-02307},
-	  bibsource = {dblp computer science bibliography, https://dblp.org}
+	  journal   = {Computational Intelligence Magazine},
+	  volume    = {15},
+	  issue     = {1},
+	  year      = {2020},
+	  pages     = {76 -- 88},
+	  url       = {https://ieeexplore.ieee.org/document/8956106},
+	  month     = {Feb.}
 	  }
 
 	

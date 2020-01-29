@@ -57,7 +57,6 @@ setup(
     entry_points={
         'console_scripts': ['EvoMSA-train=EvoMSA.command_line:train',
                             'EvoMSA-predict=EvoMSA.command_line:predict',
-                            'EvoMSA-utils=EvoMSA.command_line:utils',
                             'EvoMSA-performance=EvoMSA.command_line:performance']
     }
 )

@@ -195,9 +195,26 @@ class EvoMSA(object):
         assert m is not None
         return m
 
+    def first_stage(self, X, y):
+        """Training EvoMSA's first stage"""
+
+        # Instantiate Text Models
+        self.model(X)
+        # Transform text into a vector space - List of vector spaces
+        X_vector_space = self.vector_space(X)
+        # Train supervised learning algorithms
+        self.fit_svm(X_vector_space, y)
+        # KFold to train the stacked_method
+        D = self.kfold_supervised_learning(X_vector_space, y)
+        return D
+
     def fit(self, X, y, test_set=None):
         """
-        Train the model using a training set or pairs: text, dependent variable (e.g. class)
+        Train the model using a training set or pairs: text,
+        dependent variable (e.g., class) EvoMSA is a two-stage procedure;
+        the first step is to transform the text into a vector space with
+        dimensions related to the number of classes and then
+        train a supervised learning algorithm.
 
         :param X: Independent variables
         :type X: dict or list
@@ -206,28 +223,15 @@ class EvoMSA(object):
         :return: EvoMSA instance, i.e., self
         """
 
-        if isinstance(y[0], list):
-            raise NotImplementedError()
-        #     le = []
-        #     Y = []
-        #     for y0 in y:
-        #         _ = LabelEncoderWrapper(classifier=self.classifier).fit(y0)
-        #         le.append(_)
-        #         Y.append(_.transform(y0).tolist())
-        #     self._le = le[0]
-        #     y = Y
-        # else:
         self._le = LabelEncoderWrapper(classifier=self.classifier).fit(y)
         y = self._le.transform(y).tolist()
-        self.fit_svm(X, y)
-        # if isinstance(y[0], list):
-        #     y = y[0]
-        # if isinstance(X[0], list):
-        #     X = X[0]
-        D = self.transform(X, y)
+        D = self.first_stage(X, y)
+        # Transform test set to do transductive learning
         if test_set is not None:
             if isinstance(test_set, list):
                 test_set = self.transform(test_set)
+        # Training stacked_method
+        # Start of the second stage
         _ = dict(n_jobs=self.n_jobs, seed=self._seed)
         self._evodag_args.update(_)
         y = np.array(y)
@@ -279,7 +283,6 @@ class EvoMSA(object):
                 tm = Identity
                 cl = self.get_class(m)
             assert isinstance(tm, str) or (hasattr(tm, 'transform') and hasattr(tm, 'fit'))
-            # assert issubclass(cl, BaseClassifier)
             self._models.append([tm, cl])
 
     @property
@@ -301,6 +304,14 @@ class EvoMSA(object):
     @tm_n_jobs.setter
     def tm_n_jobs(self, v):
         self._tm_n_jobs = v
+
+    @property
+    def textModels(self):
+        """Text Models
+
+        :rtype: list"""
+
+        return self._textModel
 
     def predict(self, X):
         if self.classifier:
@@ -327,42 +338,29 @@ class EvoMSA(object):
         return self._evodag_model.decision_function(X)
 
     def model(self, X):
-        if not isinstance(X[0], list):
-            X = [X]
         m = []
         kwargs = self._b4msa_args
         self._logger.info("Starting TextModel")
         self._logger.info(str(kwargs))
-        for x in X:
-            for tm, cl in self.models:
-                if isinstance(tm, str):
-                    _ = load_model(tm)
-                    if isinstance(_, EvoMSA):
-                        _ = EvoMSAWrapper(evomsa=_)
-                    m.append(_)
-                elif isinstance(tm, type):
-                    m.append(tm(**kwargs).fit(x))
-                else:
-                    m.append(tm)
+        for tm, cl in self.models:
+            if isinstance(tm, str):
+                _ = load_model(tm)
+                if isinstance(_, EvoMSA):
+                    _ = EvoMSAWrapper(evomsa=_)
+                m.append(_)
+            elif isinstance(tm, type):
+                m.append(tm(**kwargs).fit(X))
+            else:
+                m.append(tm)
         self._textModel = m
 
     def vector_space(self, X):
-        if not isinstance(X[0], list):
-            X = [X]
-        args = []
-        i = 0
-        k = 0
-        nmodels = len(self.models)
-        for x in X:
-            for _ in range(nmodels):
-                t = self._textModel[k]
-                k += 1
-                args.append((i, t, x))
-                i += 1
+        args = [(i, t, X) for i, t in enumerate(self.textModels)]
         n_jobs = self.n_jobs if self.tm_n_jobs is None else self.tm_n_jobs
         if n_jobs > 1:
             p = Pool(self.n_jobs, maxtasksperchild=1)
-            res = [x for x in tqdm(p.imap_unordered(vector_space, args), total=len(args))]
+            res = [x for x in tqdm(p.imap_unordered(vector_space, args),
+                                   total=len(args))]
             res.sort(key=lambda x: x[0])
             p.close()
         else:
@@ -390,15 +388,34 @@ class EvoMSA(object):
         hy = [None for x in y]
         args = self.sklearn_kfold(cl, X, y)
         if self.n_jobs == 1:
-            res = [kfold_decision_function(x) for x in tqdm(args, total=len(args))]
+            res = [kfold_decision_function(x) for x in tqdm(args,
+                                                            total=len(args))]
         else:
             p = Pool(self.n_jobs, maxtasksperchild=1)
-            res = [x for x in tqdm(p.imap_unordered(kfold_decision_function, args),
+            res = [x for x in tqdm(p.imap_unordered(kfold_decision_function,
+                                                    args),
                                    total=len(args))]
             p.close()
         for ts, df in res:
             [hy.__setitem__(k, self.tolist(v)) for k, v in zip(ts, df)]
         return hy
+
+    def kfold_supervised_learning(self, X_vector_space, y):
+        """KFold to train the stacked_method, i.e., training set
+
+        :rtype: np.array
+        """
+
+        D = None
+        for (_, cl), Xvs in zip(self.models, X_vector_space):
+            d = self.kfold_decision_function(cl, Xvs, y)
+            if D is None:
+                D = d
+            else:
+                [v.__iadd__(w) for v, w in zip(D, d)]
+        D = np.array(D)
+        D[~np.isfinite(D)] = 0
+        return D
 
     def _transform(self, X, models, textModel):
         if len(models) == 0:
@@ -417,49 +434,21 @@ class EvoMSA(object):
         [[v.__iadd__(w) for v, w in zip(D, d)] for d in res[1:]]
         return D
 
-    def transform(self, X, y=None):
-        if y is None or self._svc_models[0] is None:
-            D = self._transform(X, self._svc_models, self._textModel)
-        else:
-            cnt = len(self.models)
-            D = self._transform(X, self._svc_models[cnt:], self._textModel[cnt:])
-            Di = None
-            for t_cl, t in zip(self.models, self._textModel):
-                cl = t_cl[1]
-                try:
-                    x = t.transform(X)
-                except AttributeError:
-                    x = t.tonp([t[_] for _ in X])
-                d = self.kfold_decision_function(cl, x, y)
-                if Di is None:
-                    Di = d
-                else:
-                    [v.__iadd__(w) for v, w in zip(Di, d)]
-            [v.__iadd__(w) for v, w in zip(Di, D)]
-            D = Di
+    def transform(self, X):
+        D = self._transform(X, self._svc_models, self._textModel)
         _ = np.array(D)
         _[~np.isfinite(_)] = 0
         return _
 
-    def fit_svm(self, X, y):
-        self.model(X)
-        Xvs = self.vector_space(X)
-        if not isinstance(y[0], list):
-            y = [y]
+    def fit_svm(self, Xvs, y):
         svc_models = []
-        k = 0
-        nmodels = len(self.models)
-        for y0 in y:
-            for j in range(nmodels):
-                x = Xvs[k]
-                cl = self.models[j][1]
-                k += 1
-                try:
-                    c = cl(random_state=self._seed)
-                except TypeError:
-                    c = cl()
-                c.fit(x, y0)
-                svc_models.append(c)
+        for (_, cl), X in zip(self.models, Xvs):
+            try:
+                c = cl(random_state=self._seed)
+            except TypeError:
+                c = cl()
+            c.fit(X, y)
+            svc_models.append(c)
         self._svc_models = svc_models
 
     @staticmethod

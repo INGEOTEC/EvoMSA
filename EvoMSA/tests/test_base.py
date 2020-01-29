@@ -58,11 +58,6 @@ def test_TextModel():
     assert isinstance(evo._textModel, list)
     assert isinstance(evo._textModel[0], TextModel)
     assert len(evo._textModel) == 1
-    evo.model([X, X])
-    assert isinstance(evo._textModel, list)
-    assert len(evo._textModel) == 2
-    for x in evo._textModel:
-        assert isinstance(x, TextModel)
 
 
 def test_vector_space():
@@ -183,36 +178,13 @@ def test_EvoMSA_fit_svm():
                    n_jobs=2)
     le = LabelEncoder().fit(y)
     y = le.transform(y)
-    model.fit_svm(X, y)
+    model.model(X)
+    Xvs = model.vector_space(X)
+    model.fit_svm(Xvs, y)
     print(model._svc_models)
     assert len(model._svc_models) == 2
     for ins, klass in zip(model._svc_models, [LinearSVC, Bernulli]):
         assert isinstance(ins, klass)
-
-
-def test_EvoMSA_transform():
-    from sklearn.preprocessing import LabelEncoder
-    X, y = get_data()
-    Xn = [X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]]
-    Y = [y, [x for x in y if x in ['P', 'N']]]
-    Yn = []
-    for y0 in Y:
-        _ = LabelEncoder().fit(y0)
-        Yn.append(_.transform(y0).tolist())
-    X = Xn
-    y = Yn
-    for m, shape, TR in zip([[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
-                             [['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']]], [11, 6],
-                            [True, False]):
-        evo = EvoMSA(stacked_method_args=dict(popsize=10,
-                                              early_stopping_rounds=10,
-                                              time_limit=15, n_estimators=10),
-                     TR=TR,
-                     models=m,
-                     n_jobs=1)
-        evo.fit_svm(X, y)
-        D = evo.transform(X[0], y[0])
-        D.shape[1] == shape
 
 
 def test_EvoMSA_evodag_class():

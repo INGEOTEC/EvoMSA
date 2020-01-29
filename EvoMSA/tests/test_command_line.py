@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from EvoMSA.command_line import train, utils
+from EvoMSA.command_line import train
 from EvoMSA.command_line import predict
 from microtc.utils import load_model, tweet_iterator
 import sys
@@ -69,45 +69,6 @@ def test_evo_test_set():
     os.unlink('t.model')
 
 
-def test_utils_b4msa_df():
-    from EvoMSA.command_line import utils
-    import shutil
-    sys.argv = ['EvoMSA', '--kw={"seed": 1}', '-omodel.json',
-                '--b4msa-df', TWEETS]
-    utils(output=True)
-    assert os.path.isfile('model.json')
-    sys.argv = ['EvoMSA', '-omodel', '--b4msa-df', '--test_set', TWEETS, TWEETS]
-    utils(output=True)
-    assert os.path.isdir('model')
-    dos = os.path.join('model', 'train.json')
-    for a, b in zip(tweet_iterator('model.json'), tweet_iterator(dos)):
-        for v, w in zip(a['vec'], b['vec']):
-            print(v, w)
-            assert_almost_equals(v, w, places=3)
-    shutil.rmtree('model')
-    os.unlink('model.json')
-
-
-def test_utils_transform():
-    import json
-    with open('ex.json', 'w') as fpt:
-        for x in tweet_iterator(TWEETS):
-            x['decision_function'] = x['q_voc_ratio']
-            fpt.write(json.dumps(x) + '\n')
-    sys.argv = ['EvoMSA', '-ot.model', '-n2',
-                '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
-                TWEETS]
-    train(output=True)
-
-    sys.argv = ['EvoMSA', '-mt.model', '-ot.json', '--transform', TWEETS]
-    utils()
-    os.unlink('t.model')
-    vec = [x['vec'] for x in tweet_iterator('t.json')]
-    os.unlink('t.json')
-    print(len(vec[0]))
-    assert len(vec[0]) == 4
-
-
 def test_raw_outputs():
     sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 60, "n_estimators": 30}}',
                 '-ot.model', '-n2', TWEETS]
@@ -129,15 +90,6 @@ def test_decision_function():
     df = [x['decision_function'] for x in tweet_iterator('t1.json')]
     assert len(df[0]) == 4
     os.unlink('t1.json')
-    os.unlink('t.model')
-
-
-def test_fitness():
-    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
-                '-ot.model', '-n2', TWEETS]
-    train(output=True)
-    sys.argv = ['EvoMSA', '--fitness', 't.model']
-    utils()
     os.unlink('t.model')
 
 
