@@ -311,12 +311,14 @@ def test_EvoMSA_param_TR():
     from EvoMSA.base import EvoMSA
     from b4msa.textmodel import TextModel
     X, y = get_data()
-    model = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
-                                    n_estimators=3),
+    model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                            early_stopping_rounds=10,
+                                            n_estimators=3),
                    TR=False, n_jobs=2)
     assert len(model.models) == 0
-    model = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
-                                    n_estimators=3),
+    model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                            early_stopping_rounds=10,
+                                            n_estimators=3),
                    n_jobs=2)
     assert len(model.models) == 1
     print(model.models[0])
@@ -330,8 +332,9 @@ def test_EvoMSA_param_Emo():
     X, y = get_data()
     for cl, lang in zip([EmoSpaceAr, EmoSpaceEn, EmoSpaceEs],
                         ['ar', 'en', 'es']):
-        model = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
-                                        n_estimators=3),
+        model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                                early_stopping_rounds=10,
+                                                n_estimators=3),
                        TR=False, lang=lang, Emo=True, n_jobs=2)
         assert len(model.models) == 1
         assert model.models[0][0] == cl
@@ -344,8 +347,9 @@ def test_EvoMSA_param_TH():
     X, y = get_data()
     for cl, lang in zip([ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs],
                         ['ar', 'en', 'es']):
-        model = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
-                                        n_estimators=3),
+        model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                                early_stopping_rounds=10,
+                                                n_estimators=3),
                        TR=False, lang=lang, TH=True, n_jobs=2)
         assert len(model.models) == 1
         assert model.models[0][0] == cl
@@ -361,8 +365,9 @@ def test_EvoMSA_param_HA():
     for cl, lang in zip([ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs],
                         ['ar', 'en', 'es']):
         with StoreDelete(HA.create_space, TWEETS, "%s.evoha" % get_lang(lang)) as sd:
-            model = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
-                                            n_estimators=3),
+            model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                                    early_stopping_rounds=10,
+                                                    n_estimators=3),
                            TR=False, lang=lang, HA=True, n_jobs=2)
             assert len(model.models) == 1
             print(model.models[0][0])
@@ -385,14 +390,16 @@ def test_evomsa_wrapper():
     from EvoMSA.base import EvoMSA
     from test_base import get_data
     X, y = get_data()
-    model = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
-                                    n_estimators=3),
+    model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                            early_stopping_rounds=10,
+                                            n_estimators=3),
                    stacked_method="sklearn.naive_bayes.GaussianNB",
                    n_jobs=2).fit(X, y)
     save_model(model, 'tmp.evomsa')
     assert os.path.isfile('tmp.evomsa')
-    evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
-                                  n_estimators=3),
+    evo = EvoMSA(stacked_method_args=dict(popsize=10,
+                                          early_stopping_rounds=10,
+                                          n_estimators=3),
                  models=[["tmp.evomsa", "EvoMSA.model.Identity"]],
                  stacked_method="sklearn.naive_bayes.GaussianNB",
                  n_jobs=2).fit(X, y)
@@ -428,3 +435,27 @@ def test_model_instance():
                  models=[[tm, "sklearn.svm.LinearSVC"]],
                  stacked_method="sklearn.svm.LinearSVC").fit(X, y)
     assert evo.models[0][0] == tm
+
+
+def test_cache():
+    import hashlib
+
+    def func(data, output):
+        from b4msa.textmodel import TextModel
+        from microtc.utils import tweet_iterator, save_model
+
+        tm = TextModel().fit(list(tweet_iterator(data)))
+        save_model(tm, output)
+
+    with StoreDelete(func, TWEETS, "textmodel_cache.tm") as sd:
+        cache = os.path.join("tm", "train.json")
+        evo = EvoMSA(models=[[sd._output, "sklearn.svm.LinearSVC"]],
+                     cache=cache)
+        assert os.path.isdir("tm")
+        output = hashlib.md5(sd._output.encode()).hexdigest()
+        output = cache + "-%s" % output
+        print(evo.cache.textModels)
+        assert evo.cache.textModels[1] == output
+        X, y = get_data()
+        evo.first_stage(X, y)
+        assert os.path.isfile(output)

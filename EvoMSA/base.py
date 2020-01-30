@@ -23,7 +23,7 @@ from b4msa.lang_dependency import get_lang
 from sklearn.model_selection import KFold
 from .model import Identity, BaseTextModel, EvoMSAWrapper
 from .utils import LabelEncoderWrapper, download
-from microtc.utils import load_model
+from microtc.utils import load_model, save_model
 try:
     from tqdm import tqdm
 except ImportError:
@@ -55,11 +55,15 @@ def transform(args):
 
 
 def vector_space(args):
-    k, t, X = args
+    k, t, X, output = args
+    if output is not None and os.path.isfile(output):
+        return load_model(output)
     try:
         res = t.transform(X)
     except AttributeError:
         res = t.tonp([t[_] for _ in X])
+    if output is not None:
+        save_model(res, output)
     return k, res
 
 
@@ -125,12 +129,14 @@ class EvoMSA(object):
     :type HA: bool
     :param tm_n_jobs: Multiprocessing using on the Text Models, <= 0 to use all processors
     :type tm_n_jobs: int
+    :param cache: Store the output of text models
+    :type cache: str
     """
 
     def __init__(self, b4msa_args=dict(), stacked_method_args=dict(), n_jobs=1,
                  n_splits=5, seed=0, classifier=True, models=None, lang=None,
                  stacked_method="EvoDAG.model.EvoDAGE", TR=True, Emo=False,
-                 TH=False, HA=False, tm_n_jobs=None):
+                 TH=False, HA=False, tm_n_jobs=None, cache=None):
         if models is None:
             models = []
         if TR:
@@ -167,6 +173,7 @@ class EvoMSA(object):
         self._logger = logging.getLogger('EvoMSA')
         self._le = None
         self._classifier = classifier
+        self.cache = cache
         self.models = models
         self._evodag_class = self.get_class(stacked_method)
 
@@ -301,6 +308,9 @@ class EvoMSA(object):
                 tm = Identity
                 cl = self.get_class(m)
             assert isinstance(tm, str) or (hasattr(tm, 'transform') and hasattr(tm, 'fit'))
+            # Initializing the cache
+            if self.cache is not None:
+                self.cache.append(tm)
             self._models.append([tm, cl])
 
     @property
@@ -331,6 +341,17 @@ class EvoMSA(object):
         """
 
         return self._textModel
+
+    @property
+    def cache(self):
+        """Basename to store the output of the textmodels"""
+
+        return self._cache
+
+    @cache.setter
+    def cache(self, value):
+        from .utils import Cache
+        self._cache = Cache(value)
 
     def predict(self, X):
         if self.classifier:
@@ -374,7 +395,7 @@ class EvoMSA(object):
         self._textModel = m
 
     def vector_space(self, X):
-        args = [(i, t, X) for i, t in enumerate(self.textModels)]
+        args = [(i, t, X, output) for (i, t), output in zip(enumerate(self.textModels), self.cache)]
         n_jobs = self.n_jobs if self.tm_n_jobs is None else self.tm_n_jobs
         if n_jobs > 1:
             p = Pool(self.n_jobs, maxtasksperchild=1)
