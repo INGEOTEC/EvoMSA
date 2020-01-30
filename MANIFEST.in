@@ -1,6 +1,5 @@
 include EvoMSA/cython_utils.pyx
-include EvoMSA/tests/tweets.json 
-include EvoMSA/conf/default_parameters.json
+include EvoMSA/tests/tweets.json
 include EvoMSA/conf/aggressiveness.es
 include EvoMSA/conf/aggressiveness.en
 include EvoMSA/conf/aggressiveness.ar

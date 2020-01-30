@@ -269,7 +269,7 @@ def test_HA():
     import os
     X = [x for x in tweet_iterator(TWEETS)]
     HA.create_space(TWEETS, 'ha.model')
-    EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+    EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
                             n_estimators=3),
            models=[['ha.model', 'sklearn.svm.LinearSVC']],
            n_jobs=2).fit(X, [x['klass'] for x in X])

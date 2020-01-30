@@ -23,7 +23,7 @@ from b4msa.lang_dependency import get_lang
 from sklearn.model_selection import KFold
 from .model import Identity, BaseTextModel, EvoMSAWrapper
 from .utils import LabelEncoderWrapper, download
-from microtc.utils import load_model
+from microtc.utils import load_model, save_model
 try:
     from tqdm import tqdm
 except ImportError:
@@ -48,22 +48,22 @@ def kfold_decision_function(args):
 
 
 def transform(args):
-    k, m, t, X = args
-    try:
-        x = t.transform(X)
-    except AttributeError:
-        x = t.tonp([t[_] for _ in X])
-    df = m.decision_function(x)
+    k, cl, X = args
+    df = cl.decision_function(X)
     d = [EvoMSA.tolist(_) for _ in df]
     return (k, d)
 
 
 def vector_space(args):
-    k, t, X = args
+    k, t, X, output = args
+    if output is not None and os.path.isfile(output):
+        return k, load_model(output)
     try:
         res = t.transform(X)
     except AttributeError:
         res = t.tonp([t[_] for _ in X])
+    if output is not None:
+        save_model(res, output)
     return k, res
 
 
@@ -96,16 +96,17 @@ class EvoMSA(object):
     Once the dataset is loaded, it is time to create an EvoMSA model
 
     >>> from EvoMSA.base import EvoMSA
-    >>> evo = EvoMSA().fit([x[0] for x in D], [x[1] for x in D])
+    >>> evo = EvoMSA(n_jobs=-1).fit([x[0] for x in D], [x[1] for x in D])
 
     Predict a sentence in Spanish
 
     >>> evo.predict(['EvoMSA esta funcionando'])
+    array(['P'], dtype='<U4')
 
     :param b4msa_args: Arguments pass to TextModel updating the default arguments
     :type b4msa_args:  dict
-    :param evodag_args: Arguments pass to EvoDAG
-    :type evodag_args: dict
+    :param stacked_method_args: Arguments pass to the stacked method
+    :type stacked_method_args: dict
     :param n_jobs: Multiprocessing default 1 process, <= 0 to use all processors
     :type n_jobs: int
     :param n_splits: Number of folds to train EvoDAG or evodag_class
@@ -116,8 +117,8 @@ class EvoMSA(object):
     :type classifier: bool
     :param models: Models used as list of pairs (see flags: TR, TH and Emo)
     :type models: list
-    :param evodag_class: Classifier or regressor used to ensemble the outputs of :attr:`models` default :class:`EvoDAG.model.EvoDAGE`
-    :type evodag_class: str or class
+    :param stacked_method: Classifier or regressor used to ensemble the outputs of :attr:`models` default :class:`EvoDAG.model.EvoDAGE`
+    :type stacked_method: str or class
     :param TR: Use b4msa.textmodel.TextModel, sklearn.svm.LinearSVC on the training set
     :type TR: bool
     :param Emo: Use EvoMSA.model.EmoSpace[Ar|En|Es], sklearn.svm.LinearSVC
@@ -128,16 +129,19 @@ class EvoMSA(object):
     :type HA: bool
     :param tm_n_jobs: Multiprocessing using on the Text Models, <= 0 to use all processors
     :type tm_n_jobs: int
+    :param cache: Store the output of text models
+    :type cache: str
     """
 
-    def __init__(self, b4msa_args=dict(), evodag_args=dict(), n_jobs=1,
+    def __init__(self, b4msa_args=dict(), stacked_method_args=dict(), n_jobs=1,
                  n_splits=5, seed=0, classifier=True, models=None, lang=None,
-                 evodag_class="EvoDAG.model.EvoDAGE", TR=True, Emo=False, TH=False, HA=False,
-                 tm_n_jobs=None):
+                 stacked_method="EvoDAG.model.EvoDAGE", TR=True, Emo=False,
+                 TH=False, HA=False, tm_n_jobs=None, cache=None):
         if models is None:
             models = []
         if TR:
-            models.insert(0, ["b4msa.textmodel.TextModel", "sklearn.svm.LinearSVC"])
+            models.insert(0, ["b4msa.textmodel.TextModel",
+                              "sklearn.svm.LinearSVC"])
         lang = lang if lang is None else get_lang(lang)
         b4msa_args['lang'] = lang
         if Emo:
@@ -150,14 +154,16 @@ class EvoMSA(object):
             fname = download("%s.evoha" % lang)
             models.append([fname, "sklearn.svm.LinearSVC"])
         self._b4msa_args = b4msa_args
-        self._evodag_args = evodag_args
-        if classifier:
-            _ = DEFAULT_CL.copy()
+        self._evodag_args = stacked_method_args
+        if stacked_method == "EvoDAG.model.EvoDAGE":
+            if classifier:
+                _ = DEFAULT_CL.copy()
+            else:
+                _ = DEFAULT_R.copy()
         else:
-            _ = DEFAULT_R.copy()
+            _ = dict()
         _.update(self._evodag_args)
         self._evodag_args = _
-        
         self._n_jobs = n_jobs if n_jobs > 0 else cpu_count()
         self._tm_n_jobs = tm_n_jobs if tm_n_jobs is None or tm_n_jobs > 0 else cpu_count()
         self._n_splits = n_splits
@@ -167,8 +173,9 @@ class EvoMSA(object):
         self._logger = logging.getLogger('EvoMSA')
         self._le = None
         self._classifier = classifier
+        self.cache = cache
         self.models = models
-        self._evodag_class = self.get_class(evodag_class)
+        self._evodag_class = self.get_class(stacked_method)
 
     def _emoSpace(self, lang):
         m = None
@@ -192,9 +199,46 @@ class EvoMSA(object):
         assert m is not None
         return m
 
+    def first_stage(self, X, y):
+        """Training EvoMSA's first stage
+        
+        :param X: Independent variables
+        :type X: dict or list
+        :param y: Dependent variable.
+        :type y: list
+        :return: List of vector spaces, i.e., second-stage's training set
+        :rtype: list
+
+        >>> import os
+        >>> from EvoMSA import base
+        >>> from microtc.utils import tweet_iterator
+        >>> TWEETS = os.path.join(os.path.dirname(__file__), 'tests', 'tweets.json')
+        >>> X = [x['text'] for x in tweet_iterator(TWEETS)]
+        >>> y = [x['klass'] for x in tweet_iterator(TWEETS)]
+        >>> evo = base.EvoMSA()
+        >>> D = evo.first_stage(X, y)
+        >>> D.shape
+        (1000, 4)
+
+        """
+
+        # Instantiate Text Models
+        self.model(X)
+        # Transform text into a vector space - List of vector spaces
+        X_vector_space = self.vector_space(X)
+        # Train supervised learning algorithms
+        self.fit_svm(X_vector_space, y)
+        # KFold to train the stacked_method
+        D = self.kfold_supervised_learning(X_vector_space, y)
+        return D
+
     def fit(self, X, y, test_set=None):
         """
-        Train the model using a training set or pairs: text, dependent variable (e.g. class)
+        Train the model using a training set or pairs: text,
+        dependent variable (e.g., class) EvoMSA is a two-stage procedure;
+        the first step is to transform the text into a vector space with
+        dimensions related to the number of classes and then
+        train a supervised learning algorithm.
 
         :param X: Independent variables
         :type X: dict or list
@@ -203,30 +247,21 @@ class EvoMSA(object):
         :return: EvoMSA instance, i.e., self
         """
 
-        if isinstance(y[0], list):
-            le = []
-            Y = []
-            for y0 in y:
-                _ = LabelEncoderWrapper(classifier=self.classifier).fit(y0)
-                le.append(_)
-                Y.append(_.transform(y0).tolist())
-            self._le = le[0]
-            y = Y
-        else:
-            self._le = LabelEncoderWrapper(classifier=self.classifier).fit(y)
-            y = self._le.transform(y).tolist()
-        self.fit_svm(X, y)
-        if isinstance(y[0], list):
-            y = y[0]
-        if isinstance(X[0], list):
-            X = X[0]
-        D = self.transform(X, y)
+        self._le = LabelEncoderWrapper(classifier=self.classifier).fit(y)
+        y = self._le.transform(y)
+        # Training first stage
+        D = self.first_stage(X, y)
+        # After the first stage the cache is not needed
+        self.cache = None
+        # Transform test set to do transductive learning
         if test_set is not None:
             if isinstance(test_set, list):
                 test_set = self.transform(test_set)
+        # Training stacked_method
+        # Start of the second stage
         _ = dict(n_jobs=self.n_jobs, seed=self._seed)
         self._evodag_args.update(_)
-        y = np.array(y)
+        # y = np.array(y)
         try:
             _ = self._evodag_class(**self._evodag_args)
             _.fit(D, y, test_set=test_set)
@@ -275,7 +310,9 @@ class EvoMSA(object):
                 tm = Identity
                 cl = self.get_class(m)
             assert isinstance(tm, str) or (hasattr(tm, 'transform') and hasattr(tm, 'fit'))
-            # assert issubclass(cl, BaseClassifier)
+            # Initializing the cache
+            if self.cache is not None:
+                self.cache.append(tm)
             self._models.append([tm, cl])
 
     @property
@@ -297,6 +334,26 @@ class EvoMSA(object):
     @tm_n_jobs.setter
     def tm_n_jobs(self, v):
         self._tm_n_jobs = v
+
+    @property
+    def textModels(self):
+        """Text Models
+
+        :rtype: list
+        """
+
+        return self._textModel
+
+    @property
+    def cache(self):
+        """Basename to store the output of the textmodels"""
+
+        return self._cache
+
+    @cache.setter
+    def cache(self, value):
+        from .utils import Cache
+        self._cache = Cache(value)
 
     def predict(self, X):
         if self.classifier:
@@ -323,42 +380,29 @@ class EvoMSA(object):
         return self._evodag_model.decision_function(X)
 
     def model(self, X):
-        if not isinstance(X[0], list):
-            X = [X]
         m = []
         kwargs = self._b4msa_args
         self._logger.info("Starting TextModel")
         self._logger.info(str(kwargs))
-        for x in X:
-            for tm, cl in self.models:
-                if isinstance(tm, str):
-                    _ = load_model(tm)
-                    if isinstance(_, EvoMSA):
-                        _ = EvoMSAWrapper(evomsa=_)
-                    m.append(_)
-                elif isinstance(tm, type):
-                    m.append(tm(**kwargs).fit(x))
-                else:
-                    m.append(tm)
+        for tm, cl in self.models:
+            if isinstance(tm, str):
+                _ = load_model(tm)
+                if isinstance(_, EvoMSA):
+                    _ = EvoMSAWrapper(evomsa=_)
+                m.append(_)
+            elif isinstance(tm, type):
+                m.append(tm(**kwargs).fit(X))
+            else:
+                m.append(tm)
         self._textModel = m
 
     def vector_space(self, X):
-        if not isinstance(X[0], list):
-            X = [X]
-        args = []
-        i = 0
-        k = 0
-        nmodels = len(self.models)
-        for x in X:
-            for _ in range(nmodels):
-                t = self._textModel[k]
-                k += 1
-                args.append((i, t, x))
-                i += 1
+        args = [(i, t, X, output) for (i, t), output in zip(enumerate(self.textModels), self.cache)]
         n_jobs = self.n_jobs if self.tm_n_jobs is None else self.tm_n_jobs
         if n_jobs > 1:
             p = Pool(self.n_jobs, maxtasksperchild=1)
-            res = [x for x in tqdm(p.imap_unordered(vector_space, args), total=len(args))]
+            res = [x for x in tqdm(p.imap_unordered(vector_space, args),
+                                   total=len(args))]
             res.sort(key=lambda x: x[0])
             p.close()
         else:
@@ -386,24 +430,44 @@ class EvoMSA(object):
         hy = [None for x in y]
         args = self.sklearn_kfold(cl, X, y)
         if self.n_jobs == 1:
-            res = [kfold_decision_function(x) for x in tqdm(args, total=len(args))]
+            res = [kfold_decision_function(x) for x in tqdm(args,
+                                                            total=len(args))]
         else:
             p = Pool(self.n_jobs, maxtasksperchild=1)
-            res = [x for x in tqdm(p.imap_unordered(kfold_decision_function, args),
+            res = [x for x in tqdm(p.imap_unordered(kfold_decision_function,
+                                                    args),
                                    total=len(args))]
             p.close()
         for ts, df in res:
             [hy.__setitem__(k, self.tolist(v)) for k, v in zip(ts, df)]
         return hy
 
-    def _transform(self, X, models, textModel):
-        if len(models) == 0:
-            return []
-        args = [[i_m[0], i_m[1], t, X] for i_m, t in zip(enumerate(models), textModel) if i_m[1] is not None]
+    def kfold_supervised_learning(self, X_vector_space, y):
+        """KFold to train the stacked_method, i.e., training set
+
+        :rtype: np.array
+        """
+
+        D = None
+        for (_, cl), Xvs in zip(self.models, X_vector_space):
+            d = self.kfold_decision_function(cl, Xvs, y)
+            if D is None:
+                D = d
+            else:
+                [v.__iadd__(w) for v, w in zip(D, d)]
+        D = np.array(D)
+        D[~np.isfinite(D)] = 0
+        return D
+
+    def transform(self, X):
+        Xvs = self.vector_space(X)
+        args = [(i, cl, X) for (i, cl), X in zip(enumerate(self._svc_models),
+                                                 Xvs)]
         n_jobs = self.n_jobs if self.tm_n_jobs is None else self.tm_n_jobs
         if n_jobs > 1:
             p = Pool(n_jobs, maxtasksperchild=1)
-            res = [x for x in tqdm(p.imap_unordered(transform, args), total=len(args))]
+            res = [x for x in tqdm(p.imap_unordered(transform, args),
+                                   total=len(args))]
             res.sort(key=lambda x: x[0])
             p.close()
         else:
@@ -411,51 +475,19 @@ class EvoMSA(object):
         res = [x[1] for x in res]
         D = res[0]
         [[v.__iadd__(w) for v, w in zip(D, d)] for d in res[1:]]
-        return D
-
-    def transform(self, X, y=None):
-        if y is None or self._svc_models[0] is None:
-            D = self._transform(X, self._svc_models, self._textModel)
-        else:
-            cnt = len(self.models)
-            D = self._transform(X, self._svc_models[cnt:], self._textModel[cnt:])
-            Di = None
-            for t_cl, t in zip(self.models, self._textModel):
-                cl = t_cl[1]
-                try:
-                    x = t.transform(X)
-                except AttributeError:
-                    x = t.tonp([t[_] for _ in X])
-                d = self.kfold_decision_function(cl, x, y)
-                if Di is None:
-                    Di = d
-                else:
-                    [v.__iadd__(w) for v, w in zip(Di, d)]
-            [v.__iadd__(w) for v, w in zip(Di, D)]
-            D = Di
         _ = np.array(D)
         _[~np.isfinite(_)] = 0
         return _
 
-    def fit_svm(self, X, y):
-        self.model(X)
-        Xvs = self.vector_space(X)
-        if not isinstance(y[0], list):
-            y = [y]
+    def fit_svm(self, Xvs, y):
         svc_models = []
-        k = 0
-        nmodels = len(self.models)
-        for y0 in y:
-            for j in range(nmodels):
-                x = Xvs[k]
-                cl = self.models[j][1]
-                k += 1
-                try:
-                    c = cl(random_state=self._seed)
-                except TypeError:
-                    c = cl()
-                c.fit(x, y0)
-                svc_models.append(c)
+        for (_, cl), X in zip(self.models, Xvs):
+            try:
+                c = cl(random_state=self._seed)
+            except TypeError:
+                c = cl()
+            c.fit(X, y)
+            svc_models.append(c)
         self._svc_models = svc_models
 
     @staticmethod

@@ -13,6 +13,7 @@
 # limitations under the License.
 from sklearn.preprocessing import LabelEncoder
 import os
+import hashlib
 from urllib import request
 from microtc.utils import load_model
 import numpy as np
@@ -64,6 +65,48 @@ class LabelEncoderWrapper(object):
         if not self.classifier:
             return y
         return np.array([self._inv[int(x)] for x in y])
+
+
+class Cache(object):
+    """Store the output of the text models"""
+
+    def __init__(self, basename):
+        if basename is None:
+            self._cache = None
+        else:
+            dirname = os.path.dirname(basename)
+            if len(dirname) and not os.path.isdir(dirname):
+                os.mkdir(dirname)
+            self._cache = basename
+
+    def __iter__(self):
+        if self._cache is None:
+            while True:
+                yield None
+        for i in self.textModels:
+            yield i
+
+    @property
+    def textModels(self):
+        try:
+            return self._textModels
+        except AttributeError:
+            self._textModels = list()
+        return self._textModels
+
+    def append(self, value):
+        if self._cache is None:
+            return
+        if isinstance(value, str):
+            vv = hashlib.md5(value.encode()).hexdigest()
+            name = self._cache + "-%s" % vv
+        else:
+            try:
+                vv = value.__name__
+            except AttributeError:
+                vv = value.__class__.__name__
+            name = self._cache + "-" + vv
+        self.textModels.append(name)
 
 
 def download(model_fname):

@@ -27,7 +27,7 @@ class StoreDelete(object):
         self._data = data
         self._output = output
         self._delete = False
-        
+
     def __enter__(self):
         dirname = os.path.join(get_dirname(), 'models')
         if not os.path.isdir(dirname):
@@ -37,7 +37,7 @@ class StoreDelete(object):
             self._func(self._data, output=self._output)
             self._delete = True
         return self
-    
+
     def __exit__(self, *args):
         if self._delete:
             os.unlink(self._output)
@@ -58,16 +58,12 @@ def test_TextModel():
     assert isinstance(evo._textModel, list)
     assert isinstance(evo._textModel[0], TextModel)
     assert len(evo._textModel) == 1
-    evo.model([X, X])
-    assert isinstance(evo._textModel, list)
-    assert len(evo._textModel) == 2
-    for x in evo._textModel:
-        assert isinstance(x, TextModel)
 
 
 def test_vector_space():
     X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
+    evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
+                                          n_estimators=3),
                  models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
     evo.model(X)
     nrows = len(X)
@@ -80,7 +76,8 @@ def test_EvoMSA_kfold_decision_function():
     X, y = get_data()
     le = LabelEncoder().fit(y)
     y = le.transform(y)
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, n_estimators=3),
+    evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
+                                          n_estimators=3),
                  models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
     evo.model(X)
     X = evo.vector_space(X)
@@ -96,8 +93,9 @@ def test_EvoMSA_fit():
     from microtc.utils import load_model, save_model
     X, y = get_data()
     print('iniciando')
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
-                                  n_estimators=5),
+    evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
+                                          time_limit=5,
+                                          n_estimators=5),
                  models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                  n_jobs=1).fit(X, y)
     print("Termine fit")
@@ -113,36 +111,13 @@ def test_EvoMSA_fit():
     os.unlink('test.evomodel')
 
 
-def test_EvoMSA_fit2():
-    X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
-                                  n_estimators=5),
-                 n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
-                               [y, [x for x in y if x in ['P', 'N']]])
-    assert evo
-    D = evo.transform(X, y)
-    assert len(D[0]) == 5
-
-
-def test_EvoMSA_evodag_args():
-    X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
-                                  n_estimators=5),
-                 n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
-                               [y, [x for x in y if x in ['P', 'N']]])
-    assert evo
-    D = evo.transform(X, y)
-    assert len(D[0]) == 5
-    assert len(D) == 1000
-
-
 def test_EvoMSA_predict():
     import numpy as np
     X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=15, n_estimators=10),
+    evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
+                                          time_limit=15, n_estimators=10),
                  models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
-                 n_jobs=1).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
-                               [y, [x for x in y if x in ['P', 'N']]])
+                 n_jobs=1).fit(X, y)
     hy = evo.predict(X)
     assert len(hy) == 1000
     print((np.array(y) == hy).mean(), hy)
@@ -152,10 +127,11 @@ def test_EvoMSA_predict():
 
 def test_EvoMSA_predict_proba():
     X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=100, early_stopping_rounds=100, time_limit=5,
-                                  n_estimators=5),
-                 n_jobs=2).fit([X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]],
-                               [y, [x for x in y if x in ['P', 'N']]])
+    evo = EvoMSA(stacked_method_args=dict(popsize=100,
+                                          early_stopping_rounds=100,
+                                          time_limit=5,
+                                          n_estimators=5),
+                 n_jobs=2).fit(X, y)
     hy = evo.predict_proba(X)
     assert len(hy) == 1000
     assert hy.min() >= 0 and hy.max() <= 1
@@ -166,8 +142,9 @@ def test_binary_labels_json():
     X, y = get_data()
     h = dict(NONE=0, N=0, NEU=0, P=1)
     y = [h[x] for x in y]
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
-                                  n_estimators=5),
+    evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
+                                          time_limit=5,
+                                          n_estimators=5),
                  n_jobs=2).fit(X, y)
     hy = evo.predict(X)
     for x in hy:
@@ -178,8 +155,9 @@ def test_binary_labels_json():
 
 def test_EvoMSA_model():
     X, y = get_data()
-    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                    n_estimators=3),
+    model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                            early_stopping_rounds=10,
+                                            n_estimators=3),
                    models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                    n_jobs=2)
     assert len(model.models) == 2
@@ -193,51 +171,31 @@ def test_EvoMSA_fit_svm():
     X, y = get_data()
     from sklearn.svm import LinearSVC
     from EvoMSA.model import Bernulli
-    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                    n_estimators=3),
+    model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                            early_stopping_rounds=10,
+                                            n_estimators=3),
                    models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
                    n_jobs=2)
     le = LabelEncoder().fit(y)
     y = le.transform(y)
-    model.fit_svm(X, y)
+    model.model(X)
+    Xvs = model.vector_space(X)
+    model.fit_svm(Xvs, y)
     print(model._svc_models)
     assert len(model._svc_models) == 2
     for ins, klass in zip(model._svc_models, [LinearSVC, Bernulli]):
         assert isinstance(ins, klass)
 
 
-def test_EvoMSA_transform():
-    from sklearn.preprocessing import LabelEncoder
-    X, y = get_data()
-    Xn = [X, [x for x, y0 in zip(X, y) if y0 in ['P', 'N']]]
-    Y = [y, [x for x in y if x in ['P', 'N']]]
-    Yn = []
-    for y0 in Y:
-        _ = LabelEncoder().fit(y0)
-        Yn.append(_.transform(y0).tolist())
-    X = Xn
-    y = Yn
-    for m, shape, TR in zip([[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
-                             [['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']]], [11, 6],
-                            [True, False]):
-        evo = EvoMSA(evodag_args=dict(popsize=10,
-                                      early_stopping_rounds=10,
-                                      time_limit=15, n_estimators=10), TR=TR,
-                     models=m,
-                     n_jobs=1)
-        evo.fit_svm(X, y)
-        D = evo.transform(X[0], y[0])
-        D.shape[1] == shape
-
-
 def test_EvoMSA_evodag_class():
     from sklearn.neighbors import NearestCentroid
     import numpy as np
     X, y = get_data()
-    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                    n_estimators=3),
+    model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                            early_stopping_rounds=10,
+                                            n_estimators=3),
                    models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
-                   evodag_class="sklearn.neighbors.NearestCentroid", TR=False,
+                   stacked_method="sklearn.neighbors.NearestCentroid", TR=False,
                    n_jobs=2).fit(X, y)
     assert isinstance(model._evodag_model, NearestCentroid)
     cl = model.predict(X)
@@ -250,9 +208,11 @@ def test_EvoMSA_evodag_class():
 def test_EvoMSA_multinomial():
     from EvoMSA.model import Multinomial
     X, y = get_data()
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
-                                  n_estimators=5),
-                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Multinomial']], TR=False,
+    evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
+                                          time_limit=5,
+                                          n_estimators=5),
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Multinomial']],
+                 TR=False,
                  n_jobs=1).fit(X, y)
     assert evo
     assert isinstance(evo._svc_models[0], Multinomial)
@@ -263,9 +223,11 @@ def test_EvoMSA_empty_string():
     X, y = get_data()
     X.append("")
     y.append("NONE")
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10, time_limit=5,
-                                  n_estimators=5),
-                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Multinomial']], TR=False,
+    evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
+                                          time_limit=5,
+                                          n_estimators=5),
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Multinomial']],
+                 TR=False,
                  n_jobs=1).fit(X, y)
     assert evo
     assert isinstance(evo._svc_models[0], Multinomial)
@@ -304,15 +266,19 @@ def get_dirname():
 def test_EvoMSA_regression():
     from EvoMSA.base import LabelEncoderWrapper
     from EvoMSA.model import EmoSpaceEs
-    with StoreDelete(EmoSpaceEs.create_space, TWEETS, EmoSpaceEs.model_fname()) as st:
+    with StoreDelete(EmoSpaceEs.create_space,
+                     TWEETS, EmoSpaceEs.model_fname()) as st:
         X, y = get_data()
         X = [dict(text=x) for x in X]
         l = LabelEncoderWrapper().fit(y)
         y = l.transform(y) - 1.5
-        evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                      time_limit=5, n_estimators=2),
+        evo = EvoMSA(stacked_method_args=dict(popsize=10,
+                                              early_stopping_rounds=10,
+                                              time_limit=5,
+                                              n_estimators=2),
                      classifier=False,
-                     models=[['EvoMSA.model.Identity', 'EvoMSA.model.EmoSpaceEs']], TR=False,
+                     models=[['EvoMSA.model.Identity',
+                              'EvoMSA.model.EmoSpaceEs']], TR=False,
                      n_jobs=1).fit(X, y)
         assert evo
         df = evo.decision_function(X)
@@ -326,10 +292,12 @@ def test_EvoMSA_identity():
     from EvoMSA.model import Identity
     import numpy as np
     X, y = get_data()
-    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                    n_estimators=3),
-                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']], TR=False,
-                   evodag_class="EvoMSA.model.Identity",
+    model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                            early_stopping_rounds=10,
+                                            n_estimators=3),
+                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                   TR=False,
+                   stacked_method="EvoMSA.model.Identity",
                    n_jobs=2).fit(X, y)
     assert isinstance(model._evodag_model, Identity)
     cl = model.predict(X)
@@ -337,18 +305,20 @@ def test_EvoMSA_identity():
     cl2 = model._le.inverse_transform(hy.argmax(axis=1))
     print(cl, cl2)
     assert np.all(cl == cl2)
-    
+
 
 def test_EvoMSA_param_TR():
     from EvoMSA.base import EvoMSA
     from b4msa.textmodel import TextModel
     X, y = get_data()
-    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                    n_estimators=3),
+    model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                            early_stopping_rounds=10,
+                                            n_estimators=3),
                    TR=False, n_jobs=2)
     assert len(model.models) == 0
-    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                    n_estimators=3),
+    model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                            early_stopping_rounds=10,
+                                            n_estimators=3),
                    n_jobs=2)
     assert len(model.models) == 1
     print(model.models[0])
@@ -362,8 +332,9 @@ def test_EvoMSA_param_Emo():
     X, y = get_data()
     for cl, lang in zip([EmoSpaceAr, EmoSpaceEn, EmoSpaceEs],
                         ['ar', 'en', 'es']):
-        model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                        n_estimators=3),
+        model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                                early_stopping_rounds=10,
+                                                n_estimators=3),
                        TR=False, lang=lang, Emo=True, n_jobs=2)
         assert len(model.models) == 1
         assert model.models[0][0] == cl
@@ -376,8 +347,9 @@ def test_EvoMSA_param_TH():
     X, y = get_data()
     for cl, lang in zip([ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs],
                         ['ar', 'en', 'es']):
-        model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                        n_estimators=3),
+        model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                                early_stopping_rounds=10,
+                                                n_estimators=3),
                        TR=False, lang=lang, TH=True, n_jobs=2)
         assert len(model.models) == 1
         assert model.models[0][0] == cl
@@ -393,8 +365,9 @@ def test_EvoMSA_param_HA():
     for cl, lang in zip([ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs],
                         ['ar', 'en', 'es']):
         with StoreDelete(HA.create_space, TWEETS, "%s.evoha" % get_lang(lang)) as sd:
-            model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                            n_estimators=3),
+            model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                                    early_stopping_rounds=10,
+                                                    n_estimators=3),
                            TR=False, lang=lang, HA=True, n_jobs=2)
             assert len(model.models) == 1
             print(model.models[0][0])
@@ -405,7 +378,7 @@ def test_EvoMSA_cpu_count():
     from EvoMSA.base import EvoMSA
     from multiprocessing import cpu_count
     X, y = get_data()
-    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
+    model = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
                                     n_estimators=3),
                    TR=False, n_jobs=-1)
     print(model.n_jobs, cpu_count())
@@ -417,16 +390,18 @@ def test_evomsa_wrapper():
     from EvoMSA.base import EvoMSA
     from test_base import get_data
     X, y = get_data()
-    model = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                    n_estimators=3),
-                   evodag_class="sklearn.naive_bayes.GaussianNB",
+    model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                            early_stopping_rounds=10,
+                                            n_estimators=3),
+                   stacked_method="sklearn.naive_bayes.GaussianNB",
                    n_jobs=2).fit(X, y)
     save_model(model, 'tmp.evomsa')
     assert os.path.isfile('tmp.evomsa')
-    evo = EvoMSA(evodag_args=dict(popsize=10, early_stopping_rounds=10,
-                                  n_estimators=3),
+    evo = EvoMSA(stacked_method_args=dict(popsize=10,
+                                          early_stopping_rounds=10,
+                                          n_estimators=3),
                  models=[["tmp.evomsa", "EvoMSA.model.Identity"]],
-                 evodag_class="sklearn.naive_bayes.GaussianNB",
+                 stacked_method="sklearn.naive_bayes.GaussianNB",
                  n_jobs=2).fit(X, y)
     assert evo
     os.unlink("tmp.evomsa")
@@ -435,7 +410,7 @@ def test_evomsa_wrapper():
 def test_tm_njobs():
     X, y = get_data()
     evo = EvoMSA(tm_n_jobs=2, n_jobs=1, TH=True, lang="es",
-                 evodag_class="sklearn.svm.LinearSVC").fit(X, y)
+                 stacked_method="sklearn.svm.LinearSVC").fit(X, y)
     evo.predict(X)
     assert evo.n_jobs == 1
     assert evo.tm_n_jobs == 2
@@ -444,7 +419,7 @@ def test_tm_njobs():
 def test_sklearn_kfold():
     import numpy as np
     evo = EvoMSA(tm_n_jobs=2, n_jobs=1, TH=True, lang="es",
-                 n_splits=3, evodag_class="sklearn.svm.LinearSVC")
+                 n_splits=3, stacked_method="sklearn.svm.LinearSVC")
     D = np.array([0, 1, 1, 1, 2, 2, 2])
     res = evo.sklearn_kfold(None, D, D)
     for _, _, _, tr, ts, _ in res:
@@ -458,5 +433,37 @@ def test_model_instance():
     tm = TextModel().fit(X)
     evo = EvoMSA(tm_n_jobs=1, n_jobs=1, TR=False, lang="es",
                  models=[[tm, "sklearn.svm.LinearSVC"]],
-                 evodag_class="sklearn.svm.LinearSVC").fit(X, y)
+                 stacked_method="sklearn.svm.LinearSVC").fit(X, y)
     assert evo.models[0][0] == tm
+
+
+def test_cache():
+    import hashlib
+
+    def func(data, output):
+        from b4msa.textmodel import TextModel
+        from microtc.utils import tweet_iterator, save_model
+
+        tm = TextModel().fit(list(tweet_iterator(data)))
+        save_model(tm, output)
+
+    with StoreDelete(func, TWEETS, "textmodel_cache.tm") as sd:
+        cache = os.path.join("tm", "train.json")
+        evo = EvoMSA(models=[[sd._output, "sklearn.svm.LinearSVC"]],
+                     cache=cache)
+        assert os.path.isdir("tm")
+        output = hashlib.md5(sd._output.encode()).hexdigest()
+        output = cache + "-%s" % output
+        print(evo.cache.textModels)
+        assert evo.cache.textModels[1] == output
+        X, y = get_data()
+        evo.first_stage(X, y)
+        assert os.path.isfile(output)
+        evo = EvoMSA(models=[[sd._output, "sklearn.svm.LinearSVC"]],
+                     stacked_method_args=dict(popsize=10,
+                                              early_stopping_rounds=10,
+                                              n_estimators=3),
+                     cache=cache).fit(X, y, test_set=X[:30])
+        hy = evo.predict(X[:10])
+        print(len(hy), hy)
+        assert len(hy) == 10
