@@ -92,11 +92,12 @@ class EvoMSA(object):
     Once the dataset is loaded, it is time to create an EvoMSA model
 
     >>> from EvoMSA.base import EvoMSA
-    >>> evo = EvoMSA().fit([x[0] for x in D], [x[1] for x in D])
+    >>> evo = EvoMSA(n_jobs=-1).fit([x[0] for x in D], [x[1] for x in D])
 
     Predict a sentence in Spanish
 
     >>> evo.predict(['EvoMSA esta funcionando'])
+    array(['P'], dtype='<U4')
 
     :param b4msa_args: Arguments pass to TextModel updating the default arguments
     :type b4msa_args:  dict
@@ -192,7 +193,27 @@ class EvoMSA(object):
         return m
 
     def first_stage(self, X, y):
-        """Training EvoMSA's first stage"""
+        """Training EvoMSA's first stage
+        
+        :param X: Independent variables
+        :type X: dict or list
+        :param y: Dependent variable.
+        :type y: list
+        :return: List of vector spaces, i.e., second-stage's training set
+        :rtype: list
+
+        >>> import os
+        >>> from EvoMSA import base
+        >>> from microtc.utils import tweet_iterator
+        >>> TWEETS = os.path.join(os.path.dirname(__file__), 'tests', 'tweets.json')
+        >>> X = [x['text'] for x in tweet_iterator(TWEETS)]
+        >>> y = [x['klass'] for x in tweet_iterator(TWEETS)]
+        >>> evo = base.EvoMSA()
+        >>> D = evo.first_stage(X, y)
+        >>> D.shape
+        (1000, 4)
+
+        """
 
         # Instantiate Text Models
         self.model(X)
@@ -306,7 +327,8 @@ class EvoMSA(object):
     def textModels(self):
         """Text Models
 
-        :rtype: list"""
+        :rtype: list
+        """
 
         return self._textModel
 
