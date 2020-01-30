@@ -251,6 +251,8 @@ class EvoMSA(object):
         y = self._le.transform(y)
         # Training first stage
         D = self.first_stage(X, y)
+        # After the first stage the cache is not needed
+        self.cache = None
         # Transform test set to do transductive learning
         if test_set is not None:
             if isinstance(test_set, list):
@@ -266,7 +268,6 @@ class EvoMSA(object):
             self._evodag_model = _
         except TypeError:
             self._evodag_model = self._evodag_class().fit(D, y)
-        self.cache = None
         return self
 
     @property
