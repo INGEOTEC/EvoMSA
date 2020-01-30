@@ -459,3 +459,9 @@ def test_cache():
         X, y = get_data()
         evo.first_stage(X, y)
         assert os.path.isfile(output)
+        evo = EvoMSA(models=[[sd._output, "sklearn.svm.LinearSVC"]],
+                     stacked_method="sklearn.svm.LinearSVC",
+                     cache=cache).fit(X, y)
+        hy = evo.predict(X[:10])
+        print(len(hy), hy)
+        assert len(hy) == 10

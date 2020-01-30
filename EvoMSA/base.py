@@ -57,7 +57,7 @@ def transform(args):
 def vector_space(args):
     k, t, X, output = args
     if output is not None and os.path.isfile(output):
-        return load_model(output)
+        return k, load_model(output)
     try:
         res = t.transform(X)
     except AttributeError:
@@ -266,6 +266,7 @@ class EvoMSA(object):
             self._evodag_model = _
         except TypeError:
             self._evodag_model = self._evodag_class().fit(D, y)
+        self.cache = None
         return self
 
     @property
