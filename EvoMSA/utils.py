@@ -94,18 +94,45 @@ class Cache(object):
             self._textModels = list()
         return self._textModels
 
-    def append(self, value):
+    @property
+    def ml(self):
+        try:
+            return self._classifiers
+        except AttributeError:
+            self._classifiers = list()
+        return self._classifiers
+
+    def ml_train(self):
         if self._cache is None:
-            return
+            while True:
+                yield None
+        for i in self.ml:
+            yield i
+
+    def ml_kfold(self):
+        if self._cache is None:
+            while True:
+                yield None
+        for i in self.ml:
+            yield i + '-K'
+
+    @staticmethod
+    def get_name(value):
         if isinstance(value, str):
-            vv = hashlib.md5(value.encode()).hexdigest()
-            name = self._cache + "-%s" % vv
+            return hashlib.md5(value.encode()).hexdigest()
         else:
             try:
                 vv = value.__name__
             except AttributeError:
                 vv = value.__class__.__name__
-            name = self._cache + "-" + vv
+            return vv
+
+    def append(self, value, ml=None):
+        if self._cache is None:
+            return
+        name = self._cache + "-%s" % self.get_name(value)
+        if ml is not None:
+            self.ml.append(name + '-' + self.get_name(ml))
         self.textModels.append(name)
 
 

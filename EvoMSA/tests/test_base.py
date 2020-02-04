@@ -459,6 +459,8 @@ def test_cache():
         X, y = get_data()
         evo.first_stage(X, y)
         assert os.path.isfile(output)
+        ML = list(evo.cache.ml_train())
+        ML_K = list(evo.cache.ml_kfold())
         evo = EvoMSA(models=[[sd._output, "sklearn.svm.LinearSVC"]],
                      stacked_method_args=dict(popsize=10,
                                               early_stopping_rounds=10,
@@ -467,3 +469,9 @@ def test_cache():
         hy = evo.predict(X[:10])
         print(len(hy), hy)
         assert len(hy) == 10
+        for k in ML:
+            print(k)
+            assert os.path.isfile(k)
+        for k in ML_K:
+            print(k)
+            assert os.path.isfile(k)

@@ -312,7 +312,7 @@ class EvoMSA(object):
             assert isinstance(tm, str) or (hasattr(tm, 'transform') and hasattr(tm, 'fit'))
             # Initializing the cache
             if self.cache is not None:
-                self.cache.append(tm)
+                self.cache.append(tm, ml=cl)
             self._models.append([tm, cl])
 
     @property
@@ -449,8 +449,14 @@ class EvoMSA(object):
         """
 
         D = None
-        for (_, cl), Xvs in zip(self.models, X_vector_space):
-            d = self.kfold_decision_function(cl, Xvs, y)
+        for (_, cl), Xvs, output in zip(self.models, X_vector_space,
+                                        self.cache.ml_kfold()):
+            if output is not None and os.path.isfile(output):
+                d = load_model(output)
+            else:
+                d = self.kfold_decision_function(cl, Xvs, y)
+                if output is not None:
+                    save_model(d, output)
             if D is None:
                 D = d
             else:
@@ -481,13 +487,18 @@ class EvoMSA(object):
 
     def fit_svm(self, Xvs, y):
         svc_models = []
-        for (_, cl), X in zip(self.models, Xvs):
+        for (_, cl), X, output in zip(self.models, Xvs, self.cache.ml_train()):
+            if output is not None and os.path.isfile(output):
+                svc_models.append(load_model(output))
+                continue
             try:
                 c = cl(random_state=self._seed)
             except TypeError:
                 c = cl()
             c.fit(X, y)
             svc_models.append(c)
+            if output is not None:
+                save_model(c, output)
         self._svc_models = svc_models
 
     @staticmethod
