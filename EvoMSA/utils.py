@@ -103,14 +103,14 @@ class Cache(object):
         return self._classifiers
 
     def ml_train(self):
-        if self._cache is None:
+        if self._cache is None or len(self.ml) == 0:
             while True:
                 yield None
         for i in self.ml:
             yield i
 
     def ml_kfold(self):
-        if self._cache is None:
+        if self._cache is None or len(self.ml) == 0:
             while True:
                 yield None
         for i in self.ml:

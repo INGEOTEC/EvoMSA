@@ -355,11 +355,26 @@ class EvoMSA(object):
         from .utils import Cache
         self._cache = Cache(value)
 
-    def predict(self, X):
+    def predict(self, X, cache=None):
+        """
+        Predict the output of input X
+
+        :param X: List of strings
+        :type X: list
+        :param cache: Basename to store the output of the text models.
+        :type cache: str
+        """
+
+        if cache is not None:
+            self.cache = cache
+            [self.cache.append(tm) for tm, _ in self.models]
         if self.classifier:
             pr = self.predict_proba(X)
-            return self._le.inverse_transform(pr.argmax(axis=1))
-        return self.decision_function(X)
+            output = self._le.inverse_transform(pr.argmax(axis=1))
+        else:
+            output = self.decision_function(X)
+        self.cache = None
+        return output
 
     def predict_proba(self, X):
         X = self.transform(X)
