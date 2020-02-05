@@ -475,3 +475,8 @@ def test_cache():
         for k in ML_K:
             print(k)
             assert os.path.isfile(k)
+        cache = os.path.join("tm", "test")
+        evo.predict(X, cache=cache)
+        output = cache + '-' + output.split("-")[1]
+        print(output)
+        assert os.path.isfile(output)
