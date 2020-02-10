@@ -502,5 +502,7 @@ def test_lazy_loading():
                      stacked_method="sklearn.naive_bayes.GaussianNB").fit(X, y)
         print(evo._textModel[0], sd._output)
         assert evo._textModel[0] == sd._output
+        evo.stacked_method
+
 
         

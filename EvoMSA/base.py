@@ -270,6 +270,12 @@ class EvoMSA(object):
         return self
 
     @property
+    def stacked_method(self):
+        """Method's instance used to ensemble the output of the first stage."""
+
+        return self._evodag_model
+
+    @property
     def classifier(self):
         """Whether EvoMSA is acting as classifier"""
 
@@ -342,6 +348,9 @@ class EvoMSA(object):
         :rtype: list
         """
 
+        # Performing lazy loading
+        # If the outputs are in the cache,
+        # there is no need to load the model into memory
         solve = [(i, tm) for (i, tm), cache in
                  zip(enumerate(self._textModel), self.cache) if
                  isinstance(tm, str) and (cache is None or not
@@ -411,9 +420,6 @@ class EvoMSA(object):
         for tm, cl in self.models:
             if isinstance(tm, str):
                 # Performing lazy loading
-                # _ = load_model(tm)
-                # if isinstance(_, EvoMSA):
-                #     _ = EvoMSAWrapper(evomsa=_)
                 m.append(tm)
             elif isinstance(tm, type):
                 m.append(tm(**kwargs).fit(X))
