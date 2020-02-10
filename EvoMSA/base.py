@@ -18,10 +18,9 @@ import numpy as np
 import logging
 from multiprocessing import Pool
 from b4msa.command_line import load_json
-from microtc.textmodel import TextModel
 from b4msa.lang_dependency import get_lang
 from sklearn.model_selection import KFold
-from .model import Identity, BaseTextModel, EvoMSAWrapper
+from .model import Identity, EvoMSAWrapper
 from .utils import LabelEncoderWrapper, download
 from microtc.utils import load_model, save_model
 try:
@@ -201,7 +200,7 @@ class EvoMSA(object):
 
     def first_stage(self, X, y):
         """Training EvoMSA's first stage
-        
+
         :param X: Independent variables
         :type X: dict or list
         :param y: Dependent variable.
@@ -271,6 +270,12 @@ class EvoMSA(object):
         return self
 
     @property
+    def stacked_method(self):
+        """Method's instance used to ensemble the output of the first stage."""
+
+        return self._evodag_model
+
+    @property
     def classifier(self):
         """Whether EvoMSA is acting as classifier"""
 
@@ -309,7 +314,8 @@ class EvoMSA(object):
             else:
                 tm = Identity
                 cl = self.get_class(m)
-            assert isinstance(tm, str) or (hasattr(tm, 'transform') and hasattr(tm, 'fit'))
+            assert isinstance(tm, str) or (hasattr(tm, 'transform')
+                                           and hasattr(tm, 'fit'))
             # Initializing the cache
             if self.cache is not None:
                 self.cache.append(tm, ml=cl)
@@ -342,6 +348,18 @@ class EvoMSA(object):
         :rtype: list
         """
 
+        # Performing lazy loading
+        # If the outputs are in the cache,
+        # there is no need to load the model into memory
+        solve = [(i, tm) for (i, tm), cache in
+                 zip(enumerate(self._textModel), self.cache) if
+                 isinstance(tm, str) and (cache is None or not
+                                          os.path.isfile(cache))]
+        for i, tm in solve:
+            _ = load_model(tm)
+            if isinstance(_, EvoMSA):
+                _ = EvoMSAWrapper(evomsa=_)
+            self._textModel[i] = _
         return self._textModel
 
     @property
@@ -401,10 +419,8 @@ class EvoMSA(object):
         self._logger.info(str(kwargs))
         for tm, cl in self.models:
             if isinstance(tm, str):
-                _ = load_model(tm)
-                if isinstance(_, EvoMSA):
-                    _ = EvoMSAWrapper(evomsa=_)
-                m.append(_)
+                # Performing lazy loading
+                m.append(tm)
             elif isinstance(tm, type):
                 m.append(tm(**kwargs).fit(X))
             else:
@@ -412,7 +428,8 @@ class EvoMSA(object):
         self._textModel = m
 
     def vector_space(self, X):
-        args = [(i, t, X, output) for (i, t), output in zip(enumerate(self.textModels), self.cache)]
+        args = [(i, t, X, output) for (i, t), output in
+                zip(enumerate(self.textModels), self.cache)]
         n_jobs = self.n_jobs if self.tm_n_jobs is None else self.tm_n_jobs
         if n_jobs > 1:
             p = Pool(self.n_jobs, maxtasksperchild=1)
