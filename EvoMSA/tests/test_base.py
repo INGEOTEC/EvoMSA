@@ -480,3 +480,27 @@ def test_cache():
         output = cache + '-' + output.split("-")[1]
         print(output)
         assert os.path.isfile(output)
+
+
+def test_lazy_loading():
+
+    def func(data, output):
+        from b4msa.textmodel import TextModel
+        from microtc.utils import tweet_iterator, save_model
+
+        tm = TextModel().fit(list(tweet_iterator(data)))
+        save_model(tm, output)
+
+    with StoreDelete(func, TWEETS, "textmodel_cache.tm") as sd:
+        cache = os.path.join("tm", "train.json")
+        X, y = get_data()
+        evo = EvoMSA(models=[[sd._output, "sklearn.svm.LinearSVC"]],
+                     cache=cache, TR=False,
+                     stacked_method="sklearn.naive_bayes.GaussianNB").fit(X, y)
+        evo = EvoMSA(models=[[sd._output, "sklearn.svm.LinearSVC"]],
+                     cache=cache, TR=False,
+                     stacked_method="sklearn.naive_bayes.GaussianNB").fit(X, y)
+        print(evo._textModel[0], sd._output)
+        assert evo._textModel[0] == sd._output
+
+        
