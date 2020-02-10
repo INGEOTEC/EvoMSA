@@ -191,12 +191,9 @@ def test_EvoMSA_evodag_class():
     from sklearn.neighbors import NearestCentroid
     import numpy as np
     X, y = get_data()
-    model = EvoMSA(stacked_method_args=dict(popsize=10,
-                                            early_stopping_rounds=10,
-                                            n_estimators=3),
-                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
-                   stacked_method="sklearn.neighbors.NearestCentroid", TR=False,
-                   n_jobs=2).fit(X, y)
+    model = EvoMSA(models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                   stacked_method="sklearn.neighbors.NearestCentroid",
+                   TR=False, n_jobs=2).fit(X, y)
     assert isinstance(model._evodag_model, NearestCentroid)
     cl = model.predict(X)
     hy = model.predict_proba(X)
@@ -390,17 +387,11 @@ def test_evomsa_wrapper():
     from EvoMSA.base import EvoMSA
     from test_base import get_data
     X, y = get_data()
-    model = EvoMSA(stacked_method_args=dict(popsize=10,
-                                            early_stopping_rounds=10,
-                                            n_estimators=3),
-                   stacked_method="sklearn.naive_bayes.GaussianNB",
+    model = EvoMSA(stacked_method="sklearn.naive_bayes.GaussianNB",
                    n_jobs=2).fit(X, y)
     save_model(model, 'tmp.evomsa')
     assert os.path.isfile('tmp.evomsa')
-    evo = EvoMSA(stacked_method_args=dict(popsize=10,
-                                          early_stopping_rounds=10,
-                                          n_estimators=3),
-                 models=[["tmp.evomsa", "EvoMSA.model.Identity"]],
+    evo = EvoMSA(models=[["tmp.evomsa", "EvoMSA.model.Identity"]],
                  stacked_method="sklearn.naive_bayes.GaussianNB",
                  n_jobs=2).fit(X, y)
     assert evo

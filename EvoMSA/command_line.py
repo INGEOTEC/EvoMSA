@@ -120,7 +120,10 @@ class CommandLineTrain(CommandLine):
         if self.data.kwargs is not None:
             _ = json.loads(self.data.kwargs)
             kwargs.update(_)
-        evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
+        evo_kwargs = dict()
+        if kwargs.get("stacked_method",
+                      "EvoDAG.model.EvoDAGE") == "EvoDAG.model.EvoDAGE":
+            evo_kwargs = dict(tmpdir=self.data.output_file + '_dir')
         if "stacked_method_args" in kwargs:
             evo_kwargs.update(kwargs["stacked_method_args"])
             del kwargs["stacked_method_args"]
