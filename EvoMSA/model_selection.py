@@ -269,9 +269,10 @@ class BeamSelection(ForwardSelection):
                 best = node
                 if self._output:
                     save_model(best, self._output)
-            self._logger.info("Model: %s perf: %0.4f" % (best, best.perf),
-                              "visited:", len(visited), "size:", nodes.qsize(),
-                              "Rounds:", len(visited) - index)
+            self._logger.info("Model: %s perf: %0.4f " % (best, best.perf) +
+                              "visited: %s " % len(visited) +
+                              "size: %s " % nodes.qsize() +
+                              "Rounds: %s" % (len(visited) - index))
             nn = [(xx, xx.fit(self._X, self._y,
                               **self._kwargs).performance(X, y, **kwargs)) for
                   xx in node if xx not in visited]
