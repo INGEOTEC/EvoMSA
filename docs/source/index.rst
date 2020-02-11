@@ -123,5 +123,5 @@ Extra modules
 .. toctree::
    :maxdepth: 2
 
-   utils      
-   
+   utils
+   model_selection

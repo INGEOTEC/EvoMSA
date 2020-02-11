@@ -159,7 +159,7 @@ class EvoMSA(object):
             models.append([fname, "sklearn.svm.LinearSVC"])
         self._b4msa_args = b4msa_args
         self._evodag_args = stacked_method_args
-        _ = dict()        
+        _ = dict()
         if stacked_method == "EvoDAG.model.EvoDAGE":
             if classifier:
                 _ = DEFAULT_CL.copy()
