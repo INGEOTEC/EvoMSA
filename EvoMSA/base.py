@@ -68,11 +68,13 @@ def vector_space(args):
 
 DEFAULT_CL = dict(fitness_function='macro-F1',
                   random_generations=1000,
+                  n_jobs=cpu_count(), seed=0,
                   orthogonal_selection=True)
 
 
 DEFAULT_R = dict(random_generations=1000,
                  classifier=False,
+                 n_jobs=cpu_count(), seed=0,
                  orthogonal_selection=True)
 
 
@@ -132,10 +134,13 @@ class EvoMSA(object):
     :type cache: str
     """
 
-    def __init__(self, b4msa_args=dict(), stacked_method_args=dict(), n_jobs=1,
-                 n_splits=5, seed=0, classifier=True, models=None, lang=None,
-                 stacked_method="EvoDAG.model.EvoDAGE", TR=True, Emo=False,
-                 TH=False, HA=False, tm_n_jobs=None, cache=None):
+    def __init__(self, b4msa_args=dict(),
+                 stacked_method="EvoDAG.model.EvoDAGE",
+                 stacked_method_args=dict(),
+                 n_jobs=1, n_splits=5, seed=0,
+                 classifier=True, models=None, lang=None,
+                 TR=True, Emo=False, TH=False, HA=False,
+                 tm_n_jobs=None, cache=None):
         if models is None:
             models = []
         if TR:
@@ -154,17 +159,17 @@ class EvoMSA(object):
             models.append([fname, "sklearn.svm.LinearSVC"])
         self._b4msa_args = b4msa_args
         self._evodag_args = stacked_method_args
+        _ = dict()
         if stacked_method == "EvoDAG.model.EvoDAGE":
             if classifier:
                 _ = DEFAULT_CL.copy()
             else:
                 _ = DEFAULT_R.copy()
-        else:
-            _ = dict()
         _.update(self._evodag_args)
         self._evodag_args = _
         self._n_jobs = n_jobs if n_jobs > 0 else cpu_count()
-        self._tm_n_jobs = tm_n_jobs if tm_n_jobs is None or tm_n_jobs > 0 else cpu_count()
+        _ = tm_n_jobs
+        self._tm_n_jobs = _ if _ is None or _ > 0 else cpu_count()
         self._n_splits = n_splits
         self._seed = seed
         self._svc_models = None
@@ -258,15 +263,12 @@ class EvoMSA(object):
                 test_set = self.transform(test_set)
         # Training stacked_method
         # Start of the second stage
-        _ = dict(n_jobs=self.n_jobs, seed=self._seed)
-        self._evodag_args.update(_)
-        # y = np.array(y)
-        try:
-            _ = self._evodag_class(**self._evodag_args)
+        _ = self._evodag_class(**self._evodag_args)
+        if test_set is not None:
             _.fit(D, y, test_set=test_set)
-            self._evodag_model = _
-        except TypeError:
-            self._evodag_model = self._evodag_class().fit(D, y)
+        else:
+            _.fit(D, y)
+        self._evodag_model = _
         return self
 
     @property
