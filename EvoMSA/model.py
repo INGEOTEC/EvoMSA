@@ -475,7 +475,8 @@ class AggressivenessAr(Corpus):
     """Arabic text model using an aggressive corpus"""
 
     def __init__(self, *args, **kwargs):
-        fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.ar')
+        fname = os.path.join(os.path.dirname(__file__), 'conf',
+                             'aggressiveness.ar')
         corpus = []
         for x in tweet_iterator(fname):
             corpus += x['words']
@@ -486,7 +487,8 @@ class AggressivenessEn(Corpus):
     """English text model using an aggressive corpus"""
 
     def __init__(self, *args, **kwargs):
-        fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.en')
+        fname = os.path.join(os.path.dirname(__file__), 'conf',
+                             'aggressiveness.en')
         corpus = []
         for x in tweet_iterator(fname):
             corpus += x['words']
@@ -497,7 +499,8 @@ class AggressivenessEs(Corpus):
     """Spanish text model using an aggressive corpus"""
 
     def __init__(self, *args, **kwargs):
-        fname = os.path.join(os.path.dirname(__file__), 'conf', 'aggressiveness.es')
+        fname = os.path.join(os.path.dirname(__file__), 'conf',
+                             'aggressiveness.es')
         corpus = []
         for x in tweet_iterator(fname):
             corpus += x['words']

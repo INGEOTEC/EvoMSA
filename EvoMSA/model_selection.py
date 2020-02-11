@@ -116,12 +116,17 @@ class Node(object):
 
 
 class NodeNB(Node):
+    """
+    Using as stacked-method Naive Bayes with Gaussian distribution
+    """
+
     def fit(self, X, y, stacked_method="sklearn.naive_bayes.GaussianNB",
             **kwargs):
         """
         :param stacked_method: Stacked method used in :py:class:`EvoMSA.base.EvoMSA`
         :type stacked_method: str
         """
+
         return super(NodeNB, self).fit(X, y, stacked_method=stacked_method,
                                        **kwargs)
 
@@ -148,23 +153,26 @@ class ForwardSelection(object):
     >>> models[2] = [download("spanish.evoha"), "sklearn.svm.LinearSVC"]
     >>> X = [x for x, y in D]
     >>> y = [y for x, y in D]
-    >>> fwdSel = ForwardSelection(models, node=NodeNB).fit(X[:500], y[:500])
+    >>> fwdSel = ForwardSelection(models, node=NodeNB)
+    >>> cache = os.path.join("cache", "train")
+    >>> fwdSel.fit(X[:500], y[:500], cache=cache)
 
     Using the latest 500 elements to guide the search
 
-    >>> best = fwdSel.run(X[500:], y[500:])
-
+    >>> cache = os.path.join("cache", "test")
+    >>> best = fwdSel.run(X[500:], y[500:], cache=test)
+    0-2
 
     :param models: Dictionary of pairs (see :py:attr:`EvoMSA.base.EvoMSA.models`)
     :type models: dict
     :param node: Node use to perform the search
-    :type node: class
+    :type node: :py:class:`EvoMSA.model_selection.Node`
     :param output: Filename to store intermediate models
     :type output: str
     :param verbose: Level to inform the user
     :type verbose: int
     """
-    
+
     def __init__(self, models, node=Node, output=None, verbose=logging.INFO):
         self._models = models
         self._nodes = [node([k], models=models) for k in models.keys()]
@@ -185,6 +193,7 @@ class ForwardSelection(object):
         self._X = X
         self._y = y
         self._kwargs = kwargs
+        self._logger.info("Training the initial models")
         [x.fit(X, y, **kwargs) for x in self._nodes]
         return self
 
@@ -195,7 +204,7 @@ class ForwardSelection(object):
         :type X: list
         :param y: Test set - dependent variable
         :type y: list or np.array
-        :rtype: Node
+        :rtype: :py:class:`EvoMSA.model_selection.Node`
         """
 
         self._logger.info("Starting the search")
@@ -215,7 +224,19 @@ class ForwardSelection(object):
 
 
 class BeamSelection(ForwardSelection):
+    """
+    Select the models using Beam Search.
+    """
+
     def perf(self, node):
+        """
+        Best performance found with k models.
+
+        :param node: Node
+        :type node: :py:class:`EvoMSA.model_selection.Node`
+        :rtype: float
+        """
+
         try:
             perf = self._perf
         except AttributeError:
@@ -223,25 +244,37 @@ class BeamSelection(ForwardSelection):
             perf = self._perf
         depth = len(node.model)
         value = perf.get(depth, node.perf)
+        value = value if value > node.perf else node.perf
         perf[depth] = value
         return value
 
-    def run(self, X, y, **kwargs):
-        visited = set([(node.performance(X, y, **kwargs), node) for node in self._nodes])
+    def run(self, X, y, early_stopping=1000, **kwargs):
+        """
+
+        :param early_stopping: Number of rounds to perform early stopping
+        :type early_stopping: int
+        :rtype: :py:class:`EvoMSA.model_selection.Node`
+        """
+        visited = set([(node.performance(X, y, **kwargs), node) for
+                       node in self._nodes])
         _ = max(visited, key=lambda x: x[0])[1]
         best = None
         nodes = LifoQueue()
         nodes.put(_)
-        while not nodes.empty():
+        index = len(visited)
+        while not nodes.empty() and (len(visited) - index) < early_stopping:
             node = nodes.get()
             if best is None or node > best:
+                index = len(visited)
                 best = node
                 if self._output:
                     save_model(best, self._output)
-            print("Model: %s perf: %0.4f" % (best, best.perf), "visited:", len(visited), "size:", nodes.qsize())
-            nn = [(xx, xx.fit(self._X,
-                              self._y,
-                              **self._kwargs).performance(X, y, **kwargs)) for xx in node if xx not in visited]
+            self._logger.info("Model: %s perf: %0.4f" % (best, best.perf),
+                              "visited:", len(visited), "size:", nodes.qsize(),
+                              "Rounds:", len(visited) - index)
+            nn = [(xx, xx.fit(self._X, self._y,
+                              **self._kwargs).performance(X, y, **kwargs)) for
+                  xx in node if xx not in visited]
             [visited.add(x) for x, _ in nn]
             nn = [xx for xx, perf in nn if perf >= self.perf(node)]
             if len(nn) == 0:
@@ -249,4 +282,3 @@ class BeamSelection(ForwardSelection):
             nn.sort()
             [nodes.put(x) for x in nn]
         return best
-
