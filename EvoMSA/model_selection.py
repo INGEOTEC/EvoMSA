@@ -58,7 +58,7 @@ class Node(object):
         models = self._models
         return [models[x] for x in self._model]
 
-    def fit(self, X, y, TR=False, n_jobs=-1, test_set=None, **kwargs):
+    def fit(self, X, y, TR=False, test_set=None, **kwargs):
         """Create an EvoMSA's instance
 
         :param X: Training set - independent variables
@@ -67,14 +67,12 @@ class Node(object):
         :type y: list or np.array
         :param TR: EvoMSA's default model
         :type TR: bool
-        :param n_jobs: Number of jobs used in multiprocessing
-        :type n_jobs: int
         :param test_set: Dataset to perform transductive learning
         :type test_set: list
         :rtype: self
         """
 
-        self._evo = EvoMSA(TR=TR, models=self.model, n_jobs=n_jobs,
+        self._evo = EvoMSA(TR=TR, models=self.model,
                            **kwargs)
         if test_set is not None:
             self._evo.fit(X, y, test_set=test_set)
