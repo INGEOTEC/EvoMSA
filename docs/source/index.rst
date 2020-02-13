@@ -28,7 +28,18 @@ EvoMSA is a Sentiment Analysis System based on `B4MSA
 <https://github.com/mgraffg/EvoDAG>`_. EvoMSA is a stack
 generalization algorithm specialized on text classification
 problems. It works by combining the output of different text models to
-produce the final prediction. These text models are:
+produce the final prediction.
+
+EvoMSA is a two-stage procedure; the first step is to transform the text
+into a vector space with dimensions related to the number of classes, and, then,
+the second stage trains a supervised learning algorithm.
+
+The first stage can be seen as a composition of two functions, :math:`g \circ m`, where
+:math:`m` is a text model that transforms a text into a vector (i.e., :math:`m: \text{text} \rightarrow \mathbb R^d`)
+and :math:`g` is a classifier or regressor (i.e., :math:`g: \mathbb R^d \rightarrow \mathbb R^c`),
+:math:`d` depends on :math:`m`, and :math:`c` is the number of classes or labels.
+
+These text models are:
 
 * `B4MSA <https://github.com/ingeotec/b4msa>`_ model trained with the training set (it is set by default)
 * :ref:`emospace` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(Emo=True, lang="en")`)
@@ -98,7 +109,10 @@ or can be install using pip, it depends on numpy, scipy,
 scikit-learn and b4msa.
 
 .. code:: bash
-	  
+
+	  pip install cython
+	  pip install sparsearray
+	  pip install evodag
 	  pip install EvoMSA
 
 EvoMSA
