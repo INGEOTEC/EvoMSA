@@ -62,44 +62,6 @@ EvoMSA is described in `EvoMSA: A Multilingual Evolutionary Approach
 for Sentiment Analysis <https://ieeexplore.ieee.org/document/8956106>`_, Mario Graff, Sabino Miranda-Jimenez, Eric
 Sadit Tellez, Daniela Moctezuma. Computational Intelligence Magazine, vol 15 no. 1, pp. 76-88, Feb. 2020.
 
-Usage
-=========
-
-EvoMSA can be used from using the following commands.
-
-Read the dataset
-
->>> from EvoMSA import base
->>> from microtc.utils import tweet_iterator
->>> import os
->>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
->>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
-
-Once the dataset is loaded, it is time to create an EvoMSA model, let
-us create an EvoMSA model enhaced with :ref:`emospace`.
-
->>> from EvoMSA.base import EvoMSA
->>> evo = EvoMSA(Emo=True, lang='es').fit([x[0] for x in D], [x[1] for x in D])
-
-Predict a sentence in Spanish
-
->>> evo.predict(['EvoMSA esta funcionando'])
-
-
-EvoMSA's classes
-==================
-
-.. toctree::
-   :maxdepth: 2
-
-   base
-   emospace
-   th
-   ha
-   utils
-   model_selection
-   
-
 Citing
 ======
 
@@ -141,11 +103,68 @@ scikit-learn and b4msa.
 	  pip install evodag
 	  pip install EvoMSA
 
+Usage
+=========
+
+EvoMSA can be used from using the following commands.
+
+Read the dataset
+
+>>> from EvoMSA import base
+>>> from microtc.utils import tweet_iterator
+>>> import os
+>>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
+>>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
+
+Once the dataset is loaded, it is time to create an EvoMSA model, let
+us create an EvoMSA model enhaced with :ref:`emospace`.
+
+>>> from EvoMSA.base import EvoMSA
+>>> evo = EvoMSA(Emo=True, lang='es').fit([x[0] for x in D], [x[1] for x in D])
+
+Predict a sentence in Spanish
+
+>>> evo.predict(['EvoMSA esta funcionando'])
+
+
 Text Models
-==================================
+=================
+
+Besides the default text model (i.e.,
+:py:class:`b4msa.textmodel.TextModel`), EvoMSA has three text models
+for Arabic, English and Spanish languages that can be selected with a
+flag in the constructor, these are:
+
+
+* :ref:`emospace`.
+* :ref:`th`. 
+* :ref:`ha`. 
+
+Nonetheless, more text models can be included in EvoMSA. EvoMSA's core
+idea is to facilitate the inclusion of diverse text models. We have
+been using EvoMSA (as INGEOTEC team) on different competitions run at
+the Workshop of Semantic Evaluation as well as other sentiment
+analysis tasks and traditional text classification problems.
+
+During this time, we have created different text models -- some of
+them using the datasets provided by the competition's organizers and
+others inspired by our previous work -- in different languages. We
+have decided to make public these text models created, which are
+organized by Language.
+
+
+
+
+EvoMSA's classes
+==================
+
 .. toctree::
    :maxdepth: 2
 
+   base
    emospace
    th
    ha
+   utils
+   model_selection
+   
