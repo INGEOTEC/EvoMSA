@@ -30,25 +30,37 @@ generalization algorithm specialized on text classification
 problems. It works by combining the output of different text models to
 produce the final prediction.
 
-EvoMSA is a two-stage procedure; the first step is to transform the text
-into a vector space with dimensions related to the number of classes, and, then,
+EvoMSA is a two-stage procedure; the first step transforms the text
+into a vector space with dimensions related to the number of classes, and then,
 the second stage trains a supervised learning algorithm.
 
-The first stage can be seen as a composition of two functions, :math:`g \circ m`, where
+The first stage is a composition of two functions, :math:`g \circ m`, where
 :math:`m` is a text model that transforms a text into a vector (i.e., :math:`m: \text{text} \rightarrow \mathbb R^d`)
 and :math:`g` is a classifier or regressor (i.e., :math:`g: \mathbb R^d \rightarrow \mathbb R^c`),
 :math:`d` depends on :math:`m`, and :math:`c` is the number of classes or labels.
 
-These text models are:
+EvoMSA contains different text models (i.e., :math:`m`), which can be selected using flags in the class constructor.
+The text models implemented are:
 
-* `B4MSA <https://github.com/ingeotec/b4msa>`_ model trained with the training set (it is set by default)
+* :py:class:`b4msa.textmodel.TextModel` model trained with the training set (it is set by default :py:attr:`TR`)
 * :ref:`emospace` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(Emo=True, lang="en")`)
 * :ref:`th` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(TH=True, lang="en")`)  
 * :ref:`ha` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(HA=True, lang="en")`)
 
 where :py:attr:`lang` specifies the language and can be either *ar*,
 *en*, or, *es* that corresponds to Arabic, English, and Spanish,
-respectively.
+respectively. On the other hand, :math:`g` is a classifier or regressor, and by default,
+it uses :py:class:`sklearn.svm.LinearSVC`.
+
+The second stage is the stacking method, which is a classifier or
+regressor. EvoMSA uses by default EvoDAG (i.e.,
+:py:class:`EvoDAG.model.EvoDAGE`); however, this method can be changed
+with tha parameter :py:attr:`stacked_method`, e.g.,
+:py:attr:`EvoMSA.base.EvoMSA(stacked_method="sklearn.naive_bayes.GaussianNB")`.
+
+EvoMSA is described in `EvoMSA: A Multilingual Evolutionary Approach
+for Sentiment Analysis <https://ieeexplore.ieee.org/document/8956106>`_, Mario Graff, Sabino Miranda-Jimenez, Eric
+Sadit Tellez, Daniela Moctezuma. Computational Intelligence Magazine, vol 15 no. 1, pp. 76-88, Feb. 2020.
 
 Usage
 =========
@@ -73,6 +85,20 @@ Predict a sentence in Spanish
 
 >>> evo.predict(['EvoMSA esta funcionando'])
 
+
+EvoMSA's classes
+==================
+
+.. toctree::
+   :maxdepth: 2
+
+   base
+   emospace
+   th
+   ha
+   utils
+   model_selection
+   
 
 Citing
 ======
@@ -115,12 +141,6 @@ scikit-learn and b4msa.
 	  pip install evodag
 	  pip install EvoMSA
 
-EvoMSA
-=============
-
-.. autoclass:: EvoMSA.base.EvoMSA
-   :members:
-	      
 Text Models
 ==================================
 .. toctree::
@@ -129,13 +149,3 @@ Text Models
    emospace
    th
    ha
-
-
-Extra modules
-==================	      
-
-.. toctree::
-   :maxdepth: 2
-
-   utils
-   model_selection

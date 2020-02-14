@@ -24,8 +24,8 @@ trained as follows:
 
 
 
-Classes
-=======================
+Human annotated's classes
+================================
 
 .. autoclass:: EvoMSA.model.LabeledDataSet
 	       :members:

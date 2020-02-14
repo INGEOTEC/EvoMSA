@@ -45,7 +45,11 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx'    
 ]
+
+intersphinx_mapping = {'b4msa': ('https://b4msa.readthedocs.io/en/latest',
+                                 None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

@@ -39,8 +39,8 @@ These models can be tested as follow:
 >>> th['good morning']
 
 
-Classes
-=======================
+Lexicon-based model's classes
+=================================
 
 .. autoclass:: EvoMSA.model.ThumbsUpDownAr		 
 	       :members:
