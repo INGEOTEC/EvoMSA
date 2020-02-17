@@ -171,7 +171,7 @@ class ForwardSelection(object):
     :type verbose: int
     """
 
-    def __init__(self, models, node=Node, output=None, verbose=logging.INFO):
+    def __init__(self, models, node=NodeNB, output=None, verbose=logging.INFO):
         self._models = models
         self._nodes = [node([k], models=models) for k in models.keys()]
         self._output = output
@@ -228,23 +228,24 @@ class BeamSelection(ForwardSelection):
 
     def perf(self, node):
         """
-        Best performance found with k models.
+        Node's performance
 
         :param node: Node
         :type node: :py:class:`EvoMSA.model_selection.Node`
         :rtype: float
         """
 
-        try:
-            perf = self._perf
-        except AttributeError:
-            self._perf = dict()
-            perf = self._perf
-        depth = len(node.model)
-        value = perf.get(depth, node.perf)
-        value = value if value > node.perf else node.perf
-        perf[depth] = value
-        return value
+        return node.perf
+        # try:
+        #     perf = self._perf
+        # except AttributeError:
+        #     self._perf = dict()
+        #     perf = self._perf
+        # depth = len(node.model)
+        # value = perf.get(depth, node.perf)
+        # value = value if value > node.perf else node.perf
+        # perf[depth] = value
+        # return value
 
     def run(self, X, y, early_stopping=1000, **kwargs):
         """
