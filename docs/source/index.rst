@@ -152,7 +152,12 @@ others inspired by our previous work -- in different languages. We
 have decided to make public these text models created, which are
 organized by Language.
 
-
+.. toctree::
+   :maxdepth: 2
+   
+   arabic
+   english
+   spanish
 
 
 EvoMSA's classes
