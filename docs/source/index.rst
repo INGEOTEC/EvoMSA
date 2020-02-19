@@ -135,7 +135,6 @@ Besides the default text model (i.e.,
 for Arabic, English and Spanish languages that can be selected with a
 flag in the constructor, these are:
 
-
 * :ref:`emospace`.
 * :ref:`th`. 
 * :ref:`ha`. 
