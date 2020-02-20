@@ -3,19 +3,14 @@
 Arabic
 ===========================
 
-+------------------------+---------------+
-| Source                 | File          |
-+========================+===============+
-| [Task-4]_              | yyy           |
-+------------------------+---------------+
++---------------------------------------------------------------------------------------------------------------------+---------------+
+| Source                                                                                                              | Model         |
++=====================================================================================================================+===============+
+| `Arabic Sentiment Analysis and Cross-lingual Sentiment Resources <http://saifmohammad.com/WebPages/ArabicSA.html>`_ | xxx           |
++---------------------------------------------------------------------------------------------------------------------+---------------+
+| `SemEval-2017 Task 4: Sentiment analysis in Twitter <https://www.aclweb.org/anthology/S17-2088/>`_ [Task-4]_        | yyy           |
++---------------------------------------------------------------------------------------------------------------------+---------------+
+| `SemEval-2018 Task 1: Affect in tweets <https://www.aclweb.org/anthology/S18-1001/>`_ [Task-1]_                     | www           |
++---------------------------------------------------------------------------------------------------------------------+---------------+
 
 
-.. [Task-4] S. Rosenthal, N. Farra, and P. Nakov, "SemEval-2017 Task
-	    4: Sentiment analysis in Twitter," in Proc. of the 11th
-	    International Workshop on Semantic Evaluation. ACL,
-	    Aug. 2017, pp. 502–518.
-
-.. [Task-1] S. M. Mohammad, F. Bravo-Marquez, M. Salameh,
-	    and S. Kiritchenko, "SemEval-2018 Task 1: Affect in
-	    tweets," in Proc. of the 12th International Workshop on
-	    Semantic Evaluation. ACL, June 2018, pp. 1–17.
