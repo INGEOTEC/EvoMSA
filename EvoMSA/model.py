@@ -144,40 +144,6 @@ class Identity(BaseTextModel, BaseClassifier):
         return self.decision_function(X)
 
 
-class HA(BaseTextModel):
-    """Wrapper of b4msa.textmodel.TextModel and LinearSVC"""
-    def __init__(self, **kwargs):
-        self._tm = TextModel(**kwargs)
-        self._cl = LinearSVC()
-
-    def fit(self, X, y):
-        self._tm.fit(X)
-        self._cl.fit(self._tm.transform(X), y)
-        return self
-
-    def transform(self, X):
-        res = self._cl.decision_function(self._tm.transform(X))
-        if res.ndim == 1:
-            return np.atleast_2d(res).T
-        return res
-
-    @classmethod
-    def create_space(cls, fname, output, **kwargs):
-        """Create the model from a file of json
-
-        :param fname: Path to the file containing the json
-        :type fname: str
-        :param output: Path to store the model
-        :type output: str
-        :param kwargs: Keywords pass to TextModel
-        """
-
-        X = [x for x in tweet_iterator(fname)]
-        m = cls(**kwargs)
-        m.fit(X, [x['klass'] for x in X])
-        save_model(m, output)
-
-
 class Projection(BaseTextModel):
     def __init__(self, docs=None, textModel=None, projection=None):
         assert docs is None
@@ -318,88 +284,6 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
             output = cls.model_fname()
         ins = cls(textModel=tm, coef=coef, intercept=intercept, labels=klass)
         save_model(ins, output)
-
-
-class EmoSpace(LabeledDataSet):
-    """Base class of Emoji Space. Use EmoSpaceAr or EmoSpaceEn or EmoSpaceEs instead of this class
-    """
-
-    def __init__(self, docs=None, model_cl=None, **kwargs):
-        if model_cl is None:
-            textModel, coef, intercept, labels = self.get_model()
-        else:
-            textModel, coef, intercept, labels = model_cl
-        super(EmoSpace, self).__init__(textModel=textModel, coef=coef,
-                                       intercept=intercept, labels=labels)
-
-    def get_model(self):
-        from .utils import get_model
-        model_fname = self.model_fname()
-        return get_model(model_fname)
-
-    @classmethod
-    def _create_space(cls, fname, emo_option='delete', **kwargs):
-        """Create the space from a file of json
-
-        :param fname: Path to the file containing the json
-        :type fname: str
-        :param kwargs: Keywords pass to TextModel
-        """
-        return super(EmoSpace, cls)._create_space(fname, emo_option=emo_option, **kwargs)
-
-    @classmethod
-    def create_space(cls, fname, output=None, **kwargs):
-        """Create the space from a file of json
-
-        :param fname: Path to the file containing the json
-        :type fname: str
-        :param output: Path to store the model, it is cls.model_fname if None
-        :type output: str
-        :param kwargs: Keywords pass to TextModel
-        """
-        tm, coef, intercept, klass = cls._create_space(fname, **kwargs)
-        if output is None:
-            output = cls.model_fname()
-        save_model([tm, coef, intercept, klass], output)
-
-
-class EmoSpaceEs(EmoSpace):
-    """Spanish text model or classifier based on a Emoji Space
-    """
-    @staticmethod
-    def model_fname():
-        import EvoMSA
-        return 'emo-v%s-es.evoemo' % EvoMSA.__version__[:3]
-
-    @classmethod
-    def create_space(cls, fname, output=None, lang='es', **kwargs):
-        super(EmoSpaceEs, cls).create_space(fname, output=output, lang=lang, **kwargs)
-
-
-class EmoSpaceEn(EmoSpace):
-    """English text model or classifier based on a Emoji Space"""
-
-    @staticmethod
-    def model_fname():
-        import EvoMSA
-        return 'emo-v%s-en.evoemo' % EvoMSA.__version__[:3]
-
-    @classmethod
-    def create_space(cls, fname, output=None, lang='en', **kwargs):
-        super(EmoSpaceEn, cls).create_space(fname, output=output, lang=lang, **kwargs)
-
-
-class EmoSpaceAr(EmoSpace):
-    """Arabic text model or classifier based on a Emoji Space"""
-
-    @staticmethod
-    def model_fname():
-        import EvoMSA
-        return 'emo-v%s-ar.evoemo' % EvoMSA.__version__[:3]
-
-    @classmethod
-    def create_space(cls, fname, output=None, lang='ar', **kwargs):
-        super(EmoSpaceAr, cls).create_space(fname, output=output, lang=lang, **kwargs)
 
 
 class Corpus(BaseTextModel):
@@ -590,7 +474,7 @@ class Multinomial(Bernulli):
         return np.array(hy)
 
 
-class ThumbsUpDownEs(ThumbsUpDown, BaseTextModel):
+class ThumbsUpDownEs(ThumbsUpDown):
     """Spanish thumbs up and down model"""
 
     def __init__(self, *args, **kwargs):
@@ -599,8 +483,11 @@ class ThumbsUpDownEs(ThumbsUpDown, BaseTextModel):
     def fit(self, X):
         return self
 
+    def transform(self, X):
+        return np.array([self.__getitem__(x) for x in X])
 
-class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
+
+class ThumbsUpDownEn(ThumbsUpDown):
     """English thumbs up and down model"""
 
     def __init__(self, *args, **kwargs):
@@ -609,8 +496,11 @@ class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
     def fit(self, X):
         return self
 
+    def transform(self, X):
+        return np.array([self.__getitem__(x) for x in X])
 
-class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
+
+class ThumbsUpDownAr(ThumbsUpDown):
     """Arabic thumbs up and down model"""
 
     def __init__(self, *args, **kwargs):
@@ -618,6 +508,9 @@ class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
 
     def fit(self, X):
         return self
+
+    def transform(self, X):
+        return np.array([self.__getitem__(x) for x in X])
 
 
 class Vec(BaseTextModel):

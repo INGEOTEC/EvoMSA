@@ -3,3 +3,12 @@ include EvoMSA/tests/tweets.json
 include EvoMSA/conf/aggressiveness.es
 include EvoMSA/conf/aggressiveness.en
 include EvoMSA/conf/aggressiveness.ar
+include EvoMSA/models/b4msa_Ar.tm
+include EvoMSA/models/b4msa_En.tm
+include EvoMSA/models/b4msa_Es.tm
+include EvoMSA/models/emo_Ar.tm
+include EvoMSA/models/emo_En.tm
+include EvoMSA/models/emo_Es.tm
+include EvoMSA/models/ha_Ar.tm
+include EvoMSA/models/ha_En.tm
+include EvoMSA/models/ha_Es.tm

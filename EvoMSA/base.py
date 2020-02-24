@@ -128,6 +128,8 @@ class EvoMSA(object):
     :type TH: bool
     :param HA: Use HA datasets, sklearn.svm.LinearSVC
     :type HA: bool
+    :param B4MSA: Pre-trained text model
+    :type B4MSA:
     :param tm_n_jobs: Multiprocessing using on the Text Models, <= 0 to use all processors
     :type tm_n_jobs: int
     :param cache: Store the output of text models
@@ -139,24 +141,31 @@ class EvoMSA(object):
                  stacked_method_args=dict(),
                  n_jobs=1, n_splits=5, seed=0,
                  classifier=True, models=None, lang=None,
-                 TR=True, Emo=False, TH=False, HA=False,
+                 TR=True, Emo=False, TH=False, HA=False, B4MSA=False,
                  tm_n_jobs=None, cache=None):
         if models is None:
             models = []
         if TR:
             models.insert(0, ["b4msa.textmodel.TextModel",
                               "sklearn.svm.LinearSVC"])
-        lang = lang if lang is None else get_lang(lang)
-        b4msa_args['lang'] = lang
+        if lang is not None:
+            assert len(lang) == 2
+            lang = lang.lower()
+            lang = "%s%s" % (lang[0].upper(), lang[1])
+            b4msa_args['lang'] = get_lang(lang)
+        # lang = lang if lang is None else get_lang(lang)
         if Emo:
-            models.append(["EvoMSA.model.%s" % self._emoSpace(lang),
+            models.append([download("emo_%s.tm" % lang),
                            "sklearn.svm.LinearSVC"])
         if TH:
-            models.append(["EvoMSA.model.%s" % self._thumbsUpDown(lang),
+            models.append(["EvoMSA.model.ThumbsUpDown%s" % lang,
                            "sklearn.svm.LinearSVC"])
         if HA:
-            fname = download("%s.evoha" % lang)
-            models.append([fname, "sklearn.svm.LinearSVC"])
+            models.append([download("ha_%s.tm" % lang),
+                           "sklearn.svm.LinearSVC"])
+        if B4MSA:
+            models.append([download("b4msa_%s.tm" % lang),
+                           "sklearn.svm.LinearSVC"])
         self._b4msa_args = b4msa_args
         self._evodag_args = stacked_method_args
         _ = dict()
@@ -180,28 +189,6 @@ class EvoMSA(object):
         self.cache = cache
         self.models = models
         self._evodag_class = self.get_class(stacked_method)
-
-    def _emoSpace(self, lang):
-        m = None
-        if lang == 'spanish':
-            m = "EmoSpaceEs"
-        elif lang == 'english':
-            m = "EmoSpaceEn"
-        elif lang == 'arabic':
-            m = "EmoSpaceAr"
-        assert m is not None
-        return m
-
-    def _thumbsUpDown(self, lang):
-        m = None
-        if lang == 'spanish':
-            m = "ThumbsUpDownEs"
-        elif lang == 'english':
-            m = "ThumbsUpDownEn"
-        elif lang == 'arabic':
-            m = "ThumbsUpDownAr"
-        assert m is not None
-        return m
 
     def first_stage(self, X, y):
         """Training EvoMSA's first stage

@@ -262,27 +262,25 @@ def get_dirname():
 
 def test_EvoMSA_regression():
     from EvoMSA.base import LabelEncoderWrapper
-    from EvoMSA.model import EmoSpaceEs
-    with StoreDelete(EmoSpaceEs.create_space,
-                     TWEETS, EmoSpaceEs.model_fname()) as st:
-        X, y = get_data()
-        X = [dict(text=x) for x in X]
-        l = LabelEncoderWrapper().fit(y)
-        y = l.transform(y) - 1.5
-        evo = EvoMSA(stacked_method_args=dict(popsize=10,
-                                              early_stopping_rounds=10,
-                                              time_limit=5,
-                                              n_estimators=2),
-                     classifier=False,
-                     models=[['EvoMSA.model.Identity',
-                              'EvoMSA.model.EmoSpaceEs']], TR=False,
-                     n_jobs=1).fit(X, y)
-        assert evo
-        df = evo.decision_function(X)
-        print(df.shape, df.ndim)
-        assert df.shape[0] == len(X) and df.ndim == 1
-        df = evo.predict(X)
-        assert df.shape[0] == len(X) and df.ndim == 1
+    from EvoMSA.utils import download
+    X, y = get_data()
+    X = [dict(text=x) for x in X]
+    l = LabelEncoderWrapper().fit(y)
+    y = l.transform(y) - 1.5
+    evo = EvoMSA(stacked_method_args=dict(popsize=10,
+                                          early_stopping_rounds=10,
+                                          time_limit=5,
+                                          n_estimators=2),
+                 classifier=False,
+                 models=[[download("emo_Es.tm"),
+                          'EvoMSA.model.Identity']], TR=False,
+                 n_jobs=1).fit(X, y)
+    assert evo
+    df = evo.decision_function(X)
+    print(df.shape, df.ndim)
+    assert df.shape[0] == len(X) and df.ndim == 1
+    df = evo.predict(X)
+    assert df.shape[0] == len(X) and df.ndim == 1
 
 
 def test_EvoMSA_identity():
@@ -323,18 +321,14 @@ def test_EvoMSA_param_TR():
 
 
 def test_EvoMSA_param_Emo():
-    from EvoMSA.model import EmoSpaceEs, EmoSpaceEn, EmoSpaceAr
     from EvoMSA.base import EvoMSA
-
     X, y = get_data()
-    for cl, lang in zip([EmoSpaceAr, EmoSpaceEn, EmoSpaceEs],
-                        ['ar', 'en', 'es']):
+    for lang in ['ar', 'en', 'es']:
         model = EvoMSA(stacked_method_args=dict(popsize=10,
                                                 early_stopping_rounds=10,
                                                 n_estimators=3),
                        TR=False, lang=lang, Emo=True, n_jobs=2)
         assert len(model.models) == 1
-        assert model.models[0][0] == cl
 
 
 def test_EvoMSA_param_TH():
@@ -353,22 +347,14 @@ def test_EvoMSA_param_TH():
 
 
 def test_EvoMSA_param_HA():
-    from EvoMSA.model import ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs
-    from EvoMSA.model import HA
     from EvoMSA.base import EvoMSA
-    from b4msa.lang_dependency import get_lang
-    import os
     X, y = get_data()
-    for cl, lang in zip([ThumbsUpDownAr, ThumbsUpDownEn, ThumbsUpDownEs],
-                        ['ar', 'en', 'es']):
-        with StoreDelete(HA.create_space, TWEETS, "%s.evoha" % get_lang(lang)) as sd:
-            model = EvoMSA(stacked_method_args=dict(popsize=10,
-                                                    early_stopping_rounds=10,
-                                                    n_estimators=3),
-                           TR=False, lang=lang, HA=True, n_jobs=2)
-            assert len(model.models) == 1
-            print(model.models[0][0])
-            assert os.path.isfile(model.models[0][0])
+    for lang in ['ar', 'en', 'es']:
+        model = EvoMSA(stacked_method_args=dict(popsize=10,
+                                                early_stopping_rounds=10,
+                                                n_estimators=3),
+                       TR=False, lang=lang, HA=True, n_jobs=2)
+        assert len(model.models) == 1
 
 
 def test_EvoMSA_cpu_count():
