@@ -357,6 +357,14 @@ def test_EvoMSA_param_HA():
         assert len(model.models) == 1
 
 
+def test_EvoMSA_param_HA():
+    from EvoMSA.base import EvoMSA
+    X, y = get_data()
+    for lang in ['ar', 'en', 'es']:
+        model = EvoMSA(TR=False, lang=lang, Aggress=True)
+        assert len(model.models) == 1
+
+
 def test_EvoMSA_cpu_count():
     from EvoMSA.base import EvoMSA
     from multiprocessing import cpu_count

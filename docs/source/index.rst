@@ -46,6 +46,7 @@ The text models implemented are:
 * :ref:`emospace` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(Emo=True, lang="en")`)
 * :ref:`th` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(TH=True, lang="en")`)  
 * :ref:`ha` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(HA=True, lang="en")`)
+* :ref:`aggress` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(Aggress=True, lang="en")`)
 
 where :py:attr:`lang` specifies the language and can be either *ar*,
 *en*, or, *es* that corresponds to Arabic, English, and Spanish,
@@ -61,6 +62,8 @@ with tha parameter :py:attr:`stacked_method`, e.g.,
 EvoMSA is described in `EvoMSA: A Multilingual Evolutionary Approach
 for Sentiment Analysis <https://ieeexplore.ieee.org/document/8956106>`_, Mario Graff, Sabino Miranda-Jimenez, Eric
 Sadit Tellez, Daniela Moctezuma. Computational Intelligence Magazine, vol 15 no. 1, pp. 76-88, Feb. 2020.
+In this document, we try to follow as much as possible the notation used in the CIM paper; we believe
+this can help to grasp as easily as possible EvoMSA's goals. 
 
 Citing
 ======
@@ -114,16 +117,24 @@ Read the dataset
 >>> from microtc.utils import tweet_iterator
 >>> import os
 >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
->>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
+>>> D = list(tweet_iterator(tweets))
+>>> X = [x['text'] for x in D]
+>>> y = [x['klass'] for x in D]
 
 Once the dataset is loaded, it is time to create an EvoMSA model, let
 us create an EvoMSA model enhaced with :ref:`emospace`.
 
 >>> from EvoMSA.base import EvoMSA
->>> evo = EvoMSA(Emo=True, lang='es').fit([x[0] for x in D], [x[1] for x in D])
+>>> evo = EvoMSA(Emo=True, lang='es').fit(X, y)
 
 Predict a sentence in Spanish
 
+>>> evo.predict(['EvoMSA esta funcionando'])
+
+EvoMSA uses by default :py:class:`EvoDAG.model.EvoDAGE` as stacked classifier; however, this is a parameter that can be modified. Let us, for example use :py:class:`sklearn.naive_bayes.GaussianNB` in the previous example.
+
+>>> evo = EvoMSA(Emo=True, lang='es',
+                 stacked_method='sklearn.naive_bayes.GaussianNB').fit(X, y)
 >>> evo.predict(['EvoMSA esta funcionando'])
 
 
@@ -131,19 +142,30 @@ Text Models
 =================
 
 Besides the default text model (i.e.,
-:py:class:`b4msa.textmodel.TextModel`), EvoMSA has three text models
-for Arabic, English and Spanish languages that can be selected with a
-flag in the constructor, these are:
+:py:class:`b4msa.textmodel.TextModel`), EvoMSA has four text models
+(EvoMSA's CIM paper presents only the first three models) for Arabic,
+English and Spanish languages that can be selected with a flag in the
+constructor, these are:
 
-* :ref:`emospace`.
-* :ref:`th`. 
-* :ref:`ha`. 
+.. toctree::
+   :maxdepth: 2
+
+   emospace
+   th
+   ha
+   aggress
+   
+..
+   * :ref:`emospace`.
+   * :ref:`th`. 
+   * :ref:`ha`.
+   * :ref:`aggress`.  
 
 Nonetheless, more text models can be included in EvoMSA. EvoMSA's core
 idea is to facilitate the inclusion of diverse text models. We have
 been using EvoMSA (as INGEOTEC team) on different competitions run at
-the Workshop of Semantic Evaluation as well as other sentiment
-analysis tasks and traditional text classification problems.
+the Workshop of Semantic Evaluation as well as other
+sentiment-analysis tasks and traditional text classification problems.
 
 During this time, we have created different text models -- some of
 them using the datasets provided by the competition's organizers and
@@ -167,9 +189,6 @@ EvoMSA's classes
    :maxdepth: 2
 
    base
-   emospace
-   th
-   ha
+   model_selection   
    utils
-   model_selection
    

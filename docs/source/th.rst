@@ -17,13 +17,15 @@ For example, let us read a dataset to train EvoMSA.
 >>> from microtc.utils import tweet_iterator
 >>> import os
 >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
->>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
+>>> D = list(tweet_iterator(tweets))
+>>> X = [x['text'] for x in D]
+>>> y = [x['klass'] for x in D]
 
 Once the dataset is load, EvoMSA using lexicon model is
 trained as follows:
 
 >>> from EvoMSA.base import EvoMSA
->>> evo = EvoMSA(TH=True, lang='es').fit([x[0] for x in D], [x[1] for x in D])
+>>> evo = EvoMSA(TH=True, lang='es').fit(X, y)
 >>> evo.predict(['buenos dias'])
 
 Particularly, the following classes implement the lexicon-based model:
@@ -37,17 +39,3 @@ These models can be tested as follow:
 >>> from EvoMSA.model import ThumbsUpDownEn
 >>> th = ThumbsUpDownEn()
 >>> th['good morning']
-
-
-Lexicon-based model's classes
-=================================
-
-.. autoclass:: EvoMSA.model.ThumbsUpDownAr		 
-	       :members:
-
-.. autoclass:: EvoMSA.model.ThumbsUpDownEn
-	       :members:
-		  
-.. autoclass:: EvoMSA.model.ThumbsUpDownEs
-	       :members:
-

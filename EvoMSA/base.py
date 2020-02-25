@@ -141,7 +141,8 @@ class EvoMSA(object):
                  stacked_method_args=dict(),
                  n_jobs=1, n_splits=5, seed=0,
                  classifier=True, models=None, lang=None,
-                 TR=True, Emo=False, TH=False, HA=False, B4MSA=False,
+                 TR=True, Emo=False, TH=False, HA=False,
+                 B4MSA=False, Aggress=False,
                  tm_n_jobs=None, cache=None):
         if models is None:
             models = []
@@ -166,6 +167,9 @@ class EvoMSA(object):
         if B4MSA:
             models.append([download("b4msa_%s.tm" % lang),
                            "sklearn.svm.LinearSVC"])
+        if Aggress:
+            models.append(["EvoMSA.model.Aggressiveness%s" % lang,
+                           "sklearn.svm.LinearSVC"])            
         self._b4msa_args = b4msa_args
         self._evodag_args = stacked_method_args
         _ = dict()
