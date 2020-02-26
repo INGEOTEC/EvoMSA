@@ -144,53 +144,6 @@ class Identity(BaseTextModel, BaseClassifier):
         return self.decision_function(X)
 
 
-class HA(BaseTextModel):
-    """Wrapper of b4msa.textmodel.TextModel and LinearSVC"""
-    def __init__(self, **kwargs):
-        self._tm = TextModel(**kwargs)
-        self._cl = LinearSVC()
-
-    def fit(self, X, y):
-        self._tm.fit(X)
-        self._cl.fit(self._tm.transform(X), y)
-        return self
-
-    def transform(self, X):
-        res = self._cl.decision_function(self._tm.transform(X))
-        if res.ndim == 1:
-            return np.atleast_2d(res).T
-        return res
-
-    @classmethod
-    def create_space(cls, fname, output, **kwargs):
-        """Create the model from a file of json
-
-        :param fname: Path to the file containing the json
-        :type fname: str
-        :param output: Path to store the model
-        :type output: str
-        :param kwargs: Keywords pass to TextModel
-        """
-
-        X = [x for x in tweet_iterator(fname)]
-        m = cls(**kwargs)
-        m.fit(X, [x['klass'] for x in X])
-        save_model(m, output)
-
-
-class Projection(BaseTextModel):
-    def __init__(self, docs=None, textModel=None, projection=None):
-        assert docs is None
-        self._textModel = textModel
-        self._projection = projection
-
-    def transform(self, X):
-        return np.dot(self._textModel.transform(X), self._projection)
-
-    def __getitem__(self, x):
-        return np.dot(self._textModel[x], self._projection)
-
-
 class LabeledDataSet(BaseTextModel, BaseClassifier):
     """Create a text classifier using b4msa.textmodel.TextModel and LinearSVC
 
@@ -318,88 +271,6 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
             output = cls.model_fname()
         ins = cls(textModel=tm, coef=coef, intercept=intercept, labels=klass)
         save_model(ins, output)
-
-
-class EmoSpace(LabeledDataSet):
-    """Base class of Emoji Space. Use EmoSpaceAr or EmoSpaceEn or EmoSpaceEs instead of this class
-    """
-
-    def __init__(self, docs=None, model_cl=None, **kwargs):
-        if model_cl is None:
-            textModel, coef, intercept, labels = self.get_model()
-        else:
-            textModel, coef, intercept, labels = model_cl
-        super(EmoSpace, self).__init__(textModel=textModel, coef=coef,
-                                       intercept=intercept, labels=labels)
-
-    def get_model(self):
-        from .utils import get_model
-        model_fname = self.model_fname()
-        return get_model(model_fname)
-
-    @classmethod
-    def _create_space(cls, fname, emo_option='delete', **kwargs):
-        """Create the space from a file of json
-
-        :param fname: Path to the file containing the json
-        :type fname: str
-        :param kwargs: Keywords pass to TextModel
-        """
-        return super(EmoSpace, cls)._create_space(fname, emo_option=emo_option, **kwargs)
-
-    @classmethod
-    def create_space(cls, fname, output=None, **kwargs):
-        """Create the space from a file of json
-
-        :param fname: Path to the file containing the json
-        :type fname: str
-        :param output: Path to store the model, it is cls.model_fname if None
-        :type output: str
-        :param kwargs: Keywords pass to TextModel
-        """
-        tm, coef, intercept, klass = cls._create_space(fname, **kwargs)
-        if output is None:
-            output = cls.model_fname()
-        save_model([tm, coef, intercept, klass], output)
-
-
-class EmoSpaceEs(EmoSpace):
-    """Spanish text model or classifier based on a Emoji Space
-    """
-    @staticmethod
-    def model_fname():
-        import EvoMSA
-        return 'emo-v%s-es.evoemo' % EvoMSA.__version__[:3]
-
-    @classmethod
-    def create_space(cls, fname, output=None, lang='es', **kwargs):
-        super(EmoSpaceEs, cls).create_space(fname, output=output, lang=lang, **kwargs)
-
-
-class EmoSpaceEn(EmoSpace):
-    """English text model or classifier based on a Emoji Space"""
-
-    @staticmethod
-    def model_fname():
-        import EvoMSA
-        return 'emo-v%s-en.evoemo' % EvoMSA.__version__[:3]
-
-    @classmethod
-    def create_space(cls, fname, output=None, lang='en', **kwargs):
-        super(EmoSpaceEn, cls).create_space(fname, output=output, lang=lang, **kwargs)
-
-
-class EmoSpaceAr(EmoSpace):
-    """Arabic text model or classifier based on a Emoji Space"""
-
-    @staticmethod
-    def model_fname():
-        import EvoMSA
-        return 'emo-v%s-ar.evoemo' % EvoMSA.__version__[:3]
-
-    @classmethod
-    def create_space(cls, fname, output=None, lang='ar', **kwargs):
-        super(EmoSpaceAr, cls).create_space(fname, output=output, lang=lang, **kwargs)
 
 
 class Corpus(BaseTextModel):
@@ -590,7 +461,7 @@ class Multinomial(Bernulli):
         return np.array(hy)
 
 
-class ThumbsUpDownEs(ThumbsUpDown, BaseTextModel):
+class ThumbsUpDownEs(ThumbsUpDown):
     """Spanish thumbs up and down model"""
 
     def __init__(self, *args, **kwargs):
@@ -599,8 +470,11 @@ class ThumbsUpDownEs(ThumbsUpDown, BaseTextModel):
     def fit(self, X):
         return self
 
+    def transform(self, X):
+        return np.array([self.__getitem__(x) for x in X])
 
-class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
+
+class ThumbsUpDownEn(ThumbsUpDown):
     """English thumbs up and down model"""
 
     def __init__(self, *args, **kwargs):
@@ -609,8 +483,11 @@ class ThumbsUpDownEn(ThumbsUpDown, BaseTextModel):
     def fit(self, X):
         return self
 
+    def transform(self, X):
+        return np.array([self.__getitem__(x) for x in X])
 
-class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
+
+class ThumbsUpDownAr(ThumbsUpDown):
     """Arabic thumbs up and down model"""
 
     def __init__(self, *args, **kwargs):
@@ -618,6 +495,9 @@ class ThumbsUpDownAr(ThumbsUpDown, BaseTextModel):
 
     def fit(self, X):
         return self
+
+    def transform(self, X):
+        return np.array([self.__getitem__(x) for x in X])
 
 
 class Vec(BaseTextModel):
@@ -630,234 +510,3 @@ class Vec(BaseTextModel):
         return self
 
 
-class SemanticToken(BaseTextModel):
-    def __init__(self, corpus=None, threshold=0.001, token_min_filter=0.001,
-                 token_list=[-2, -1],
-                 num_option='delete', usr_option='delete',
-                 url_option='delete', emo_option='delete', **kwargs):
-        self._text = os.getenv('TEXT', default='text')
-        self._textmodel = TextModel(None, token_list=token_list,
-                                    threshold=threshold,
-                                    token_min_filter=token_min_filter,
-                                    num_option=num_option, usr_option=usr_option,
-                                    url_option=url_option, emo_option=emo_option,
-                                    **kwargs)
-        self._threshold = threshold
-        if corpus is not None:
-            self.fit(corpus)
-
-    def fit(self, X):
-        self.init(X)
-        return self
-
-    @property
-    def threshold(self):
-        """Threshold used to remove those tokens that less than 1 - entropy
-
-        :rtype: float
-        """
-
-        return self._threshold
-
-    @property
-    def textmodel(self):
-        """TextModel instance"""
-
-        return self._textmodel
-
-    @property
-    def id2token(self):
-        """Map from id to token
-
-        :rtype: list"""
-
-        return self._id2token
-
-    def init(self, corpus):
-        """Initial model"""
-
-        words = self.tokens(corpus)
-        self._weight = np.ones(len(words))
-        # key = self.semantic_space._text
-        X = self.semantic_space.transform([str(x) for x in words])
-        self._kdtree = KDTree(X, metric='manhattan')
-        w = self.entropy(self.transform(corpus), corpus, ntokens=X.shape[0])
-        w = np.where(w > self.threshold)[0]
-        self._kdtree = KDTree(X[w], metric='manhattan')
-        self._weight = self._weight[w]
-        self._id2token = [words[x] for x in w]
-        self.compute_idf(self.transform(corpus))
-
-    def entropy(self, Xt, corpus, ntokens):
-        """Compute the entropy"""
-
-        y = [x['klass'] for x in corpus]
-        klasses = np.unique(y)
-        nklasses = klasses.shape[0]
-        weight = np.zeros((klasses.shape[0], ntokens))
-        for ki, klass in enumerate(klasses):
-            for _y, tokens in zip(y, Xt):
-                if _y != klass:
-                    continue
-                for x in np.unique([_[0] for _ in tokens]):
-                    weight[ki, x] += 1
-        weight = weight / weight.sum(axis=0)
-        weight[~np.isfinite(weight)] = 1.0 / nklasses
-        logc = np.log2(weight)
-        logc[~np.isfinite(logc)] = 0
-        if nklasses > 2:
-            logc = logc / np.log2(nklasses)
-        return (1 + (weight * logc).sum(axis=0))
-
-    def compute_idf(self, Xt):
-        N = len(Xt)
-        weight = np.zeros_like(self.weight)
-        for tokens in Xt:
-            for x in np.unique([_[0] for _ in tokens]):
-                weight[x] += 1
-        self._weight = np.log2(N / weight)
-
-    @property
-    def weight(self):
-        """weight per token
-
-        :rtype: list"""
-
-        return self._weight
-
-    def tokens(self, corpus):
-        """Tokens used for modeling"""
-        self.textmodel.fit(corpus)
-        return [x for x in self.textmodel.model._w2id.keys()]
-
-    @property
-    def semantic_space(self):
-        """Semantic space
-
-        :rtype: instance
-        """
-
-        try:
-            return self._semantic_space
-        except AttributeError:
-            self._semantic_space = EmoSpaceEs()
-        return self._semantic_space
-
-    def get_text(self, text):
-        """Return self._text key from text
-
-        :param text: Text
-        :type text: dict
-        """
-
-        return text[self._text]
-
-    def tokenize(self, text):
-        """Tokenize a text
-        :param text: Text
-        :type text: dict or str
-
-        :rtype: list of str
-        """
-
-        textmodel = self.textmodel
-        return textmodel.tokenize(text)
-
-    def transform(self, X):
-        from collections import Counter
-        w = self.weight
-        kdtree = self._kdtree
-        tokens_doc = [self.tokenize(x) for x in X]
-        tokens = []
-        [tokens.__iadd__(x) for x in tokens_doc]
-        tokens = [x for x in Counter(tokens).keys()]
-        # key = self.semantic_space._text
-        xx = self.semantic_space.transform(tokens)
-        m = {t: (ind[0], w[ind[0]] / (1 + d[0])) for t, d, ind in zip(tokens, *kdtree.query(xx))}
-        Xt = []
-        for x in tokens_doc:
-            unique = {}
-            for _ in x:
-                r = m[_]
-                try:
-                    unique[r[0]] += r[1]
-                except KeyError:
-                    unique[r[0]] = r[1]
-            n = np.sqrt(sum([x * x for _, x in unique.items()]))
-            Xt.append([(i, x/n) for i, x in unique.items()])
-        return Xt
-
-
-class SemanticTokenEs(SemanticToken):
-    def __init__(self, corpus=None, stopwords='delete', **kwargs):
-        super(SemanticTokenEs, self).__init__(corpus=corpus, stopwords=stopwords,
-                                              lang='es', **kwargs)
-
-
-class SemanticTokenEn(SemanticToken):
-    def __init__(self, corpus=None, del_dup=False, stopwords='delete', **kwargs):
-        super(SemanticTokenEn, self).__init__(corpus=corpus, del_dup=del_dup,
-                                              stopwords=stopwords,
-                                              lang='en', **kwargs)
-
-    @property
-    def semantic_space(self):
-        """Semantic space
-
-        :rtype: instance
-        """
-
-        try:
-            return self._semantic_space
-        except AttributeError:
-            self._semantic_space = EmoSpaceEn()
-        return self._semantic_space
-
-
-class SemanticTokenAr(SemanticToken):
-    def __init__(self, corpus=None, stopwords='delete', **kwargs):
-        super(SemanticTokenAr, self).__init__(corpus=corpus, stopwords=stopwords,
-                                              lang='ar', **kwargs)
-
-    @property
-    def semantic_space(self):
-        """Semantic space
-
-        :rtype: instance
-        """
-
-        try:
-            return self._semantic_space
-        except AttributeError:
-            self._semantic_space = EmoSpaceAr()
-        return self._semantic_space
-
-
-class SemanticAffectiveEs(SemanticTokenEs):
-    def tokens(self, corpus):
-        """Tokens used for modeling"""
-        fname = os.path.join(ConPATH, 'data', 'es.affective.words.json')
-        lst = []
-        for x in tweet_iterator(fname):
-            lst += x['words']
-        return lst
-
-
-class SemanticAffectiveAr(SemanticTokenAr):
-    def tokens(self, corpus):
-        """Tokens used for modeling"""
-        fname = os.path.join(ConPATH, 'data', 'ar.affective.words.json')
-        lst = []
-        for x in tweet_iterator(fname):
-            lst += x['words']
-        return lst
-
-
-class SemanticAffectiveEn(SemanticTokenEn):
-    def tokens(self, corpus):
-        """Tokens used for modeling"""
-        fname = os.path.join(ConPATH, 'data', 'en.affective.words.json')
-        lst = []
-        for x in tweet_iterator(fname):
-            lst += x['words']
-        return lst

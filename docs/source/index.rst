@@ -28,40 +28,42 @@ EvoMSA is a Sentiment Analysis System based on `B4MSA
 <https://github.com/mgraffg/EvoDAG>`_. EvoMSA is a stack
 generalization algorithm specialized on text classification
 problems. It works by combining the output of different text models to
-produce the final prediction. These text models are:
+produce the final prediction.
 
-* `B4MSA <https://github.com/ingeotec/b4msa>`_ model trained with the training set (it is set by default)
+EvoMSA is a two-stage procedure; the first step transforms the text
+into a vector space with dimensions related to the number of classes, and then,
+the second stage trains a supervised learning algorithm.
+
+The first stage is a composition of two functions, :math:`g \circ m`, where
+:math:`m` is a text model that transforms a text into a vector (i.e., :math:`m: \text{text} \rightarrow \mathbb R^d`)
+and :math:`g` is a classifier or regressor (i.e., :math:`g: \mathbb R^d \rightarrow \mathbb R^c`),
+:math:`d` depends on :math:`m`, and :math:`c` is the number of classes or labels.
+
+EvoMSA contains different text models (i.e., :math:`m`), which can be selected using flags in the class constructor.
+The text models implemented are:
+
+* :py:class:`b4msa.textmodel.TextModel` model trained with the training set (it is set by default :py:attr:`TR`)
 * :ref:`emospace` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(Emo=True, lang="en")`)
 * :ref:`th` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(TH=True, lang="en")`)  
 * :ref:`ha` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(HA=True, lang="en")`)
+* :ref:`aggress` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(Aggress=True, lang="en")`)
 
 where :py:attr:`lang` specifies the language and can be either *ar*,
 *en*, or, *es* that corresponds to Arabic, English, and Spanish,
-respectively.
+respectively. On the other hand, :math:`g` is a classifier or regressor, and by default,
+it uses :py:class:`sklearn.svm.LinearSVC`.
 
-Usage
-=========
+The second stage is the stacking method, which is a classifier or
+regressor. EvoMSA uses by default EvoDAG (i.e.,
+:py:class:`EvoDAG.model.EvoDAGE`); however, this method can be changed
+with tha parameter :py:attr:`stacked_method`, e.g.,
+:py:attr:`EvoMSA.base.EvoMSA(stacked_method="sklearn.naive_bayes.GaussianNB")`.
 
-EvoMSA can be used from using the following commands.
-
-Read the dataset
-
->>> from EvoMSA import base
->>> from microtc.utils import tweet_iterator
->>> import os
->>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
->>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
-
-Once the dataset is loaded, it is time to create an EvoMSA model, let
-us create an EvoMSA model enhaced with :ref:`emospace`.
-
->>> from EvoMSA.base import EvoMSA
->>> evo = EvoMSA(Emo=True, lang='es').fit([x[0] for x in D], [x[1] for x in D])
-
-Predict a sentence in Spanish
-
->>> evo.predict(['EvoMSA esta funcionando'])
-
+EvoMSA is described in `EvoMSA: A Multilingual Evolutionary Approach
+for Sentiment Analysis <https://ieeexplore.ieee.org/document/8956106>`_, Mario Graff, Sabino Miranda-Jimenez, Eric
+Sadit Tellez, Daniela Moctezuma. Computational Intelligence Magazine, vol 15 no. 1, pp. 76-88, Feb. 2020.
+In this document, we try to follow as much as possible the notation used in the CIM paper; we believe
+this can help to grasp as easily as possible EvoMSA's goals. 
 
 Citing
 ======
@@ -98,30 +100,95 @@ or can be install using pip, it depends on numpy, scipy,
 scikit-learn and b4msa.
 
 .. code:: bash
-	  
+
+	  pip install cython
+	  pip install sparsearray
+	  pip install evodag
 	  pip install EvoMSA
 
-EvoMSA
-=============
+Usage
+=========
 
-.. autoclass:: EvoMSA.base.EvoMSA
-   :members:
-	      
+EvoMSA can be used from using the following commands.
+
+Read the dataset
+
+>>> from EvoMSA import base
+>>> from microtc.utils import tweet_iterator
+>>> import os
+>>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
+>>> D = list(tweet_iterator(tweets))
+>>> X = [x['text'] for x in D]
+>>> y = [x['klass'] for x in D]
+
+Once the dataset is loaded, it is time to create an EvoMSA model, let
+us create an EvoMSA model enhaced with :ref:`emospace`.
+
+>>> from EvoMSA.base import EvoMSA
+>>> evo = EvoMSA(Emo=True, lang='es').fit(X, y)
+
+Predict a sentence in Spanish
+
+>>> evo.predict(['EvoMSA esta funcionando'])
+
+EvoMSA uses by default :py:class:`EvoDAG.model.EvoDAGE` as stacked classifier; however, this is a parameter that can be modified. Let us, for example use :py:class:`sklearn.naive_bayes.GaussianNB` in the previous example.
+
+>>> evo = EvoMSA(Emo=True, lang='es',
+                 stacked_method='sklearn.naive_bayes.GaussianNB').fit(X, y)
+>>> evo.predict(['EvoMSA esta funcionando'])
+
+
 Text Models
-==================================
+=================
+
+Besides the default text model (i.e.,
+:py:class:`b4msa.textmodel.TextModel`), EvoMSA has four text models
+(EvoMSA's CIM paper presents only the first three models) for Arabic,
+English and Spanish languages that can be selected with a flag in the
+constructor, these are:
+
 .. toctree::
    :maxdepth: 2
 
    emospace
    th
    ha
+   aggress
+   
+..
+   * :ref:`emospace`.
+   * :ref:`th`. 
+   * :ref:`ha`.
+   * :ref:`aggress`.  
+
+Nonetheless, more text models can be included in EvoMSA. EvoMSA's core
+idea is to facilitate the inclusion of diverse text models. We have
+been using EvoMSA (as INGEOTEC team) on different competitions run at
+the Workshop of Semantic Evaluation as well as other
+sentiment-analysis tasks and traditional text classification problems.
+
+During this time, we have created different text models -- some of
+them using the datasets provided by the competition's organizers and
+others inspired by our previous work -- in different languages. We
+have decided to make public these text models created, which are
+organized by Language.
+
+.. toctree::
+   :maxdepth: 2
+   
+   arabic
+   english
+   spanish
+   cites
 
 
-Extra modules
-==================	      
+EvoMSA's classes
+==================
 
 .. toctree::
    :maxdepth: 2
 
+   base
+   model_selection   
    utils
-   model_selection
+   
