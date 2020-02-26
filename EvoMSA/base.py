@@ -92,12 +92,14 @@ class EvoMSA(object):
     >>> from microtc.utils import tweet_iterator
     >>> import os
     >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
-    >>> D = [[x['text'], x['klass']] for x in tweet_iterator(tweets)]
+    >>> D = list(tweet_iterator(tweets))
+    >>> X = [x['text'] for x in D]
+    >>> y = [x['klass'] for x in D]
 
     Once the dataset is loaded, it is time to create an EvoMSA model
 
     >>> from EvoMSA.base import EvoMSA
-    >>> evo = EvoMSA(n_jobs=-1).fit([x[0] for x in D], [x[1] for x in D])
+    >>> evo = EvoMSA().fit(X, y)
 
     Predict a sentence in Spanish
 
@@ -154,7 +156,8 @@ class EvoMSA(object):
             lang = lang.lower()
             lang = "%s%s" % (lang[0].upper(), lang[1])
             b4msa_args['lang'] = get_lang(lang)
-        # lang = lang if lang is None else get_lang(lang)
+        if Emo or TH or HA or B4MSA:
+            assert lang is not None and lang in ["Ar", "En", "Es"]
         if Emo:
             models.append([download("emo_%s.tm" % lang),
                            "sklearn.svm.LinearSVC"])

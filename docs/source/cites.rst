@@ -44,6 +44,11 @@ References
           IberEval 2018. CEUR Workshop Proceedings, 2150:187–194,
           Sept. 2018.
 
+.. [AMI] E. Fersini1, P. Rosso2, and M. Anzovino1. Overview of the
+         Task on Automatic Misogyny Identification at
+         IberEval 2018. CEUR Workshop Proceedings, 2150:214-228,
+         Sept. 2018.
+
 .. [SS] Mike Thelwall, Kevan Buckley, and Georgios
         Paltoglou. Sentiment strength detection forthe social
         web. Journal of the American Society for Information Science

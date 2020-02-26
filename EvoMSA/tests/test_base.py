@@ -87,6 +87,15 @@ def test_EvoMSA_kfold_decision_function():
     assert isinstance(D[0], list)
 
 
+def test_EvoMSA_lang_missing():
+    from EvoMSA import base
+    try:
+        base.EvoMSA(Emo=True)
+    except AssertionError:
+        return
+    assert False
+
+
 def test_EvoMSA_fit():
     from EvoMSA.model import Bernulli
     from EvoDAG.model import EvoDAGE
