@@ -74,7 +74,7 @@ and without the text model obtained with the training set.
 >>> y = [x['klass'] for x in D]
 >>> haha = download('haha2018_Es.evomsa')
 >>> mexa3t = download('mexa3t2018_aggress_Es.evomsa')
->>> evo = EvoMSA(TR=False, B4MSA=True, lang='ar',
+>>> evo = EvoMSA(TR=False, B4MSA=True, lang='es',
                  models=[[haha, "sklearn.svm.LinearSVC"],
                          [mexa3t, "sklearn.svm.LinearSVC"]])
 >>> evo.fit(X, y)			 
