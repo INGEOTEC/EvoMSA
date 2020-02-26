@@ -54,6 +54,10 @@ Spanish language.
 +-----------------------------------------------------------------------------------------------------------------------------+---------------------------------+
 | `Overview of the HAHA Task <http://ceur-ws.org/Vol-2150/overview-HAHA.pdf>`_ [HAHA]_                                        | `haha2018_Es.evomsa`_           |
 +-----------------------------------------------------------------------------------------------------------------------------+---------------------------------+
+| `Overview of the Task on Automatic Misogyny Identification at IberEval 2018`_ [AMI]_                                        | `misoginia_Es.evomsa`_          |
++-----------------------------------------------------------------------------------------------------------------------------+---------------------------------+
+| `Estado de ánimo de los tuiteros en México`_                                                                                | `INEGI-MX_Es.tm`_               |
++-----------------------------------------------------------------------------------------------------------------------------+---------------------------------+
 
 The following code shows the usage of two of the models with suffix
 `.evomsa`. The models used are `haha2018_Es.evomsa`_,
@@ -94,3 +98,7 @@ Predict a sentence in Spanish
 .. _semeval2018_valence_Es.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_valence_Es.evomsa
 .. _mexa3t2018_aggress_Es.evomsa: http://ingeotec.mx/~mgraffg/models/mexa3t2018_aggress_Es.evomsa
 .. _haha2018_Es.evomsa: http://ingeotec.mx/~mgraffg/models/haha2018_Es.evomsa
+.. _Estado de ánimo de los tuiteros en México: https://www.inegi.org.mx/app/animotuitero
+.. _INEGI-MX_Es.tm: http://ingeotec.mx/~mgraffg/models/INEGI-MX_Es.tm
+.. _Overview of the Task on Automatic Misogyny Identification at IberEval 2018: http://ceur-ws.org/Vol-2150/overview-AMI.pdf
+.. _misoginia_Es.evomsa: http://ingeotec.mx/~mgraffg/models/misoginia_Es.evomsa
