@@ -137,7 +137,6 @@ EvoMSA uses by default :py:class:`EvoDAG.model.EvoDAGE` as stacked classifier; h
                  stacked_method='sklearn.naive_bayes.GaussianNB').fit(X, y)
 >>> evo.predict(['EvoMSA esta funcionando'])
 
-
 Text Models
 =================
 
@@ -170,8 +169,7 @@ sentiment-analysis tasks and traditional text classification problems.
 During this time, we have created different text models -- some of
 them using the datasets provided by the competition's organizers and
 others inspired by our previous work -- in different languages. We
-have decided to make public these text models created, which are
-organized by Language.
+have decided to make public these text models organizing them by language.
 
 .. toctree::
    :maxdepth: 2
