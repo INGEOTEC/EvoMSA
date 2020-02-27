@@ -138,6 +138,7 @@ EvoMSA uses by default :py:class:`EvoDAG.model.EvoDAGE` as stacked classifier; h
 >>> evo.predict(['EvoMSA esta funcionando'])
 
 .. _tm:
+
 Text Models
 =================
 
