@@ -65,6 +65,19 @@ Sadit Tellez, Daniela Moctezuma. Computational Intelligence Magazine, vol 15 no.
 In this document, we try to follow as much as possible the notation used in the CIM paper; we believe
 this can help to grasp as easily as possible EvoMSA's goals. 
 
+Quickstart Guide
+===================
+
+We have decided to make a live quickstart guide, it covers the
+installation, the use of EvoMSA with different text models, and it
+ends by explaining how the text models can be used on their
+own. Finally, the notebook can be found at the docs directory on
+GitHub.
+
+.. raw:: html
+   
+   <iframe width="560" height="315" src="https://www.youtube.com/embed/NTeA5_FNlM4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 Citing
 ======
 
