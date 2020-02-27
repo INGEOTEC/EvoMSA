@@ -27,7 +27,7 @@ EvoMSA is a Sentiment Analysis System based on `B4MSA
 <https://github.com/ingeotec/b4msa>`_ and `EvoDAG
 <https://github.com/mgraffg/EvoDAG>`_. EvoMSA is a stack
 generalization algorithm specialized on text classification
-problems. It works by combining the output of different text models to
+problems. It works by combining the output of different :ref:`text models <tm>` to
 produce the final prediction.
 
 EvoMSA is a two-stage procedure; the first step transforms the text
@@ -35,12 +35,12 @@ into a vector space with dimensions related to the number of classes, and then,
 the second stage trains a supervised learning algorithm.
 
 The first stage is a composition of two functions, :math:`g \circ m`, where
-:math:`m` is a text model that transforms a text into a vector (i.e., :math:`m: \text{text} \rightarrow \mathbb R^d`)
+:math:`m` is a :ref:`text model <tm>` that transforms a text into a vector (i.e., :math:`m: \text{text} \rightarrow \mathbb R^d`)
 and :math:`g` is a classifier or regressor (i.e., :math:`g: \mathbb R^d \rightarrow \mathbb R^c`),
 :math:`d` depends on :math:`m`, and :math:`c` is the number of classes or labels.
 
-EvoMSA contains different text models (i.e., :math:`m`), which can be selected using flags in the class constructor.
-The text models implemented are:
+EvoMSA contains different :ref:`text models <tm>` (i.e., :math:`m`), which can be selected using flags in the class constructor.
+The :ref:`text models <tm>` implemented are:
 
 * :py:class:`b4msa.textmodel.TextModel` model trained with the training set (it is set by default :py:attr:`TR`)
 * :ref:`emospace` (it is evoked using :py:attr:`EvoMSA.base.EvoMSA(Emo=True, lang="en")`)
@@ -137,6 +137,7 @@ EvoMSA uses by default :py:class:`EvoDAG.model.EvoDAGE` as stacked classifier; h
                  stacked_method='sklearn.naive_bayes.GaussianNB').fit(X, y)
 >>> evo.predict(['EvoMSA esta funcionando'])
 
+.. _tm:
 Text Models
 =================
 
