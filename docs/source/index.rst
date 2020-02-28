@@ -75,8 +75,9 @@ own. Finally, the notebook can be found at the docs directory on
 GitHub.
 
 .. raw:: html
-   
-   <iframe width="560" height="315" src="https://www.youtube.com/embed/NTeA5_FNlM4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+	 <iframe width="560" height="315" src="https://www.youtube.com/embed/cyg4wBrJZdU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 
 Citing
 ======
