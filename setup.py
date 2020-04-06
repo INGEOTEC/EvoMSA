@@ -53,7 +53,7 @@ setup(
                                                'boundscheck': False}),
     package_data={'EvoMSA/tests': ['tweets.json'],
                   '': ['*.pxd']},
-    install_requires=['B4MSA', 'ConceptModelling', 'EvoDAG'],
+    install_requires=['B4MSA', 'ConceptModelling'],
     entry_points={
         'console_scripts': ['EvoMSA-train=EvoMSA.command_line:train',
                             'EvoMSA-predict=EvoMSA.command_line:predict',
