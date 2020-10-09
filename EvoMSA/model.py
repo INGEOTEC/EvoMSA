@@ -378,8 +378,8 @@ class AggressivenessEs(Corpus):
         super(AggressivenessEs, self).__init__(corpus)
 
 
-class Bernulli(BaseClassifier):
-    """Bernulli classifier"""
+class Bernoulli(BaseClassifier):
+    """Bernoulli classifier"""
 
     def __init__(self, random_state=0):
         self._num_terms = -1
@@ -433,7 +433,7 @@ class Bernulli(BaseClassifier):
         return np.array(hy)
 
 
-class Multinomial(Bernulli):
+class Multinomial(Bernoulli):
     """Multinomial classifier"""
 
     def fit(self, X, klass):

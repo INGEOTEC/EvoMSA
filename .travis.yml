@@ -9,6 +9,7 @@ env:
     - python=3.5  CONDA_PY=35  
     - python=3.6  CONDA_PY=36
     - python=3.7  CONDA_PY=37
+    - python=3.8  CONDA_PY=38    
 
   global:
     - secure: "ab0JQHlsbI6XsF+OCESxLJjm5nkF6DRrCioUgPGMjdgLFdRmtU5nNxt74XzMG16HlL1tZt6WAYzzHzUd3DjyD6TXTb86ubyXtI89bJIGIXnbVOQUipsiB7xia1FUQ7sBcV4IdFgDKE71Qpp1dLTww6Bok0P6xeq2WxjOkADc0pzPZklVVuH8oON3FaXju4aqzIatbITL8ukWfab2sFWPddnkhYpLdlypjv/QfV8dabGBlTsqRefG3Pde1nNMPqt438aqlV039Ec9N5xhC5RBFO4L17+ejCNauJZtROZvRJr1q+JAaOBN/TQhMaVjqCPDO8fKujjPYq0qjvdDF++YY5Qid6ZJc/SGnaNxNryI7+38Cegg6gJsJqhGguAPj8lMtuiMODhg+ZweGMRooxPQQVKqPO7d5u+4jqaj2CVgwyEGKwGgCaj0/gCHYSRbcJgmyts4K1sOxAWyksETm9yBZLO2NXK6nG8Hp+tCtOdPfzhesQgNLc1YB0xu4mFqIhtQpQlSq7Lvv6/tWwWcka8ctoThCLnSVLgNF4XOOzi+anG0Yir05k2gP8v/bT03DxpXPCCkSow+zk4ksIPIP6QMm42kITmwqHYxBH/3qZP6oa5vwztZ/oCUvCNrj2UPY3qlzj7Nuj6l8k0TvALS6u2ORvTxp0YqgbF/P9ksceYolaY="
