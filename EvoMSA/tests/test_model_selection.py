@@ -26,7 +26,7 @@ def test_node_model():
 def test_NB():
     X, y = get_data()
     models = {0: ["EvoMSA.model.Corpus", "sklearn.svm.LinearSVC"],
-              1: ["b4msa.textmodel.TextModel", "EvoMSA.model.Bernulli"],
+              1: ["b4msa.textmodel.TextModel", "EvoMSA.model.Bernoulli"],
               2: ["EvoMSA.model.AggressivenessEs", "EvoMSA.model.Identity"]}
     a = NodeNB([0], models)
     a.fit(X[:500], y[:500])
@@ -38,7 +38,7 @@ def test_NB():
 def test_ForwardSelection():
     X, y = get_data()
     models = {0: ["EvoMSA.model.Corpus", "sklearn.svm.LinearSVC"],
-              1: ["b4msa.textmodel.TextModel", "EvoMSA.model.Bernulli"],
+              1: ["b4msa.textmodel.TextModel", "EvoMSA.model.Bernoulli"],
               2: ["EvoMSA.model.AggressivenessEs", "EvoMSA.model.Identity"]}
 
     a = ForwardSelection(models,
@@ -50,7 +50,7 @@ def test_ForwardSelection():
 def test_BeamSelection():
     X, y = get_data()
     models = {0: ["EvoMSA.model.Corpus", "sklearn.svm.LinearSVC"],
-              1: ["b4msa.textmodel.TextModel", "EvoMSA.model.Bernulli"],
+              1: ["b4msa.textmodel.TextModel", "EvoMSA.model.Bernoulli"],
               2: ["EvoMSA.model.AggressivenessEs", "EvoMSA.model.Identity"]}
 
     a = BeamSelection(models,

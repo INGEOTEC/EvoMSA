@@ -64,7 +64,7 @@ def test_vector_space():
     X, y = get_data()
     evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
                                           n_estimators=3),
-                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernoulli']])
     evo.model(X)
     nrows = len(X)
     X = evo.vector_space(X)
@@ -78,7 +78,7 @@ def test_EvoMSA_kfold_decision_function():
     y = le.transform(y)
     evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
                                           n_estimators=3),
-                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']])
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernoulli']])
     evo.model(X)
     X = evo.vector_space(X)
     cl = evo.models[1][1]
@@ -97,7 +97,7 @@ def test_EvoMSA_lang_missing():
 
 
 def test_EvoMSA_fit():
-    from EvoMSA.model import Bernulli
+    from EvoMSA.model import Bernoulli
     from EvoDAG.model import EvoDAGE
     from microtc.utils import load_model, save_model
     X, y = get_data()
@@ -105,17 +105,17 @@ def test_EvoMSA_fit():
     evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
                                           time_limit=5,
                                           n_estimators=5),
-                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernoulli']],
                  n_jobs=1).fit(X, y)
     print("Termine fit")
     assert evo
-    assert isinstance(evo._svc_models[1], Bernulli)
+    assert isinstance(evo._svc_models[1], Bernoulli)
     assert isinstance(evo._evodag_model, EvoDAGE)
     save_model(evo, 'test.evomodel')
     print("Guarde modelo")
     evo = load_model('test.evomodel')
     print("Cargue modelo")
-    assert isinstance(evo._svc_models[1], Bernulli)
+    assert isinstance(evo._svc_models[1], Bernoulli)
     assert isinstance(evo._evodag_model, EvoDAGE)
     os.unlink('test.evomodel')
 
@@ -125,7 +125,7 @@ def test_EvoMSA_predict():
     X, y = get_data()
     evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
                                           time_limit=15, n_estimators=10),
-                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                 models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernoulli']],
                  n_jobs=1).fit(X, y)
     hy = evo.predict(X)
     assert len(hy) == 1000
@@ -167,7 +167,7 @@ def test_EvoMSA_model():
     model = EvoMSA(stacked_method_args=dict(popsize=10,
                                             early_stopping_rounds=10,
                                             n_estimators=3),
-                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernoulli']],
                    n_jobs=2)
     assert len(model.models) == 2
     model.model(X)
@@ -179,11 +179,11 @@ def test_EvoMSA_fit_svm():
     from sklearn.preprocessing import LabelEncoder
     X, y = get_data()
     from sklearn.svm import LinearSVC
-    from EvoMSA.model import Bernulli
+    from EvoMSA.model import Bernoulli
     model = EvoMSA(stacked_method_args=dict(popsize=10,
                                             early_stopping_rounds=10,
                                             n_estimators=3),
-                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernoulli']],
                    n_jobs=2)
     le = LabelEncoder().fit(y)
     y = le.transform(y)
@@ -192,7 +192,7 @@ def test_EvoMSA_fit_svm():
     model.fit_svm(Xvs, y)
     print(model._svc_models)
     assert len(model._svc_models) == 2
-    for ins, klass in zip(model._svc_models, [LinearSVC, Bernulli]):
+    for ins, klass in zip(model._svc_models, [LinearSVC, Bernoulli]):
         assert isinstance(ins, klass)
 
 
@@ -200,7 +200,7 @@ def test_EvoMSA_evodag_class():
     from sklearn.neighbors import NearestCentroid
     import numpy as np
     X, y = get_data()
-    model = EvoMSA(models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+    model = EvoMSA(models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernoulli']],
                    stacked_method="sklearn.neighbors.NearestCentroid",
                    TR=False, n_jobs=2).fit(X, y)
     assert isinstance(model._evodag_model, NearestCentroid)
@@ -299,7 +299,7 @@ def test_EvoMSA_identity():
     model = EvoMSA(stacked_method_args=dict(popsize=10,
                                             early_stopping_rounds=10,
                                             n_estimators=3),
-                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernulli']],
+                   models=[['EvoMSA.model.Corpus', 'EvoMSA.model.Bernoulli']],
                    TR=False,
                    stacked_method="EvoMSA.model.Identity",
                    n_jobs=2).fit(X, y)

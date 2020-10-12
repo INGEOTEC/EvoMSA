@@ -122,7 +122,7 @@ def test_predict_numbers():
         for x, y0 in zip(d, y):
             x['klass'] = y0
             fpt.write(json.dumps(x) + '\n')
-    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}, "models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]], "TR": false}',
+    sys.argv = ['EvoMSA', '--kw={"stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}, "models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernoulli"]], "TR": false}',
                 '-ot.model', '-n1', 'ex.json']
     train(output=True)
     sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
@@ -140,7 +140,7 @@ def test_predict_NearestCentroid():
             x['klass'] = y0
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA',
-                '--kw={"stacked_method": "sklearn.neighbors.NearestCentroid", "TR": false, "models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]]}',
+                '--kw={"stacked_method": "sklearn.neighbors.NearestCentroid", "TR": false, "models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernoulli"]]}',
                 '-ot.model', '-n1', 'ex.json']
     train(output=True)
     sys.argv = ['EvoMSA', '-mt.model', '-ot1.json', TWEETS]
@@ -207,7 +207,7 @@ def test_list_of_text():
             x['text'] = [x['text'], x['text']]
             fpt.write(json.dumps(x) + '\n')
     sys.argv = ['EvoMSA', '-ot.model', '-n2',
-                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernulli"]], "lang": "es", "TR": false, "stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
+                '--kw={"models": [["EvoMSA.model.Corpus", "EvoMSA.model.Bernoulli"]], "lang": "es", "TR": false, "stacked_method_args": {"popsize": 10, "early_stopping_rounds": 10, "time_limit": 5, "n_estimators": 5}}',
                 't.json']
     train()
     os.unlink('t.json')

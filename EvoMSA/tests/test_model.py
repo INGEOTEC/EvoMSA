@@ -25,16 +25,16 @@ def test_corpus():
     assert a[0] == a[1]
 
 
-def test_bernulli():
+def test_bernoulli():
     import numpy as np
-    from EvoMSA.model import Corpus, Bernulli
+    from EvoMSA.model import Corpus, Bernoulli
     from sklearn.preprocessing import LabelEncoder
     c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
     X = c.transform([x['text'] for x in tweet_iterator(TWEETS)])
     y = [x['klass'] for x in tweet_iterator(TWEETS)]
     le = LabelEncoder().fit(y)
     y = le.transform(y)
-    b = Bernulli()
+    b = Bernoulli()
     b.fit(X, y)
     pr = b.decision_function(X)
     assert pr.shape[0] == 1000 and pr.shape[1] == 4
