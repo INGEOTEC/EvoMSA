@@ -15,8 +15,14 @@ EvoMSA
 .. image:: https://badge.fury.io/py/EvoMSA.svg
 	   :target: https://badge.fury.io/py/EvoMSA
 
+.. image:: https://anaconda.org/ingeotec/evomsa/badges/downloads.svg
+       :target: https://anaconda.org/ingeotec/evomsa
+
 .. image:: https://readthedocs.org/projects/evomsa/badge/?version=latest
 	   :target: https://evomsa.readthedocs.io/en/latest/?badge=latest
+
+.. image:: https://colab.research.google.com/assets/colab-badge.svg
+		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
 
 EvoMSA is a Sentiment Analysis System based on
 `B4MSA <https://github.com/ingeotec/b4msa>`_  and
