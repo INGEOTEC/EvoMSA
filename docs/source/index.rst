@@ -20,6 +20,9 @@ EvoMSA
 .. image:: https://badge.fury.io/py/EvoMSA.svg
 		:target: https://badge.fury.io/py/EvoMSA
 
+.. image:: https://anaconda.org/ingeotec/evomsa/badges/downloads.svg
+       :target: https://anaconda.org/ingeotec/evomsa
+
 .. image:: https://readthedocs.org/projects/evomsa/badge/?version=latest
 		:target: https://evomsa.readthedocs.io/en/latest/?badge=latest
 
