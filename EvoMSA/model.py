@@ -510,3 +510,30 @@ class Vec(BaseTextModel):
         return self
 
 
+class TextModelInv(TextModel):
+    """Extends :mod:`b4msa.textmodel.TextModel` in order to override tokenize method."""
+    
+    def __init__(self, is_by_character: bool=True, **kwargs):
+        """
+        :param is_by_character: if true, inverts the text character by character; if false, inverts word by word 
+        :type is_by_character: bool
+        """
+        
+        super(TextModelInv, self).__init__(**kwargs)
+        self.is_by_character = is_by_character
+    
+    def tokenize(self, text: str):
+        """Inverts text
+
+        :param text: Text
+        :type text: str
+        """
+
+        if self.is_by_character:
+            result = text[::-1]
+        else:
+            result = text.split(' ')
+            result.reverse()
+            result = " ".join(result)            
+            
+        return super(TextModelInv, self).tokenize(result)

@@ -134,3 +134,16 @@ def test_LabeledDataSet():
     LabeledDataSet.create_space(TWEETS, 'lb.model')
     assert os.path.isfile('lb.model')
     os.unlink('lb.model')
+
+
+def test_TextModelInv():
+    from EvoMSA.model import TextModelInv
+
+    txt = TextModelInv()
+    rr = txt.tokenize("hola")
+    rr = [x for x in rr if x[:2] != "q:"]
+    assert "aloh" in rr
+    txt = TextModelInv(is_by_character=False)
+    rr = txt.tokenize("hola")
+    rr = [x for x in rr if x[:2] != "q:"]
+    assert "hola" in rr
