@@ -511,18 +511,23 @@ class Vec(BaseTextModel):
 
 
 class TextModelInv(TextModel):
-    """Extends b4msa.textmodel in order to override tokenize method."""
+    """Extends :mod:`b4msa.textmodel.TextModel` in order to override tokenize method."""
     
-    def __init__(self, is_by_character=True, **kwargs):
+    def __init__(self, is_by_character: bool=True, **kwargs):
         """
-        :is_by_character: if true, inverts the text character by character; if false, inverts word by word    
+        :param is_by_character: if true, inverts the text character by character; if false, inverts word by word 
+        :type is_by_character: bool
         """
         
-        super().__init__(**kwargs)
+        super(TextModelInv, self).__init__(**kwargs)
         self.is_by_character = is_by_character
     
-    def tokenize(self, text):
-        """Inverts text"""
+    def tokenize(self, text: str):
+        """Inverts text
+
+        :param text: Text
+        :type text: str
+        """
 
         if self.is_by_character:
             result = text[::-1]
@@ -531,4 +536,4 @@ class TextModelInv(TextModel):
             result.reverse()
             result = " ".join(result)            
             
-        return super().tokenize(result)
+        return super(TextModelInv, self).tokenize(result)
