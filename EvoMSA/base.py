@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from copy import deepcopy
 import os
 from multiprocessing import cpu_count
 import importlib
@@ -148,6 +149,8 @@ class EvoMSA(object):
                  tm_n_jobs=None, cache=None):
         if models is None:
             models = []
+        else:
+            models = deepcopy(models)
         if TR:
             models.insert(0, ["b4msa.textmodel.TextModel",
                               "sklearn.svm.LinearSVC"])
