@@ -11,15 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Union
 import numpy as np
 from b4msa.textmodel import TextModel
 from microtc.utils import tweet_iterator
-from scipy.sparse import csr_matrix
 from sklearn.svm import LinearSVC
 from ConceptModelling.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH, PATH as ConPATH
 import os
 from microtc.utils import save_model
-from sklearn.neighbors import KDTree
+from scipy.special import logsumexp
 
 
 class BaseTextModel(object):
@@ -390,14 +390,15 @@ class Bernoulli(BaseClassifier):
 
     def fit(self, X, klass):
         self._num_terms = X.shape[1]
-        klasses = np.unique(klass)
+        klasses, prior = np.unique(klass, return_counts=True)
+        self._prior = np.log(prior / prior.sum())
         pr = np.zeros((klasses.shape[0], self.num_terms))
         for i, k in zip(X, klass):
             index = i.indices
             if index.shape[0] > 0:
                 pr[k, index] += 1
-        _ = np.atleast_2d(self.num_terms + np.array([(klass == _k).sum() for _k in klasses])).T
-        pr = (1 + pr) / _
+        pr = np.array([(x + 1) / ((klass == i).sum() + 2)
+                       for x, i in zip(pr, klasses)])
         self._wj = np.log(pr)
         self._vj = np.log(1 - pr)
         return self
@@ -414,23 +415,24 @@ class Bernoulli(BaseClassifier):
 
     def predict_proba(self, X):
         X = self.decision_function_raw(X)
-        pr = np.exp(X)
-        den = pr.sum(axis=1)
-        _ = pr / np.atleast_2d(den).T
-        return _
+        return np.exp(X)
 
     def decision_function_raw(self, X):
         wj = self._wj
         vj = self._vj
         hy = []
+        prior = self._prior
+        x = np.zeros(self.num_terms)
         for d in X:
-            x = np.zeros(self.num_terms)
+            x.fill(0)
             index = d.indices
             if index.shape[0] > 0:
                 x[index] = 1
-            _ = ((x * wj) + (1 - x) * vj).sum(axis=1)
+            _ = ((x * wj) + (1 - x) * vj).sum(axis=1) + prior
             hy.append(_)
-        return np.array(hy)
+        hy = np.array(hy)
+        hy = hy - np.atleast_2d(logsumexp(hy, axis=1)).T
+        return hy
 
 
 class Multinomial(Bernoulli):
@@ -522,12 +524,14 @@ class TextModelInv(TextModel):
         super(TextModelInv, self).__init__(**kwargs)
         self.is_by_character = is_by_character
     
-    def tokenize(self, text: str):
+    def tokenize(self, text: Union[str, dict]):
         """Inverts text
 
         :param text: Text
         :type text: str
         """
+        if isinstance(text, dict):
+            text = self.get_text(text)
 
         if self.is_by_character:
             result = text[::-1]

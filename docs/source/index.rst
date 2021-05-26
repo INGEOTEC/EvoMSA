@@ -208,7 +208,6 @@ EvoMSA's classes
 .. toctree::
    :maxdepth: 2
 
-   base
-   model_selection   
+   base  
    utils
    
