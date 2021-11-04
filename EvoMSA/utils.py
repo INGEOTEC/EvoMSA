@@ -140,15 +140,15 @@ class Cache(object):
         self.textModels.append(name)
 
 
-def download(model_fname):
-    if os.path.isfile(model_fname):
+def download(model_fname, force=False):
+    if os.path.isfile(model_fname) and not force:
         return model_fname
     dirname = os.path.join(os.path.dirname(__file__), 'models')
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
     fname = os.path.join(dirname, model_fname)
-    if not os.path.isfile(fname):
-        request.urlretrieve("http://ingeotec.mx/~mgraffg/models/%s" % model_fname,
+    if not os.path.isfile(fname) or force:
+        request.urlretrieve("https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/%s" % model_fname,
                             fname)
     return fname
 
