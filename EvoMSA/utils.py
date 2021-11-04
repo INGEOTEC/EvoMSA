@@ -217,7 +217,7 @@ class ConfidenceInterval(object):
     """Estimate the confidence interval
 
     >>> from EvoMSA import base
-    >>> from EvoMSA.utils import Confidence Interval
+    >>> from EvoMSA.utils import ConfidenceInterval
     >>> from microtc.utils import tweet_iterator
     >>> import os
     >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')

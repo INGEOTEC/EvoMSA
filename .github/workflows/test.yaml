@@ -33,6 +33,7 @@ jobs:
         pip install coverage
         pip install coveralls
         conda install --yes numpy scipy scikit-learn nltk nose b4msa evodag conceptmodelling cython
+        python -c "import nltk; nltk.download('stopwords')"
         python setup.py build_ext --inplace
     - name: Tests on Linux
       if: ${{ runner.os == 'Linux' }}
