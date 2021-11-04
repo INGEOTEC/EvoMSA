@@ -27,11 +27,13 @@ def test_corpus():
 
 def test_bernoulli():
     import numpy as np
-    from EvoMSA.model import Corpus, Bernoulli
+    from EvoMSA.model import Bernoulli
     from sklearn.preprocessing import LabelEncoder
-    c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
-    X = c.transform([x['text'] for x in tweet_iterator(TWEETS)])
-    y = [x['klass'] for x in tweet_iterator(TWEETS)]
+    from microtc.textmodel import TextModel
+    from EvoMSA.tests.test_base import get_data
+    X, y = get_data()
+    c = TextModel(token_list=[-1]).fit(X)
+    X = c.transform(X)
     le = LabelEncoder().fit(y)
     y = le.transform(y)
     b = Bernoulli()
@@ -147,3 +149,4 @@ def test_TextModelInv():
     rr = txt.tokenize("hola")
     rr = [x for x in rr if x[:2] != "q:"]
     assert "hola" in rr
+    txt.tokenize(dict(text="hola buen dia"))

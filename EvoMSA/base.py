@@ -148,6 +148,8 @@ class EvoMSA(object):
                  tm_n_jobs=None, cache=None):
         if models is None:
             models = []
+        else:
+            models = [x for x in models]
         if TR:
             models.insert(0, ["b4msa.textmodel.TextModel",
                               "sklearn.svm.LinearSVC"])

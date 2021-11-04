@@ -44,4 +44,14 @@ def test_cache_cl():
     for i, j in zip(cache.ml_kfold(), ll):
         print(i)
         assert i == "hola-%s-%s-K" % (j, "LinearSVC")
-    
+
+
+def test_confidence_interval():
+    from EvoMSA.utils import ConfidenceInterval
+    from EvoMSA.tests.test_base import get_data
+
+    X, y = get_data()
+    kw = dict(stacked_method="sklearn.naive_bayes.GaussianNB") 
+    ci = ConfidenceInterval(X, y, evomsa_kwargs=kw)
+    result = ci.estimate()
+    assert len(result) == 2

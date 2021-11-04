@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import List, Union, Dict, Tuple, Callable
+from sklearn.model_selection import BaseCrossValidator
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import recall_score
 import os
 import hashlib
 from urllib import request
@@ -191,3 +195,88 @@ def compute_p(syss):
             break
         alpha[i] = alpha_c
     return p, alpha
+
+
+def bootstrap_confidence_interval(y: np.ndarray,
+                                  hy: np.ndarray,
+                                  metric: Callable[[float, float], float]=lambda y, hy: recall_score(y, hy,
+                                                                                           average="macro"),
+                                  alpha: float=0.05,
+                                  nbootstrap: int=500) -> Tuple[float, float]:
+    """Confidence interval from predictions"""
+    B = []
+    for _ in range(nbootstrap):
+        s = np.random.randint(hy.shape[0], size=hy.shape[0])
+        _ = metric(y[s], hy[s])
+        B.append(_)
+    return (np.percentile(B, alpha * 100), np.percentile(B, (1 - alpha) * 100))
+
+
+
+class ConfidenceInterval(object):
+    """Estimate the confidence interval
+
+    >>> from EvoMSA import base
+    >>> from EvoMSA.utils import Confidence Interval
+    >>> from microtc.utils import tweet_iterator
+    >>> import os
+    >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
+    >>> D = list(tweet_iterator(tweets))
+    >>> X = [x['text'] for x in D]
+    >>> y = [x['klass'] for x in D]
+    >>> kw = dict(stacked_method="sklearn.naive_bayes.GaussianNB") 
+    >>> ci = ConfidenceInverval(X, y, evomsa_kwargs=kw)
+    >>> result = ci.estimate()
+
+    """
+
+    def __init__(self, X: List[str], y: Union[np.ndarray, list],
+                 Xtest: List[str]=None, y_test: Union[np.ndarray, list]=None,
+                 evomsa_kwargs: Dict=dict(), 
+                 folds: Union[None, BaseCrossValidator]=None, ) -> None:
+        self._X = X
+        self._y = np.atleast_1d(y)
+        self._Xtest = Xtest
+        self._y_test = y_test
+        self._evomsa_kwargs = evomsa_kwargs
+        self._folds = folds
+
+    @property
+    def gold(self):
+        if self._y_test is not None:
+            return self._y_test
+        return self._y
+    
+    @property
+    def hy(self):
+        from .base import EvoMSA
+        try:
+            return self._hy
+        except AttributeError:
+            if self._Xtest is not None:
+                m = EvoMSA(**self._evomsa_kwargs)
+                m.fit(self._X, self._y)
+                hy = m.predict(self._Xtest)
+                self._hy = hy
+                return hy
+            folds = self._folds
+            if folds is None:
+                folds = StratifiedKFold(n_splits=5,
+                                        shuffle=True, random_state=0)
+            hy = np.empty_like(self._y)
+            X, y = self._X, self._y
+            for tr, ts in folds.split(X, y):
+                m = EvoMSA(**self._evomsa_kwargs)
+                m.fit([X[x] for x in tr], y[tr])
+                hy[ts] = m.predict([X[x] for x in ts])
+            self._hy = hy
+            return self._hy
+
+    def estimate(self, alpha: float=0.05,
+                       metric: Callable[[float, float], float]=lambda y, hy: recall_score(y, hy,
+                                                                                          average="macro"),
+                       nbootstrap: int=500)->Tuple[float, float]:
+        return bootstrap_confidence_interval(self.gold, self.hy,
+                                             metric=metric,
+                                             alpha=alpha,
+                                             nbootstrap=nbootstrap)
