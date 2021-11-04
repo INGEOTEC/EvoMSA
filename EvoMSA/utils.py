@@ -225,7 +225,7 @@ class ConfidenceInterval(object):
     >>> X = [x['text'] for x in D]
     >>> y = [x['klass'] for x in D]
     >>> kw = dict(stacked_method="sklearn.naive_bayes.GaussianNB") 
-    >>> ci = ConfidenceInverval(X, y, evomsa_kwargs=kw)
+    >>> ci = ConfidenceInterval(X, y, evomsa_kwargs=kw)
     >>> result = ci.estimate()
 
     """
