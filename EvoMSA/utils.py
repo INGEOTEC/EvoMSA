@@ -140,15 +140,15 @@ class Cache(object):
         self.textModels.append(name)
 
 
-def download(model_fname):
-    if os.path.isfile(model_fname):
+def download(model_fname, force=False):
+    if os.path.isfile(model_fname) and not force:
         return model_fname
     dirname = os.path.join(os.path.dirname(__file__), 'models')
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
     fname = os.path.join(dirname, model_fname)
-    if not os.path.isfile(fname):
-        request.urlretrieve("http://ingeotec.mx/~mgraffg/models/%s" % model_fname,
+    if not os.path.isfile(fname) or force:
+        request.urlretrieve("https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/%s" % model_fname,
                             fname)
     return fname
 
@@ -217,7 +217,7 @@ class ConfidenceInterval(object):
     """Estimate the confidence interval
 
     >>> from EvoMSA import base
-    >>> from EvoMSA.utils import Confidence Interval
+    >>> from EvoMSA.utils import ConfidenceInterval
     >>> from microtc.utils import tweet_iterator
     >>> import os
     >>> tweets = os.path.join(os.path.dirname(base.__file__), 'tests', 'tweets.json')
@@ -225,7 +225,7 @@ class ConfidenceInterval(object):
     >>> X = [x['text'] for x in D]
     >>> y = [x['klass'] for x in D]
     >>> kw = dict(stacked_method="sklearn.naive_bayes.GaussianNB") 
-    >>> ci = ConfidenceInverval(X, y, evomsa_kwargs=kw)
+    >>> ci = ConfidenceInterval(X, y, evomsa_kwargs=kw)
     >>> result = ci.estimate()
 
     """

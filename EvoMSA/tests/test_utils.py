@@ -55,3 +55,8 @@ def test_confidence_interval():
     ci = ConfidenceInterval(X, y, evomsa_kwargs=kw)
     result = ci.estimate()
     assert len(result) == 2
+
+
+def test_download():
+    from EvoMSA.utils import download
+    _ = download("b4msa_Es.tm", force=True)
