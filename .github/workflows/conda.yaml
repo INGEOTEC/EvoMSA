@@ -1,4 +1,4 @@
-name: Pip
+name: Conda
 
 on: 
   push:
@@ -39,5 +39,4 @@ jobs:
       run: |
         conda build conda-recipe --quiet	
         python continuous-integration/move-conda-package.py conda-recipe
-        python continuous-integration/binstar-push.py	
-	
+        python continuous-integration/binstar-push.py
