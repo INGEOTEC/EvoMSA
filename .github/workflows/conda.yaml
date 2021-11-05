@@ -30,7 +30,6 @@ jobs:
     - name: Install dependencies
       run: |
         conda install --yes pip conda-build jinja2 anaconda-client
-        pip install twine
         conda install --yes numpy scipy scikit-learn nltk nose b4msa evodag conceptmodelling cython
         python -c "import nltk; nltk.download('stopwords')"
     - name: conda
