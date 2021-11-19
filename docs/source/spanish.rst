@@ -56,7 +56,7 @@ Spanish language.
 +-----------------------------------------------------------------------------------------------------------------------------+---------------------------------+
 | `Overview of the Task on Automatic Misogyny Identification at IberEval 2018`_ [AMI]_                                        | `misoginia_Es.evomsa`_          |
 +-----------------------------------------------------------------------------------------------------------------------------+---------------------------------+
-| `Estado de ánimo de los tuiteros en México`_                                                                                | `INEGI-MX_Es.tm`_               |
+| `Estado de ánimo de los tuiteros en México`_                                                                                | `INEGI-MX_Es.evomsa`_               |
 +-----------------------------------------------------------------------------------------------------------------------------+---------------------------------+
 
 The following code shows the usage of two of the models with suffix
