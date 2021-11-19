@@ -3,9 +3,6 @@ EvoMSA
 .. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg
 	   :target: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml
 
-.. image:: https://ci.appveyor.com/api/projects/status/wg01w00evm7pb8po?svg=true
-	   :target: https://ci.appveyor.com/project/mgraffg/evomsa
-
 .. image:: https://coveralls.io/repos/github/INGEOTEC/EvoMSA/badge.svg?branch=master	    
 	   :target: https://coveralls.io/github/INGEOTEC/EvoMSA?branch=master
 
