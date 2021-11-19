@@ -62,9 +62,9 @@ where :py:class:`sklearn.svm.LinearSVC` can be any classifier following the stru
 
 .. _Arabic Sentiment Analysis and Cross-lingual Sentiment Resources: http://saifmohammad.com/WebPages/ArabicSA.html
 .. _SemEval-2017 Task 4\: Sentiment analysis in Twitter: https://www.aclweb.org/anthology/S17-2088/
-.. _semeval2017_Ar.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2017_Ar.evomsa
-.. _semeval2018_anger_Ar.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_anger_Ar.evomsa
-.. _semeval2018_fear_Ar.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_fear_Ar.evomsa
-.. _semeval2018_joy_Ar.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_joy_Ar.evomsa
-.. _semeval2018_sadness_Ar.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_sadness_Ar.evomsa
-.. _semeval2018_valence_Ar.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_valence_Ar.evomsa
+.. _semeval2017_Ar.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2017_Ar.evomsa
+.. _semeval2018_anger_Ar.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_anger_Ar.evomsa
+.. _semeval2018_fear_Ar.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_fear_Ar.evomsa
+.. _semeval2018_joy_Ar.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_joy_Ar.evomsa
+.. _semeval2018_sadness_Ar.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_sadness_Ar.evomsa
+.. _semeval2018_valence_Ar.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_valence_Ar.evomsa

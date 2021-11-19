@@ -80,12 +80,12 @@ At this point the model is in :py:attr:`tm`; this text model can be used with th
 .. _Creating and characterizing a diverse corpus of sarcasm in dialogue: https://www.aclweb.org/anthology/W16-3604/
 .. _Multilingual Twitter sentiment classification\: The role of human annotators: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155036
 .. _SemEval-2017 Task 4\: Sentiment analysis in Twitter: https://www.aclweb.org/anthology/S17-2088
-.. _semeval2017_En.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2017_En.evomsa
-.. _semeval2018_anger_En.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_anger_En.evomsa
-.. _semeval2018_fear_En.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_fear_En.evomsa
-.. _semeval2018_joy_En.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_joy_En.evomsa
-.. _semeval2018_sadness_En.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_sadness_En.evomsa
-.. _semeval2018_valence_En.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_valence_En.evomsa
-.. _SS-Youtube_En.evomsa: http://ingeotec.mx/~mgraffg/models/SS-Youtube_En.evomsa
-.. _SCv1_En.evomsa: http://ingeotec.mx/~mgraffg/models/SCv1_En.evomsa
-.. _SCv2-GEN_En.evomsa: http://ingeotec.mx/~mgraffg/models/SCv2-GEN_En.evomsa
+.. _semeval2017_En.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2017_En.evomsa
+.. _semeval2018_anger_En.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_anger_En.evomsa
+.. _semeval2018_fear_En.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_fear_En.evomsa
+.. _semeval2018_joy_En.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_joy_En.evomsa
+.. _semeval2018_sadness_En.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_sadness_En.evomsa
+.. _semeval2018_valence_En.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_valence_En.evomsa
+.. _SS-Youtube_En.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/SS-Youtube_En.evomsa
+.. _SCv1_En.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/SCv1_En.evomsa
+.. _SCv2-GEN_En.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/SCv2-GEN_En.evomsa

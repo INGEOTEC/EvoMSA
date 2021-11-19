@@ -56,7 +56,7 @@ Spanish language.
 +-----------------------------------------------------------------------------------------------------------------------------+---------------------------------+
 | `Overview of the Task on Automatic Misogyny Identification at IberEval 2018`_ [AMI]_                                        | `misoginia_Es.evomsa`_          |
 +-----------------------------------------------------------------------------------------------------------------------------+---------------------------------+
-| `Estado de ánimo de los tuiteros en México`_                                                                                | `INEGI-MX_Es.tm`_               |
+| `Estado de ánimo de los tuiteros en México`_                                                                                | `INEGI-MX_Es.evomsa`_               |
 +-----------------------------------------------------------------------------------------------------------------------------+---------------------------------+
 
 The following code shows the usage of two of the models with suffix
@@ -86,19 +86,19 @@ Predict a sentence in Spanish
 >>> evo.predict(['EvoMSA esta funcionando'])
 
 .. _Multilingual Twitter sentiment classification\: The role of human annotators: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155036
-.. _tass2016_Es.evomsa: http://ingeotec.mx/~mgraffg/models/tass2016_Es.evomsa
-.. _tass2017_Es.evomsa: http://ingeotec.mx/~mgraffg/models/tass2017_Es.evomsa
-.. _tass2018_s1_l1_Es.evomsa: http://ingeotec.mx/~mgraffg/models/tass2018_s1_l1_Es.evomsa
-.. _tass2018_s1_l2_Es.evomsa: http://ingeotec.mx/~mgraffg/models/tass2018_s1_l2_Es.evomsa
-.. _tass2018_s2_Es.evomsa: http://ingeotec.mx/~mgraffg/models/tass2018_s2_Es.evomsa
-.. _semeval2018_anger_Es.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_anger_Es.evomsa
-.. _semeval2018_fear_Es.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_fear_Es.evomsa
-.. _semeval2018_joy_Es.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_joy_Es.evomsa
-.. _semeval2018_sadness_Es.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_sadness_Es.evomsa
-.. _semeval2018_valence_Es.evomsa: http://ingeotec.mx/~mgraffg/models/semeval2018_valence_Es.evomsa
-.. _mexa3t2018_aggress_Es.evomsa: http://ingeotec.mx/~mgraffg/models/mexa3t2018_aggress_Es.evomsa
-.. _haha2018_Es.evomsa: http://ingeotec.mx/~mgraffg/models/haha2018_Es.evomsa
+.. _tass2016_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/tass2016_Es.evomsa
+.. _tass2017_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/tass2017_Es.evomsa
+.. _tass2018_s1_l1_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/tass2018_s1_l1_Es.evomsa
+.. _tass2018_s1_l2_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/tass2018_s1_l2_Es.evomsa
+.. _tass2018_s2_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/tass2018_s2_Es.evomsa
+.. _semeval2018_anger_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_anger_Es.evomsa
+.. _semeval2018_fear_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_fear_Es.evomsa
+.. _semeval2018_joy_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_joy_Es.evomsa
+.. _semeval2018_sadness_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_sadness_Es.evomsa
+.. _semeval2018_valence_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/semeval2018_valence_Es.evomsa
+.. _mexa3t2018_aggress_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/mexa3t2018_aggress_Es.evomsa
+.. _haha2018_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/haha2018_Es.evomsa
 .. _Estado de ánimo de los tuiteros en México: https://www.inegi.org.mx/app/animotuitero
-.. _INEGI-MX_Es.tm: http://ingeotec.mx/~mgraffg/models/INEGI-MX_Es.tm
+.. _INEGI-MX_Es.tm: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/INEGI-MX_Es.tm
 .. _Overview of the Task on Automatic Misogyny Identification at IberEval 2018: http://ceur-ws.org/Vol-2150/overview-AMI.pdf
-.. _misoginia_Es.evomsa: http://ingeotec.mx/~mgraffg/models/misoginia_Es.evomsa
+.. _misoginia_Es.evomsa: https://github.com/INGEOTEC/EvoMSA/raw/master/EvoMSA/models/misoginia_Es.evomsa
