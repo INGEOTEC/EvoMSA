@@ -125,6 +125,17 @@ class EvoMSAWrapper(BaseTextModel):
         return self._evomsa.predict_proba(X)
 
 
+class SVCWrapper(LinearSVC):
+    """Wrapper to the LinearSVC class
+    >>> from EvoMSA.model import SVCWrapper
+    >>> s = SVCWrapper()
+    >>> s.dual
+    False
+    """
+    def __init__(self, *args, dual=False, **kwargs):
+        super(SVCWrapper, self).__init__(*args, dual=dual, **kwargs)
+
+
 class Identity(BaseTextModel, BaseClassifier):
     """Identity function used as either text model or classifier or regressor"""
 
