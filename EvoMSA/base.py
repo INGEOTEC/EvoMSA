@@ -162,13 +162,13 @@ class EvoMSA(object):
             assert lang is not None and lang in ["Ar", "En", "Es"]
         if Emo:
             models.append([download("emo_%s.tm" % lang),
-                           "sklearn.svm.LinearSVC"])
+                           "EvoMSA.model.SVCWrapper"])
         if TH:
             models.append(["EvoMSA.model.ThumbsUpDown%s" % lang,
-                           "sklearn.svm.LinearSVC"])
+                           "EvoMSA.model.SVCWrapper"])
         if HA:
             models.append([download("ha_%s.tm" % lang),
-                           "sklearn.svm.LinearSVC"])
+                           "EvoMSA.model.SVCWrapper"])
         if B4MSA:
             models.append([download("b4msa_%s.tm" % lang),
                            "sklearn.svm.LinearSVC"])
