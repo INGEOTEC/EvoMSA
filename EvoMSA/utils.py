@@ -204,6 +204,7 @@ def bootstrap_confidence_interval(y: np.ndarray,
                                   alpha: float=0.05,
                                   nbootstrap: int=500) -> Tuple[float, float]:
     """Confidence interval from predictions"""
+    alpha /= 2
     B = []
     for _ in range(nbootstrap):
         s = np.random.randint(hy.shape[0], size=hy.shape[0])
