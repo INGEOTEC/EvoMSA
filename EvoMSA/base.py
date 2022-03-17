@@ -99,7 +99,8 @@ class EvoMSA(object):
     Once the dataset is loaded, it is time to create an EvoMSA model
 
     >>> from EvoMSA.base import EvoMSA
-    >>> evo = EvoMSA().fit(X, y)
+    >>> stacked_method = 'sklearn.naive_bayes.GaussianNB'
+    >>> evo = EvoMSA(stacked_method=stacked_method).fit(X, y)
 
     Predict a sentence in Spanish
 
