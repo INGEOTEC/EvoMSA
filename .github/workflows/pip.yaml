@@ -13,8 +13,8 @@ jobs:
         shell: bash -l {0}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.8"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.7", "3.8", "3.9"]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -34,8 +34,16 @@ jobs:
         conda install --yes numpy scipy scikit-learn nltk nose b4msa evodag conceptmodelling cython
         python -c "import nltk; nltk.download('stopwords')"
         python setup.py sdist
+        python setup.py bdist_wheel
     - name: Pip
+      if: ${{ runner.os == 'Linux' }}
       env:
         TWINE: ${{ secrets.TWINE }}
       run: |
         twine upload --skip-existing -u mgraffg -p $TWINE dist/*.tar.gz;
+    - name: Wheel
+      if: ${{ runner.os != 'Linux' }}
+      env:
+        TWINE: ${{ secrets.TWINE }}              
+      run: |
+        twine upload --skip-existing -u mgraffg -p $TWINE dist/*;
