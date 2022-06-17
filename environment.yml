@@ -1,6 +1,6 @@
 name: evomsa
 channels:
-  - ingeotec
+  - conda-forge
 dependencies:
   - python
   - setuptools
