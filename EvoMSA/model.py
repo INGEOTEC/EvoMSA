@@ -16,7 +16,7 @@ import numpy as np
 from b4msa.textmodel import TextModel
 from microtc.utils import tweet_iterator
 from sklearn.svm import LinearSVC
-from ConceptModelling.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH, PATH as ConPATH
+from .ConceptModelling.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH, PATH as ConPATH
 import os
 from microtc.utils import save_model
 from scipy.special import logsumexp

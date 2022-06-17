@@ -12,3 +12,6 @@ include EvoMSA/models/emo_Es.tm
 include EvoMSA/models/ha_Ar.tm
 include EvoMSA/models/ha_En.tm
 include EvoMSA/models/ha_Es.tm
+include EvoMSA/ConceptModelling/data/es.affective.words.json
+include EvoMSA/ConceptModelling/data/en.affective.words.json
+include EvoMSA/ConceptModelling/data/ar.affective.words.json
