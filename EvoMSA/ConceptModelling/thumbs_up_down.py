@@ -227,18 +227,18 @@ class ThumbsUpDown(object):
         # logger.debug("text stem: " + ",".join(str(x) for x in toks))
         return pos, neg
 
-    def process_file(self, file_name):
-        out_file = open(file_name + ".up_down", "w", encoding="utf-8")
-        for data in self.text_model.read_json(file_name):
-            text = data['text']
-            text = self.text_model.text_transform(text,
-                                                  remove_stopwords=False,
-                                                  remove_diacritic=True,
-                                                  emo_option=_OPTION_NONE,
-                                                  url=_OPTION_NONE)
-            pos, neg = self.count_emotions(text)
-            data['up_down'] = [pos, neg]
-            out_file.write(json.dumps(data) + "\n")
+    # def process_file(self, file_name):
+    #     out_file = open(file_name + ".up_down", "w", encoding="utf-8")
+    #     for data in self.text_model.read_json(file_name):
+    #         text = data['text']
+    #         text = self.text_model.text_transform(text,
+    #                                               remove_stopwords=False,
+    #                                               remove_diacritic=True,
+    #                                               emo_option=_OPTION_NONE,
+    #                                               url=_OPTION_NONE)
+    #         pos, neg = self.count_emotions(text)
+    #         data['up_down'] = [pos, neg]
+    #         out_file.write(json.dumps(data) + "\n")
 
     def __getitem__(self, text):
         if isinstance(text, dict):

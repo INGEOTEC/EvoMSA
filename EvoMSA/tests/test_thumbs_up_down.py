@@ -35,3 +35,12 @@ def test_ThumbsUpDown_stemming():
     thumbs = ThumbsUpDown(lang=_SPANISH, stemming=False)
     text = thumbs.get_text(dict(text='jugando'))
     thumbs.stemming(text)
+    output = thumbs.stemming('@mgraffg')
+    assert output == []
+    assert thumbs.generate_ar_words('xx') == ['xx']
+
+
+def test_ThumbsUpDown_getitem():
+    thumbs = ThumbsUpDown(lang=_SPANISH, stemming=False)
+    assert thumbs[dict(text='hola')] == (0, 0)
+    assert thumbs[('hola', ':)')] == (0, 0)
