@@ -15,6 +15,7 @@
 
 from EvoMSA.ConceptModelling.thumbs_up_down import ThumbsUpDown
 from EvoMSA.ConceptModelling.thumbs_up_down import _SPANISH
+from EvoMSA.ConceptModelling.text_preprocessing import TextPreprocessing, _OPTION_DELETE, _OPTION_GROUP
 
 
 def test_ThumbsUpDown():
@@ -44,3 +45,20 @@ def test_ThumbsUpDown_getitem():
     thumbs = ThumbsUpDown(lang=_SPANISH, stemming=False)
     assert thumbs[dict(text='hola')] == (0, 0)
     assert thumbs[('hola', ':)')] == (0, 0)
+
+
+def test_TextPreprocessing():
+    ins = TextPreprocessing()
+    output = ins.remove_stopwords('hola a todos')
+    assert output == 'hola'
+    output = ins.text_transform('hola http://a.b', url=_OPTION_DELETE)
+    assert output == 'hola'
+    output = ins.text_transform('hola http://a.b', url=_OPTION_GROUP)
+    assert output == 'hola _url'
+    output = ins.text_transform('hola http://a.b', stemming_comp=True)
+    assert output == ''
+    output = ins.escapeText('(hola)')
+    assert output == '\\(hola\\)'
+
+
+

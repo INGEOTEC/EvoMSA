@@ -3,17 +3,11 @@ EvoMSA
 .. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg
 	   :target: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml
 
-.. image:: https://coveralls.io/repos/github/INGEOTEC/EvoMSA/badge.svg?branch=master	    
-	   :target: https://coveralls.io/github/INGEOTEC/EvoMSA?branch=master
-
-.. image:: https://anaconda.org/ingeotec/evomsa/badges/version.svg
-	   :target: https://anaconda.org/ingeotec/evomsa
+.. image:: https://coveralls.io/repos/github/INGEOTEC/EvoMSA/badge.svg?branch=develop
+	   :target: https://coveralls.io/github/INGEOTEC/EvoMSA?branch=develop
 
 .. image:: https://badge.fury.io/py/EvoMSA.svg
 	   :target: https://badge.fury.io/py/EvoMSA
-
-.. image:: https://anaconda.org/ingeotec/evomsa/badges/downloads.svg
-       :target: https://anaconda.org/ingeotec/evomsa
 
 .. image:: https://readthedocs.org/projects/evomsa/badge/?version=latest
 	   :target: https://evomsa.readthedocs.io/en/latest/?badge=latest

@@ -124,80 +124,80 @@ class TextPreprocessing():
             from nltk.stem.isri import ISRIStemmer
             self.stemmer = ISRIStemmer()
 
-    def init(self, lang=_SPANISH, emoticonFile=EMOTICONS_FILE,
-             unicodeEmoticonFile=UNICODE_EMOTICONS_FILE):
+    # def init(self, lang=_SPANISH, emoticonFile=EMOTICONS_FILE,
+    #          unicodeEmoticonFile=UNICODE_EMOTICONS_FILE):
 
-        self.lang = lang
-        self.hshEmoticons = None
-        self.reEmoticons = None
-        self.hshUnicodeEmoticons = None
-        self.reUnicodeEmoticons = None
-        self.stopWords = self.get_stopwords(lang)
-        self.loadEmoticons(emoticonFile, unicodeEmoticonFile)
-        self.tokenizer = TweetTokenizer()
-        self.stemmer = None
-        if self.lang in [_SPANISH, _ITALIAN, _PORTUGUESE]:
-            self.stemmer = SnowballStemmer(_SPANISH, ignore_stopwords=False)
-        elif self.lang == _ENGLISH:
-            from nltk.stem.porter import PorterStemmer
-            self.stemmer = PorterStemmer(ignore_stopwords=False)
-        elif self.lang == _ARABIC:
-            from nltk.stem.isri import ISRIStemmer
-            self.stemmer = ISRIStemmer()
+    #     self.lang = lang
+    #     self.hshEmoticons = None
+    #     self.reEmoticons = None
+    #     self.hshUnicodeEmoticons = None
+    #     self.reUnicodeEmoticons = None
+    #     self.stopWords = self.get_stopwords(lang)
+    #     self.loadEmoticons(emoticonFile, unicodeEmoticonFile)
+    #     self.tokenizer = TweetTokenizer()
+    #     self.stemmer = None
+    #     if self.lang in [_SPANISH, _ITALIAN, _PORTUGUESE]:
+    #         self.stemmer = SnowballStemmer(_SPANISH, ignore_stopwords=False)
+    #     elif self.lang == _ENGLISH:
+    #         from nltk.stem.porter import PorterStemmer
+    #         self.stemmer = PorterStemmer(ignore_stopwords=False)
+    #     elif self.lang == _ARABIC:
+    #         from nltk.stem.isri import ISRIStemmer
+    #         self.stemmer = ISRIStemmer()
 
-    def read_json(self, file_name):
-        if file_name.endswith(".gz"):
-            _file = gzip.open(file_name, 'r')
-        else:
-            _file = io.open(file_name, "r", encoding='utf8')
+    # def read_json(self, file_name):
+    #     if file_name.endswith(".gz"):
+    #         _file = gzip.open(file_name, 'r')
+    #     else:
+    #         _file = io.open(file_name, "r", encoding='utf8')
 
-        items = 0
-        while True:
-            line = _file.readline()
-            items += 1
-            if not line:
-                break
-            if isinstance(_file, gzip.GzipFile):
-                line = line.decode(encoding='utf-8')
-            line.strip()
-            if line == "" or line.startswith("#"):
-                logger.warning("empty line => " + str(items))
-                continue
+    #     items = 0
+    #     while True:
+    #         line = _file.readline()
+    #         items += 1
+    #         if not line:
+    #             break
+    #         if isinstance(_file, gzip.GzipFile):
+    #             line = line.decode(encoding='utf-8')
+    #         line.strip()
+    #         if line == "" or line.startswith("#"):
+    #             logger.warning("empty line => " + str(items))
+    #             continue
 
-            yield json.loads(line)
+    #         yield json.loads(line)
 
-    def load_corpus(self, file_name):
-        logger.info("loading corpus... " + file_name)
-        self.corpus = []
-        self.targets = []
-        items = 0
-        self.max_doc_size = 0
-        for data in self.read_json(file_name):
-            text = data['text']
-            text = self._BEGIN_TAG + " " + text + " " + self._END_TAG + " "
-            text = self.text_transform(text,
-                                       remove_stopwords=False,
-                                       remove_diacritic=True,
-                                       emo_option=_OPTION_NONE,
-                                       url=_OPTION_NONE)
-            tokens = text.split()
-            doc_size = len(tokens)
-            if doc_size > 0:
-                items += 1
-                self.targets.append(data['klass'])
+    # def load_corpus(self, file_name):
+    #     logger.info("loading corpus... " + file_name)
+    #     self.corpus = []
+    #     self.targets = []
+    #     items = 0
+    #     self.max_doc_size = 0
+    #     for data in self.read_json(file_name):
+    #         text = data['text']
+    #         text = self._BEGIN_TAG + " " + text + " " + self._END_TAG + " "
+    #         text = self.text_transform(text,
+    #                                    remove_stopwords=False,
+    #                                    remove_diacritic=True,
+    #                                    emo_option=_OPTION_NONE,
+    #                                    url=_OPTION_NONE)
+    #         tokens = text.split()
+    #         doc_size = len(tokens)
+    #         if doc_size > 0:
+    #             items += 1
+    #             self.targets.append(data['klass'])
 
-                if doc_size > self.max_doc_size:
-                    self.max_doc_size = doc_size
+    #             if doc_size > self.max_doc_size:
+    #                 self.max_doc_size = doc_size
         
-                self.corpus.append(text)
+    #             self.corpus.append(text)
 
-            if random.random() < _DEBUG_FACTOR:
-                logger.debug("sampling...=>" + data['text'])
-                logger.debug("sampling preprocesssing...=>[" + str(text) + "]")
-                print(text)
-                logger.info("text processed: " + str(items))
+    #         if random.random() < _DEBUG_FACTOR:
+    #             logger.debug("sampling...=>" + data['text'])
+    #             logger.debug("sampling preprocesssing...=>[" + str(text) + "]")
+    #             print(text)
+    #             logger.info("text processed: " + str(items))
 
-        logger.info("corpus loaded => OK ")
+    #     logger.info("corpus loaded => OK ")
 
     def norm_chars(self, text, del_diac=True, del_dup=True, max_dup=2, del_punc=True):
         _DELIMITER = ' '
@@ -267,8 +267,8 @@ class TextPreprocessing():
         '''
         '''
         text = re.sub(r"\n|\r|\t", " ", text)
-        if emo_option in [_OPTION_DELETE, _OPTION_GROUP]:
-            text = self.process_emoticons(text, emo_option)
+        # if emo_option in [_OPTION_DELETE, _OPTION_GROUP]:
+        #     text = self.process_emoticons(text, emo_option)
 
         if url in [_OPTION_DELETE, _OPTION_GROUP]:
             if url == _OPTION_DELETE:
@@ -301,111 +301,111 @@ class TextPreprocessing():
             stem_c.append(c)
         return " ".join(stem_c)
 
-    def process_emoticons(self, text, emo_option):
-        if emo_option != _OPTION_NONE:
-                text = self.filterEmoticons_plain(text, option=emo_option)
-        return text
+    # def process_emoticons(self, text, emo_option):
+    #     if emo_option != _OPTION_NONE:
+    #             text = self.filterEmoticons_plain(text, option=emo_option)
+    #     return text
 
-    def loadEmoticons(self, emotionFile, unicodeEmoticonFile):
-        logger.info("loading emoticons... " + emotionFile)
-        self.loadUnicodeEmoticons(unicodeEmoticonFile)
-        self.hshEmoticons = {}
-        self.reEmoticons = []
+    # def loadEmoticons(self, emotionFile, unicodeEmoticonFile):
+    #     logger.info("loading emoticons... " + emotionFile)
+    #     self.loadUnicodeEmoticons(unicodeEmoticonFile)
+    #     self.hshEmoticons = {}
+    #     self.reEmoticons = []
         
-        with io.open(emotionFile, encoding='utf8') as f:
-            for line in f.readlines():
-                line = line.strip()
-                if line == "":
-                    continue
-                if line.startswith("#"):
-                    continue
-                # FORMATO:<TAG>
-                # Emoción<TAG>Emoticon<TAG>texto de emocion
-                # POSITIVO= 1
-                # NEUTRAL = 2
-                # INDIFERENTE = 3
-                # NEGATIVO= 4
-                # DESCONOCIDO= 99
-                tag, emoticon, text = line.split(r"<TAG>")
-                # print (tag, emoticon, text)
-                if int(tag) == 1:
-                    tag = _sPOSITIVE_TAG
-                #   
-                elif (int(tag) == 2 or
-                      int(tag) == 3 or
-                      int(tag) == 99):
-                    tag = _sNEUTRAL_TAG
-                elif int(tag) == 4:
-                    tag = _sNEGATIVE_TAG
-                emoticon = self.escapeEmoticons(emoticon)
-                emoticon = emoticon.strip().lower()
-                p = re.compile(emoticon, flags=re.I)
-                self.reEmoticons.append(p)
-                self.hshEmoticons[emoticon] = [tag.lower(), emoticon, text.lower()]
+    #     with io.open(emotionFile, encoding='utf8') as f:
+    #         for line in f.readlines():
+    #             line = line.strip()
+    #             if line == "":
+    #                 continue
+    #             if line.startswith("#"):
+    #                 continue
+    #             # FORMATO:<TAG>
+    #             # Emoción<TAG>Emoticon<TAG>texto de emocion
+    #             # POSITIVO= 1
+    #             # NEUTRAL = 2
+    #             # INDIFERENTE = 3
+    #             # NEGATIVO= 4
+    #             # DESCONOCIDO= 99
+    #             tag, emoticon, text = line.split(r"<TAG>")
+    #             # print (tag, emoticon, text)
+    #             if int(tag) == 1:
+    #                 tag = _sPOSITIVE_TAG
+    #             #   
+    #             elif (int(tag) == 2 or
+    #                   int(tag) == 3 or
+    #                   int(tag) == 99):
+    #                 tag = _sNEUTRAL_TAG
+    #             elif int(tag) == 4:
+    #                 tag = _sNEGATIVE_TAG
+    #             emoticon = self.escapeEmoticons(emoticon)
+    #             emoticon = emoticon.strip().lower()
+    #             p = re.compile(emoticon, flags=re.I)
+    #             self.reEmoticons.append(p)
+    #             self.hshEmoticons[emoticon] = [tag.lower(), emoticon, text.lower()]
             
-    def loadUnicodeEmoticons(self, fileName):
-        logger.info("loading unicode emoticons... " + fileName)
-        self.hshUnicodeEmoticons = {}
-        self.reUnicodeEmoticons = []
-        with io.open(fileName, encoding='utf8') as f:
-            for line in f.readlines():
-                line = line.strip()
-                if line == "":
-                    continue
-                if line.startswith("#"):
-                    continue
-                # FORMATO:
-                # UnicodeEmoticon|texto de emocion|clase o texto de emoción
-                unicodeEmot, text, emotion = line.split(r"|")
-                emoticon = eval('u\"' + unicodeEmot.strip() + '\"')
-                if emotion.startswith(_sPOSITIVE_EMOTICON):
-                    emotion = _sPOSITIVE_TAG
-                elif emotion.startswith(_sNEGATIVE_EMOTICON):
-                    emotion = _sNEGATIVE_TAG
-                elif emotion.startswith(_sNEUTRAL_EMOTICON):
-                    emotion = _sNEUTRAL_TAG
-                emoticon = self.escapeText(emoticon)
-                p = re.compile(emoticon, flags=re.I)
-                self.reUnicodeEmoticons.append(p)
-                self.hshUnicodeEmoticons[emoticon] = [emotion.strip(), emoticon, text]
-                # logger.info(emoticon + "=>" + emotion.strip() )
+    # def loadUnicodeEmoticons(self, fileName):
+    #     logger.info("loading unicode emoticons... " + fileName)
+    #     self.hshUnicodeEmoticons = {}
+    #     self.reUnicodeEmoticons = []
+    #     with io.open(fileName, encoding='utf8') as f:
+    #         for line in f.readlines():
+    #             line = line.strip()
+    #             if line == "":
+    #                 continue
+    #             if line.startswith("#"):
+    #                 continue
+    #             # FORMATO:
+    #             # UnicodeEmoticon|texto de emocion|clase o texto de emoción
+    #             unicodeEmot, text, emotion = line.split(r"|")
+    #             emoticon = eval('u\"' + unicodeEmot.strip() + '\"')
+    #             if emotion.startswith(_sPOSITIVE_EMOTICON):
+    #                 emotion = _sPOSITIVE_TAG
+    #             elif emotion.startswith(_sNEGATIVE_EMOTICON):
+    #                 emotion = _sNEGATIVE_TAG
+    #             elif emotion.startswith(_sNEUTRAL_EMOTICON):
+    #                 emotion = _sNEUTRAL_TAG
+    #             emoticon = self.escapeText(emoticon)
+    #             p = re.compile(emoticon, flags=re.I)
+    #             self.reUnicodeEmoticons.append(p)
+    #             self.hshUnicodeEmoticons[emoticon] = [emotion.strip(), emoticon, text]
+    #             # logger.info(emoticon + "=>" + emotion.strip() )
 
-    def filterEmoticons_plain(self, text, option):
-        text = self.filterUnicodeEmoticons(text, option)
-        for regex in self.reEmoticons:
-            if regex.search(text):
-                if option == _OPTION_DELETE:
-                    pattern = " "
-                else:
-                    tags = self.hshEmoticons[regex.pattern]
-                    if option == _OPTION_USE:
-                        # separate the emoticon
-                        pattern = " " + tags[1] + " "
-                    else:
-                        # group the emotion under label: positive, negative, neutral
-                        pattern = " " + tags[0] + " "
-                text = regex.sub(pattern, text)
-        return text
+    # def filterEmoticons_plain(self, text, option):
+    #     text = self.filterUnicodeEmoticons(text, option)
+    #     for regex in self.reEmoticons:
+    #         if regex.search(text):
+    #             if option == _OPTION_DELETE:
+    #                 pattern = " "
+    #             else:
+    #                 tags = self.hshEmoticons[regex.pattern]
+    #                 if option == _OPTION_USE:
+    #                     # separate the emoticon
+    #                     pattern = " " + tags[1] + " "
+    #                 else:
+    #                     # group the emotion under label: positive, negative, neutral
+    #                     pattern = " " + tags[0] + " "
+    #             text = regex.sub(pattern, text)
+    #     return text
 
-    def filterUnicodeEmoticons(self, text, option):
-        """
-        Groups emoticons defined by tags: _positivo, _negativo, _neutro,
-        source: http://unicode.org/emoji/charts/full-emoji-list.html
-        """
-        for regex in self.reUnicodeEmoticons:
-            if regex.search(text):
-                if option == _OPTION_DELETE:
-                    pattern = " "
-                else:
-                    tags = self.hshUnicodeEmoticons[regex.pattern]
-                    if option == _OPTION_USE:
-                        # separate the emoticon
-                        pattern = " " + tags[1] + " "
-                    else:
-                        # group the emotion under label: positive, negative, neutral
-                        pattern = " " + tags[0] + " "
-                text = regex.sub(pattern, text)
-        return text
+    # def filterUnicodeEmoticons(self, text, option):
+    #     """
+    #     Groups emoticons defined by tags: _positivo, _negativo, _neutro,
+    #     source: http://unicode.org/emoji/charts/full-emoji-list.html
+    #     """
+    #     for regex in self.reUnicodeEmoticons:
+    #         if regex.search(text):
+    #             if option == _OPTION_DELETE:
+    #                 pattern = " "
+    #             else:
+    #                 tags = self.hshUnicodeEmoticons[regex.pattern]
+    #                 if option == _OPTION_USE:
+    #                     # separate the emoticon
+    #                     pattern = " " + tags[1] + " "
+    #                 else:
+    #                     # group the emotion under label: positive, negative, neutral
+    #                     pattern = " " + tags[0] + " "
+    #             text = regex.sub(pattern, text)
+    #     return text
 
     def escapeText(self, text):
         """
@@ -428,26 +428,26 @@ class TextPreprocessing():
         text = re.sub(r"\*", r"\*", text)
         return text
 
-    def escapeEmoticons(self, text):
-        """
+    # def escapeEmoticons(self, text):
+    #     """
 
-        Aplica el caracter de escape a los símbolos especiales para expresiones regulares
+    #     Aplica el caracter de escape a los símbolos especiales para expresiones regulares
 
-        """
-        if re.search(r"\\[swdb]", text, flags=re.I):
-            return text
-        text = re.sub(r"\\", "\\\\", text)
-        text = re.sub(r"\\", r"\\\\", text)
-        text = re.sub("\(", "\(", text)
-        text = re.sub("\)", "\)", text)
-        text = re.sub("\[", "\[", text)
-        text = re.sub("\]", "\]", text)
-        text = re.sub("\.", "\.", text)
-        text = re.sub("\*", "\*", text)
-        text = re.sub("\-", "\\-", text)
-        text = re.sub("\+", "\\+", text)
-        text = re.sub("\?", "\\?", text)
-        text = re.sub(r"\^", r"\^", text)
-        text = re.sub(r"\|", r"\|", text)
-        return text
+    #     """
+    #     if re.search(r"\\[swdb]", text, flags=re.I):
+    #         return text
+    #     text = re.sub(r"\\", "\\\\", text)
+    #     text = re.sub(r"\\", r"\\\\", text)
+    #     text = re.sub("\(", "\(", text)
+    #     text = re.sub("\)", "\)", text)
+    #     text = re.sub("\[", "\[", text)
+    #     text = re.sub("\]", "\]", text)
+    #     text = re.sub("\.", "\.", text)
+    #     text = re.sub("\*", "\*", text)
+    #     text = re.sub("\-", "\\-", text)
+    #     text = re.sub("\+", "\\+", text)
+    #     text = re.sub("\?", "\\?", text)
+    #     text = re.sub(r"\^", r"\^", text)
+    #     text = re.sub(r"\|", r"\|", text)
+    #     return text
 
