@@ -43,7 +43,7 @@ setup(
     url='https://github.com/ingeotec/EvoMSA',
     author="Mario Graff",
     author_email="mgraffg@ieee.org",
-    packages=['EvoMSA', 'EvoMSA/tests'],
+    packages=['EvoMSA', 'EvoMSA/ConceptModelling', 'EvoMSA/tests'],
     include_package_data=True,
     zip_safe=False,
     ext_modules=cythonize(extension,
@@ -53,7 +53,7 @@ setup(
                                                'boundscheck': False}),
     package_data={'EvoMSA/tests': ['tweets.json'],
                   '': ['*.pxd']},
-    install_requires=['B4MSA', 'ConceptModelling'],
+    install_requires=['B4MSA'],
     entry_points={
         'console_scripts': ['EvoMSA-train=EvoMSA.command_line:train',
                             'EvoMSA-predict=EvoMSA.command_line:predict',
