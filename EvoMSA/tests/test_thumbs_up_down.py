@@ -13,10 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from EvoMSA.ConceptModelling.thumbs_up_down import ThumbsUpDown
+from EvoMSA.ConceptModelling.thumbs_up_down import _SPANISH
+
 
 def test_ThumbsUpDown():
-    from EvoMSA.ConceptModelling.thumbs_up_down import ThumbsUpDown
-    from EvoMSA.ConceptModelling.thumbs_up_down import _SPANISH
     thumbs = ThumbsUpDown(lang=_SPANISH, stemming=False)
     _ = thumbs['adoracion XxX fervor vergazo']
     assert _ == (2, 1)
+
+
+def test_ThumbsUpDown_nolang():
+    try:
+        thumbs = ThumbsUpDown(lang='XX', stemming=False)
+    except:
+        return
+    assert False
+
+
+def test_ThumbsUpDown_stemming():
+    thumbs = ThumbsUpDown(lang=_SPANISH, stemming=False)
+    text = thumbs.get_text(dict(text='jugando'))
+    thumbs.stemming(text)
