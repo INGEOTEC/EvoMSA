@@ -22,6 +22,7 @@ from urllib import request
 from microtc.utils import load_model
 import numpy as np
 
+MICROTC='2.4.2'
 
 class LabelEncoderWrapper(object):
     """Wrapper of LabelEncoder. The idea is to keep the order when the classes are numbers
@@ -213,7 +214,6 @@ def bootstrap_confidence_interval(y: np.ndarray,
     return (np.percentile(B, alpha * 100), np.percentile(B, (1 - alpha) * 100))
 
 
-
 class ConfidenceInterval(object):
     """Estimate the confidence interval
 
@@ -281,3 +281,154 @@ class ConfidenceInterval(object):
                                              metric=metric,
                                              alpha=alpha,
                                              nbootstrap=nbootstrap)
+
+def load_bow(lang='es'):
+    """
+    Download and load the Bag of Word text representation
+
+    :param lang: ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
+    :type lang: str
+    >>> from EvoMSA.utils import load_bow
+    >>> bow = load_bow(lang='en')
+    >>> repr = bow['hi']
+    """
+    from os.path import join, dirname, isdir, isfile
+    from urllib.error import HTTPError
+
+    lang = lang.lower().strip()
+    assert lang in ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
+    diroutput = join(dirname(__file__), 'models')
+    if not isdir(diroutput):
+        os.mkdir(diroutput)
+    fname = join(diroutput, f'{lang}_{MICROTC}.microtc')
+    if not isfile(fname):
+        path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{lang}_{MICROTC}.microtc'
+        try:
+            request.urlretrieve(path, fname)
+        except HTTPError:
+            raise Exception(path)    
+    return load_model(fname)
+
+
+
+def _load_text_repr(lang='es', name='emo', k=0):
+    from os.path import isdir, join, isfile, dirname
+    from urllib.error import HTTPError    
+
+    diroutput = join(dirname(__file__), 'models')
+    if not isdir(diroutput):
+        os.mkdir(diroutput)
+    fname = join(diroutput, f'{lang}_{name}_{k}_muTC{MICROTC}.LinearSVC')
+    if not isfile(fname):
+        path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{lang}_{name}_{k}_muTC{MICROTC}.LinearSVC'
+        try:
+            request.urlretrieve(path, fname)
+        except HTTPError:
+            raise Exception(path)    
+    return load_model(fname)
+
+
+def load_emoji(lang='es', emoji=0):
+    """
+    Download and load the Emoji representation
+
+    :param lang: ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
+    :type lang: str
+    :param emoji: emoji identifier
+    :type emoji: int
+
+    >>> from EvoMSA.utils import load_emoji, load_bow
+    >>> bow = load_bow(lang='en')
+    >>> emo = load_emoji(lang='en', emoji=0)
+    >>> X = bow.transform(['this is funny'])
+    >>> df = emo.decision_function(X)
+    """
+    lang = lang.lower().strip()
+    assert lang in ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
+    return _load_text_repr(lang, 'emo', emoji)
+
+
+def emoji_information(lang='es'):
+    """
+    Download and load the Emoji statistics
+
+    :param lang: ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
+    :type lang: str
+
+    >>> from EvoMSA.utils import emoji_information
+    >>> info = emoji_information()
+    >>> info['💧']
+    {'recall': 0.10575916230366492, 'ratio': 0.0003977123419509893, 'number': 3905}
+    """
+    from os.path import join, dirname, isdir, isfile
+    from urllib.error import HTTPError    
+
+    lang = lang.lower().strip()
+    assert lang in ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
+    diroutput = join(dirname(__file__), 'models')
+    if not isdir(diroutput):
+        os.mkdir(diroutput)
+    data = []
+    for ext in ['info', 'perf']:
+        fname = join(diroutput, f'{lang}_emo.{ext}')
+        if not isfile(fname):
+            path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{lang}_emo.{ext}'
+            try:
+                request.urlretrieve(path, fname)
+            except HTTPError:
+                raise Exception(path)    
+        data.append(load_model(fname))
+    uno, dos = data
+    [v.update(dict(number=uno[k])) for k, v in dos.items()]
+    return dos
+    
+
+def load_dataset(lang='es', name='HA', k=0):
+    """
+    Download and load the Emoji representation
+
+    :param lang: ['ar', 'zh', 'en', 'es']
+    :type lang: str
+    :param emoji: emoji identifier
+    :type emoji: int
+
+    >>> from EvoMSA.utils import load_dataset, load_bow
+    >>> bow = load_bow(lang='en')
+    >>> ds = load_dataset(lang='en', name='travel')
+    >>> X = bow.transform(['this is funny'])
+    >>> df = ds.decision_function(X)
+    """
+    lang = lang.lower().strip()
+    assert lang in ['ar', 'zh', 'en', 'es']
+    return _load_text_repr(lang, name, k)    
+
+
+def dataset_information(lang='es'):
+    """
+    Download and load datasets information
+
+    :param lang: ['ar', 'zh', 'en', 'es']
+    :type lang: str
+
+    >>> from text_models.utils import emoji_information
+    >>> info = dataset_information()
+    """
+    from os.path import join, dirname, isdir, isfile
+    from urllib.error import HTTPError   
+
+    lang = lang.lower().strip()
+    assert lang in ['ar', 'zh', 'en', 'es']
+    diroutput = join(dirname(__file__), 'models')
+    if not isdir(diroutput):
+        os.mkdir(diroutput)
+    data = []
+    ext = 'info'
+    fname = join(diroutput, f'{lang}_dataset.{ext}')
+    if not isfile(fname):
+        path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{lang}_dataset.{ext}'
+        try:
+            request.urlretrieve(path, fname)
+        except HTTPError:
+            raise Exception(path)    
+    data = load_model(fname)
+    return data
