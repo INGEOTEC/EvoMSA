@@ -23,6 +23,8 @@ from microtc.utils import load_model
 import numpy as np
 
 MICROTC='2.4.2'
+MODEL_LANG = ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
+
 
 class LabelEncoderWrapper(object):
     """Wrapper of LabelEncoder. The idea is to keep the order when the classes are numbers
@@ -282,6 +284,7 @@ class ConfidenceInterval(object):
                                              alpha=alpha,
                                              nbootstrap=nbootstrap)
 
+
 def load_bow(lang='es'):
     """
     Download and load the Bag of Word text representation
@@ -296,7 +299,7 @@ def load_bow(lang='es'):
     from urllib.error import HTTPError
 
     lang = lang.lower().strip()
-    assert lang in ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
+    assert lang in MODEL_LANG
     diroutput = join(dirname(__file__), 'models')
     if not isdir(diroutput):
         os.mkdir(diroutput)
@@ -308,7 +311,6 @@ def load_bow(lang='es'):
         except HTTPError:
             raise Exception(path)    
     return load_model(fname)
-
 
 
 def _load_text_repr(lang='es', name='emo', k=0):
@@ -344,7 +346,7 @@ def load_emoji(lang='es', emoji=0):
     >>> df = emo.decision_function(X)
     """
     lang = lang.lower().strip()
-    assert lang in ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
+    assert lang in MODEL_LANG
     return _load_text_repr(lang, 'emo', emoji)
 
 
@@ -364,7 +366,7 @@ def emoji_information(lang='es'):
     from urllib.error import HTTPError    
 
     lang = lang.lower().strip()
-    assert lang in ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
+    assert lang in MODEL_LANG
     diroutput = join(dirname(__file__), 'models')
     if not isdir(diroutput):
         os.mkdir(diroutput)
