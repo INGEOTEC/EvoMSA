@@ -52,7 +52,7 @@ class BoW(object):
         return LinearSVC()
 
     def train_predict_decision_function(self, D: List[Union[dict, list]], 
-                                        y: Union[np.ndarray, None]=None) -> Union[list[np.ndarray], np.ndarray]:
+                                        y: Union[np.ndarray, None]=None) -> Union[List[np.ndarray], np.ndarray]:
         def train_predict(tr, vs):
             m = self.model().fit(X[tr], y[tr])
             return m.decision_function(X[vs])
