@@ -78,7 +78,7 @@ def test_emoji_information():
 def test_dataset_information():
     from EvoMSA.utils import dataset_information
     info = dataset_information(lang='es')
-    assert len(info) == 21
+    assert len(info) >= 21
 
 
 def test_load_dataset():
