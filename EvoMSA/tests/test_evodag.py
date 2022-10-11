@@ -25,17 +25,27 @@ def test_EvoDAG():
         assert False
     except AssertionError:
         pass
-    m = EvoDAG(lang='es', n_jobs=-1)
-    assert isinstance(m._models, list)
+    m = EvoDAG(lang='es', n_jobs=1, emoji=False)
+    assert isinstance(m.models, list)
+    n_models = len(m.models)
+    m = EvoDAG(lang='es', n_jobs=1, emoji=False,
+               skip_dataset=set(['HA']))
+    assert n_models > len(m.models)
+    m = EvoDAG(lang='es', n_jobs=1, dataset=False)
+    assert n_models < len(m.models)
 
 
 def test_EvoDAG_fit():
     from EvoMSA.evodag import EvoDAG
     D = list(tweet_iterator(TWEETS))
-    evodag = EvoDAG(lang='es').fit(D)
+    evodag = EvoDAG(lang='es', n_estimators=2,
+                    max_training_size=100).fit(D)
     assert isinstance(evodag, EvoDAG)
+    assert isinstance(evodag._m_st, list)
     nmodels = evodag.transform(D).shape[1]
-    evodag = EvoDAG(lang='es', TR=False).fit(D)
+    evodag = EvoDAG(lang='es', n_estimators=1,
+                    max_training_size=len(D),
+                    TR=False).fit(D)
     nmodels2 = evodag.transform(D).shape[1]
     assert nmodels >  nmodels2
 
@@ -43,7 +53,11 @@ def test_EvoDAG_fit():
 def test_EvoDAG_decision_function():
     from EvoMSA.evodag import EvoDAG
     D = list(tweet_iterator(TWEETS))
-    evodag = EvoDAG(lang='es').fit(D)
+    evodag = EvoDAG(lang='es', 
+                    n_estimators=2,
+                    max_training_size=100).fit(D)
+    output = evodag._decision_function(D)
+    assert len(output) == 2 and isinstance(output, list)
     hy = evodag.decision_function(D)    
     assert hy.shape[0] == 1000 and hy.shape[1] == 4
 

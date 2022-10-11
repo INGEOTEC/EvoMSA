@@ -412,7 +412,7 @@ def dataset_information(lang='es'):
     :param lang: ['ar', 'zh', 'en', 'es']
     :type lang: str
 
-    >>> from text_models.utils import emoji_information
+    >>> from EvoMSA.utils import emoji_information
     >>> info = dataset_information()
     """
     from os.path import join, dirname, isdir, isfile

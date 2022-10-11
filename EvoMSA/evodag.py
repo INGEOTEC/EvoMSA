@@ -15,10 +15,10 @@
 
 from EvoMSA.base import DEFAULT_CL, DEFAULT_R
 from EvoMSA.utils import MODEL_LANG
-from text_models.utils import load_bow, load_emoji, emoji_information
+from EvoMSA.utils import load_bow, load_emoji, emoji_information, dataset_information, load_dataset
 from joblib import Parallel, delayed
-from typing import Union, List
-from sklearn.model_selection import StratifiedKFold
+from typing import Union, List, Set
+from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
 import numpy as np
 
 
@@ -54,9 +54,7 @@ class BoW(object):
     def train_predict_decision_function(self, D: List[Union[dict, list]], 
                                         y: Union[np.ndarray, None]=None) -> Union[list[np.ndarray], np.ndarray]:
         def train_predict(tr, vs):
-            # X = self.bow.transform([D[x] for x in tr])
             m = self.model().fit(X[tr], y[tr])
-            # _ = self.bow.transform([D[x] for x in vs])
             return m.decision_function(X[vs])
 
         y = self.dependent_variable(D, y=y)
@@ -75,9 +73,6 @@ class BoW(object):
         if hy.ndim == 2:
             return [x.copy() for x in hy.T]
         return hy
-
-    # def transform(self, D: List[Union[dict, list]]):
-    #     return self.bow.transform(D)
 
     def fit(self, D: List[Union[dict, list]], 
             y: Union[np.ndarray, None]=None) -> "BoW":
@@ -99,10 +94,26 @@ class BoW(object):
 
 
 class EvoDAG(BoW):
-    def __init__(self, TR=True, *args, **kwargs) -> None:
+    def __init__(self, TR: bool=True, 
+                 n_estimators: int=30,
+                 max_training_size = 4000,
+                 st_kwargs: dict=dict(),
+                 skip_dataset: Set[str]=set(),
+                 emoji: bool=True,
+                 dataset: bool=True,
+                 *args, **kwargs) -> None:
         super(EvoDAG, self).__init__(*args, **kwargs)
-        self.load_emoji()
+        assert emoji or dataset
         self._TR = TR
+        self._st_kwargs = st_kwargs
+        self._n_estimators = n_estimators
+        self._max_training_size = max_training_size
+        self._skip_dataset = skip_dataset
+        self._models = []
+        if emoji:
+            self.load_emoji()
+        if dataset:
+            self.load_dataset()
 
     @property
     def models(self):
@@ -113,14 +124,28 @@ class EvoDAG(BoW):
         lang = self._lang
         _ = Parallel(n_jobs=self._n_jobs)(delayed(load_emoji)(lang=lang, emoji=k)
                                           for k in range(n_emojis))
-        self._models = _
+        self._models += _
 
-    def stack_generalization(self, *args, **kwargs):
+    def load_dataset(self) -> None:
+        kwargs = []
+        for name, labels in dataset_information(lang=self._lang).items():
+            if name in self._skip_dataset:
+                continue
+            if labels.shape[0] == 2:
+                kwargs.append(dict(lang=self._lang, name=name, k=1))
+            else:
+                [kwargs.append(dict(lang=self._lang, name=name, k=k))
+                 for k in range(labels.shape[0])]
+        _ = Parallel(n_jobs=self._n_jobs)(delayed(load_dataset)(**k)
+                                          for k in kwargs)
+        self._models += _
+
+    def stack_generalization(self, **kwargs):
         from EvoDAG.model import EvoDAG as model
         _ = DEFAULT_CL.copy()
+        _.update(**self._st_kwargs)
         _.update(**kwargs)
-        _.update(seed=self._random_state)
-        return model(*args, **kwargs)
+        return model(**_)
 
     def dependent_variable(self, D: List[Union[dict, list]], 
                            y: Union[np.ndarray, None]=None) -> np.ndarray:
@@ -141,8 +166,24 @@ class EvoDAG(BoW):
                                                for m in self.models)
         return models
 
+    def _fit(self, X: np.ndarray, y: np.ndarray):
+        def _fit(tr, **kwargs):
+            return self.stack_generalization(**kwargs).fit(X[tr], y[tr])
+
+        if X.shape[0] > self._max_training_size:
+            index = [tr for tr, _ in StratifiedShuffleSplit(n_splits=self._n_estimators,
+                                                            random_state=self._random_state,
+                                                            train_size=self._max_training_size).split(X, y)]
+        else:
+            index = [np.arange(X.shape[0])] * self._n_estimators
+        _ = Parallel(n_jobs=self._n_jobs)(delayed(_fit)(tr,
+                                                        seed=seed + self._random_state)
+                                          for seed, tr in enumerate(index))
+        return _
+
     def fit(self, D: List[Union[dict, list]], 
             y: Union[np.ndarray, None]=None) -> 'EvoDAG':
+            
         y = self.dependent_variable(D, y=y)
         super(EvoDAG, self).fit(D, y)
         models = self.transform_models(D)
@@ -153,7 +194,7 @@ class EvoDAG(BoW):
             else:
                 models.insert(0, _)
         X = np.array(models).T
-        self._m_st = self.stack_generalization().fit(X, y)
+        self._m_st = self._fit(X, y)
         return self
 
     def transform(self, D: List[Union[dict, list]]) -> np.ndarray:
@@ -166,12 +207,18 @@ class EvoDAG(BoW):
         return np.array(models).T
 
     def _decision_function(self, D: List[Union[dict, list]]) -> list:
+        def _decision_function(ins, X):
+            return np.array([x.full_array() 
+                             for x in ins.decision_function(X)]).T
+
         X = self.transform(D)
-        return self._m_st.decision_function(X)
+        _ = Parallel(n_jobs=self._n_jobs)(delayed(_decision_function)(ins, X)
+                                          for ins in self._m_st)
+        return _
 
     def decision_function(self, D: List[Union[dict, list]]) -> np.ndarray:
-        hy = [x.full_array() for x in self._decision_function(D)]
-        return np.array(hy).T
+        _ = self._decision_function(D)
+        return np.median(_, axis=0)
 
     def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
         df = self.decision_function(D)
