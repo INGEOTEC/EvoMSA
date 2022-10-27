@@ -16,10 +16,11 @@ from sklearn.model_selection import BaseCrossValidator
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import recall_score
-import os
-import hashlib
 from urllib import request
-from microtc.utils import load_model
+from microtc.utils import load_model, tweet_iterator
+from scipy.sparse import csr_matrix
+import hashlib
+import os
 import numpy as np
 
 MICROTC='2.4.2'
@@ -313,24 +314,65 @@ def load_bow(lang='es'):
     return load_model(fname)
 
 
-def _load_text_repr(lang='es', name='emo', k=0):
+class Linear(object):
+    """
+    >>> from EvoMSA.model import Linear
+    >>> linear = Linear(coef=[12, 3], intercept=0.5, labels=[0, 'P'])
+    >>> X = np.array([[2, -1]])
+    >>> linear.decision_function(X)
+    21.5
+    >>> linear.predict(X)[0]
+    'P'
+    """
+
+    def __init__(self, coef: Union[list, np.ndarray],
+                 intercept: float=0,
+                 labels: Union[list, np.ndarray, None]=None) -> None:
+        self._coef = np.atleast_1d(coef)
+        self._intercept = intercept
+        self._labels = np.atleast_1d(labels) if labels is not None else labels
+
+    @property
+    def labels(self):
+        return self._labels
+
+    @labels.setter
+    def labels(self, v):
+        self._labels = v
+
+    def decision_function(self, X: Union[np.ndarray, csr_matrix]) -> np.ndarray:
+        if isinstance(X, np.ndarray):
+            return np.dot(X, self._coef) + self._intercept
+        return X.dot(self._coef) + self._intercept
+
+    def predict(self, X: Union[np.ndarray, csr_matrix]) -> np.ndarray:
+        hy = self.decision_function(X)
+        if self._labels is not None:
+            return self._labels[np.where(hy > 0, 1, 0)]
+        return np.where(hy > 0, 1, -1)
+
+
+def _load_text_repr(lang='es', name='emojis', k=None):
     from os.path import isdir, join, isfile, dirname
     from urllib.error import HTTPError    
 
     diroutput = join(dirname(__file__), 'models')
     if not isdir(diroutput):
         os.mkdir(diroutput)
-    fname = join(diroutput, f'{lang}_{name}_{k}_muTC{MICROTC}.LinearSVC')
+    fname = join(diroutput, f'{lang}_{name}_muTC{MICROTC}.json.gz')
     if not isfile(fname):
-        path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{lang}_{name}_{k}_muTC{MICROTC}.LinearSVC'
+        path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{lang}_{name}_muTC{MICROTC}.json.gz'
         try:
             request.urlretrieve(path, fname)
         except HTTPError:
-            raise Exception(path)    
-    return load_model(fname)
+            raise Exception(path)
+    models = [Linear(**x) for x in tweet_iterator(fname)]
+    if k is None:
+        return models
+    return models[k]
 
 
-def load_emoji(lang='es', emoji=0):
+def load_emoji(lang='es', emoji=None):
     """
     Download and load the Emoji representation
 
@@ -347,7 +389,7 @@ def load_emoji(lang='es', emoji=0):
     """
     lang = lang.lower().strip()
     assert lang in MODEL_LANG
-    return _load_text_repr(lang, 'emo', emoji)
+    return _load_text_repr(lang, 'emojis', emoji)
 
 
 def emoji_information(lang='es'):
@@ -385,7 +427,7 @@ def emoji_information(lang='es'):
     return dos
     
 
-def load_dataset(lang='es', name='HA', k=0):
+def load_dataset(lang='es', name='HA', k=None):
     """
     Download and load the Emoji representation
 
@@ -396,7 +438,7 @@ def load_dataset(lang='es', name='HA', k=0):
 
     >>> from EvoMSA.utils import load_dataset, load_bow
     >>> bow = load_bow(lang='en')
-    >>> ds = load_dataset(lang='en', name='travel')
+    >>> ds = load_dataset(lang='en', name='travel', k=0)
     >>> X = bow.transform(['this is funny'])
     >>> df = ds.decision_function(X)
     """

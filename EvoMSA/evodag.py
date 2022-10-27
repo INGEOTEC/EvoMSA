@@ -47,14 +47,22 @@ class BoW(object):
         assert isinstance(y, np.ndarray)
         return y
 
-    def model(self):
+    def estimator(self):
         from sklearn.svm import LinearSVC
         return LinearSVC()
+
+    @property
+    def estimator_instance(self):
+        return self._m
+
+    @estimator_instance.setter
+    def estimator_instance(self, m):
+        self._m = m
 
     def train_predict_decision_function(self, D: List[Union[dict, list]], 
                                         y: Union[np.ndarray, None]=None) -> Union[List[np.ndarray], np.ndarray]:
         def train_predict(tr, vs):
-            m = self.model().fit(X[tr], y[tr])
+            m = self.estimator().fit(X[tr], y[tr])
             return m.decision_function(X[vs])
 
         y = self.dependent_variable(D, y=y)
@@ -78,16 +86,16 @@ class BoW(object):
             y: Union[np.ndarray, None]=None) -> "BoW":
         y = self.dependent_variable(D, y=y)
         _ = self.bow.transform(D)
-        self._m = self.model().fit(_, y)
+        self.estimator_instance = self.estimator().fit(_, y)
         return self
 
     def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
         _ = self.bow.transform(D)
-        return self._m.predict(_)
+        return self.estimator_instance.predict(_)
 
     def decision_function(self, D: List[Union[dict, list]]) -> Union[list, np.ndarray]:
         _ = self.bow.transform(D)
-        hy = self._m.decision_function(_)        
+        hy = self.estimator_instance.decision_function(_)        
         if hy.ndim == 2:
             return [x.copy() for x in hy.T]
         return hy
@@ -147,6 +155,14 @@ class EvoDAG(BoW):
         _.update(**kwargs)
         return model(**_)
 
+    @property
+    def stack_generalization_instance(self):
+        return self._m_st
+
+    @stack_generalization_instance.setter
+    def stack_generalization_instance(self, v):
+        self._m_st = v
+
     def dependent_variable(self, D: List[Union[dict, list]], 
                            y: Union[np.ndarray, None]=None) -> np.ndarray:
         from EvoMSA.utils import LabelEncoderWrapper
@@ -194,7 +210,7 @@ class EvoDAG(BoW):
             else:
                 models.insert(0, _)
         X = np.array(models).T
-        self._m_st = self._fit(X, y)
+        self.stack_generalization_instance = self._fit(X, y)
         return self
 
     def transform(self, D: List[Union[dict, list]]) -> np.ndarray:

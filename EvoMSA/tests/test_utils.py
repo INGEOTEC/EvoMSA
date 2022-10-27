@@ -75,6 +75,14 @@ def test_emoji_information():
     assert info['💧']['number'] == 3905
 
 
+def test_load_emoji():
+    from EvoMSA.utils import load_emoji, emoji_information
+    info = emoji_information()
+    emojis = load_emoji(lang='es')
+    assert isinstance(emojis, list)
+    assert len(emojis) == len(info)
+
+
 def test_dataset_information():
     from EvoMSA.utils import dataset_information
     info = dataset_information(lang='es')
@@ -88,4 +96,5 @@ def test_load_dataset():
     ds = load_dataset(lang='en', name='HA', k=0)
     X = bow.transform(['this is funny'])
     df = ds.decision_function(X)    
-    np.testing.assert_almost_equal(df[0], -0.389922806003241)        
+    np.testing.assert_almost_equal(df[0], -0.389922806003241)
+    ds.labels = None        
