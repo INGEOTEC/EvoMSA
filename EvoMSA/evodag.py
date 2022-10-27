@@ -128,25 +128,12 @@ class EvoDAG(BoW):
         return self._models
 
     def load_emoji(self) -> None:
-        n_emojis = len(emoji_information(lang=self._lang))
-        lang = self._lang
-        _ = Parallel(n_jobs=self._n_jobs)(delayed(load_emoji)(lang=lang, emoji=k)
-                                          for k in range(n_emojis))
-        self._models += _
+        self._models += load_emoji(lang=self._lang)
 
     def load_dataset(self) -> None:
-        kwargs = []
-        for name, labels in dataset_information(lang=self._lang).items():
-            if name in self._skip_dataset:
-                continue
-            if labels.shape[0] == 2:
-                kwargs.append(dict(lang=self._lang, name=name, k=1))
-            else:
-                [kwargs.append(dict(lang=self._lang, name=name, k=k))
-                 for k in range(labels.shape[0])]
-        _ = Parallel(n_jobs=self._n_jobs)(delayed(load_dataset)(**k)
-                                          for k in kwargs)
-        self._models += _
+        _ = Parallel(n_jobs=self._n_jobs)(delayed(load_dataset)(lang=self._lang, name=name)
+                                          for name in dataset_information(lang=self._lang) if name not in self._skip_dataset)
+        [self._models.extend(k) for k in _]
 
     def stack_generalization(self, **kwargs):
         from EvoDAG.model import EvoDAG as model
