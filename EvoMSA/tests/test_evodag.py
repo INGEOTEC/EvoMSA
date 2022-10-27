@@ -41,7 +41,7 @@ def test_EvoDAG_fit():
     evodag = EvoDAG(lang='es', n_estimators=2,
                     max_training_size=100).fit(D)
     assert isinstance(evodag, EvoDAG)
-    assert isinstance(evodag._m_st, list)
+    assert isinstance(evodag.stack_generalization_instance, list)
     nmodels = evodag.transform(D).shape[1]
     evodag = EvoDAG(lang='es', n_estimators=1,
                     max_training_size=len(D),
@@ -65,7 +65,9 @@ def test_EvoDAG_decision_function():
 def test_EvoDAG_predict():
     from EvoMSA.evodag import EvoDAG
     D = list(tweet_iterator(TWEETS))
-    evodag = EvoDAG(lang='es').fit(D)
+    evodag = EvoDAG(lang='es', 
+                    n_estimators=2, 
+                    max_training_size=100).fit(D)
     hy = evodag.predict(D)
     assert (hy == [x['klass'] for x in D]).mean() > 0.25
     
