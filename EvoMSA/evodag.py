@@ -15,19 +15,48 @@
 
 from EvoMSA.base import DEFAULT_CL, DEFAULT_R
 from EvoMSA.utils import MODEL_LANG
-from EvoMSA.utils import load_bow, load_emoji, emoji_information, dataset_information, load_dataset
+from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset
 from joblib import Parallel, delayed
-from typing import Union, List, Set
+from typing import Union, List, Set, Callable
 from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
+from scipy.sparse import csr_matrix
 import numpy as np
 
 
 class BoW(object):
-    def __init__(self, lang='es', random_state=0, n_jobs=1) -> None:
+    """
+    >>> from microtc.utils import tweet_iterator
+    >>> from EvoMSA.tests.test_base import TWEETS
+    >>> from EvoMSA.evodag import BoW
+    >>> bow = BoW(lang='es').fit(list(tweet_iterator(TWEETS)))
+    >>> bow.predict(['Buenos dias']).tolist()
+    ['P']
+    """
+    def __init__(self, lang: str='es', 
+                 random_state: int=0,
+                 key: Union[str, List[str]]='text',
+                 mixer_func: Callable[[List], csr_matrix]=sum,
+                 decision_function: str='decision_function',
+                 n_jobs: int=1) -> None:
         assert lang in MODEL_LANG
         self._random_state = random_state
         self._n_jobs = n_jobs
         self._lang = lang
+        self._key = key
+        self._mixer_func = mixer_func
+        self._decision_function = decision_function
+
+    def transform(self, D: List[Union[List, dict]]) -> csr_matrix:
+        assert len(D)
+        if self._key == 'text':
+            return self.bow.transform(D)
+        assert isinstance(D[0], dict)
+        if isinstance(self._key, str):
+            key = self._key
+            return self.bow.transform([x[key] for x in D])
+        Xs = [self.bow.transform([x[key] for x in D])
+              for key in self._key]
+        return self._mixer_func(Xs)
 
     @property
     def bow(self):
@@ -60,82 +89,178 @@ class BoW(object):
         self._m = m
 
     def train_predict_decision_function(self, D: List[Union[dict, list]], 
-                                        y: Union[np.ndarray, None]=None) -> Union[List[np.ndarray], np.ndarray]:
+                                        y: Union[np.ndarray, None]=None) -> np.ndarray:
         def train_predict(tr, vs):
             m = self.estimator().fit(X[tr], y[tr])
-            return m.decision_function(X[vs])
+            return getattr(m, self._decision_function)(X[vs])
 
         y = self.dependent_variable(D, y=y)
+        self._y = y
         kf = StratifiedKFold(shuffle=True, random_state=self._random_state)
         kfolds = [x for x in kf.split(D, y)]
-        X = self.bow.transform(D)
+        X = self.transform(D)
         hys = Parallel(n_jobs=self._n_jobs)(delayed(train_predict)(tr, vs)
                                             for tr, vs in kfolds)
-        K = np.unique(y).shape[0] 
-        if K > 2:
-            hy = np.empty((y.shape[0], K))
+        K = np.unique(y).shape[0]
+        if hys[0].ndim == 1:
+            hy = np.empty((y.shape[0], 1))
+            hys = [np.atleast_2d(x).T for x in hys]
         else:
-            hy = np.empty(y.shape[0])            
+            hy = np.empty((y.shape[0], K))
         for (_, vs), pr in zip(kfolds, hys):
             hy[vs] = pr
-        if hy.ndim == 2:
-            return [x.copy() for x in hy.T]
+        delattr(self, '_y')        
         return hy
 
     def fit(self, D: List[Union[dict, list]], 
-            y: Union[np.ndarray, None]=None) -> "BoW":
+            y: Union[np.ndarray, None]=None) -> 'BoW':
         y = self.dependent_variable(D, y=y)
-        _ = self.bow.transform(D)
+        self._y = y
+        _ = self.transform(D)
         self.estimator_instance = self.estimator().fit(_, y)
+        delattr(self, '_y')
         return self
 
     def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
-        _ = self.bow.transform(D)
+        _ = self.transform(D)
         return self.estimator_instance.predict(_)
 
     def decision_function(self, D: List[Union[dict, list]]) -> Union[list, np.ndarray]:
-        _ = self.bow.transform(D)
-        hy = self.estimator_instance.decision_function(_)        
-        if hy.ndim == 2:
-            return [x.copy() for x in hy.T]
+        _ = self.transform(D)
+        hy = getattr(self.estimator_instance, self._decision_function)(_)
+        if hy.ndim == 1:
+            return np.atleast_2d(hy).T
         return hy
 
 
-class EvoDAG(BoW):
-    def __init__(self, TR: bool=True, 
-                 n_estimators: int=30,
-                 max_training_size = 4000,
-                 st_kwargs: dict=dict(),
-                 skip_dataset: Set[str]=set(),
+class TextRepresentations(BoW):
+    """
+    >>> from EvoMSA.evodag import TextRepresentations
+    >>> from microtc.utils import tweet_iterator
+    >>> from EvoMSA.tests.test_base import TWEETS    
+    >>> text_repr =  TextRepresentations(lang='es')
+    >>> text_repr.fit(list(tweet_iterator(TWEETS)))
+    >>> text_repr.predict(['Buenos dias']).tolist()
+    ['P']    
+    """
+    def __init__(self, 
                  emoji: bool=True,
                  dataset: bool=True,
-                 *args, **kwargs) -> None:
-        super(EvoDAG, self).__init__(*args, **kwargs)
+                 skip_dataset: Set[str]=set(),
+                 decision_function='predict_proba',
+                 **kwargs) -> None:
+        super(TextRepresentations, self).__init__(decision_function=decision_function,
+                                                  **kwargs)
         assert emoji or dataset
-        self._TR = TR
-        self._st_kwargs = st_kwargs
-        self._n_estimators = n_estimators
-        self._max_training_size = max_training_size
         self._skip_dataset = skip_dataset
-        self._models = []
+        self._text_representations = []
         if emoji:
             self.load_emoji()
         if dataset:
             self.load_dataset()
 
     @property
-    def models(self):
-        return self._models
+    def text_representations(self):
+        return self._text_representations
 
     def load_emoji(self) -> None:
-        self._models += load_emoji(lang=self._lang)
+        self._text_representations += load_emoji(lang=self._lang)
 
     def load_dataset(self) -> None:
         _ = Parallel(n_jobs=self._n_jobs)(delayed(load_dataset)(lang=self._lang, name=name)
                                           for name in dataset_information(lang=self._lang) if name not in self._skip_dataset)
-        [self._models.extend(k) for k in _]
+        [self._text_representations.extend(k) for k in _]
 
-    def stack_generalization(self, **kwargs):
+    def estimator(self):
+        from sklearn.naive_bayes import GaussianNB
+        return GaussianNB()
+
+    def transform(self, D: List[Union[List, dict]]) -> np.ndarray:
+        if isinstance(self._key, str):
+            X = super(TextRepresentations, self).transform(D)
+            models = Parallel(n_jobs=self._n_jobs)(delayed(m.decision_function)(X)
+                                                   for m in self.text_representations)
+            return np.array(models).T
+        assert len(D) and isinstance(D[0], dict)
+        Xs = [self.bow.transform([x[key] for x in D])
+              for key in self._key]
+        with Parallel(n_jobs=self._n_jobs) as parallel:
+            models = []
+            for X in Xs:
+                _ = parallel(delayed(m.decision_function)(X)
+                             for m in self.text_representations)
+                models.append(np.array(_).T)
+        return self._mixer_func(models)                
+
+
+class StackGeneralization(BoW):
+    """
+    >>> from EvoMSA.evodag import TextRepresentations, BoW, StackGeneralization
+    >>> from microtc.utils import tweet_iterator
+    >>> from EvoMSA.tests.test_base import TWEETS    
+    >>> emoji =  TextRepresentations(lang='es', dataset=False)
+    >>> dataset = TextRepresentations(lang='es', emoji=False)
+    >>> bow = BoW(lang='es')
+    >>> stacking = StackGeneralization(decision_function_models=[bow], transform_models=[dataset, emoji])
+    >>> stacking.fit(list(tweet_iterator(TWEETS)))
+    >>> stacking.predict(['Buenos dias']).tolist()
+    ['P']
+    """
+    def __init__(self, decision_function_models: list=[], 
+                 transform_models: list=[],
+                 decision_function: str='predict_proba',
+                 n_jobs: int=1,
+                 **kwargs) -> None:
+        assert len(decision_function_models) or len(transform_models)
+        assert n_jobs == 1
+        super(StackGeneralization, self).__init__(n_jobs=n_jobs,
+                                                  decision_function=decision_function,
+                                                  **kwargs)
+        self._decision_function_models = decision_function_models
+        self._transform_models = transform_models
+        self._estimated = False
+
+    def estimator(self):
+        from sklearn.naive_bayes import GaussianNB
+        return GaussianNB()
+
+    def fit(self, *args, **kwargs) -> 'StackGeneralization':
+        super(StackGeneralization, self).fit(*args, **kwargs)
+        self._estimated = True
+        return self
+
+    def transform(self, D: List[Union[List, dict]]) -> np.ndarray:
+        Xs = [text_repr.transform(D)
+              for text_repr in self._transform_models]
+        if not self._estimated:
+            [text_repr.fit(D, y=self._y)
+             for text_repr in self._decision_function_models]
+            Xs += [text_repr.train_predict_decision_function(D, y=self._y)
+                   for text_repr in self._decision_function_models]
+            return np.concatenate(Xs, axis=1)
+        Xs += [text_repr.decision_function(D)
+               for text_repr in self._decision_function_models]
+        return np.concatenate(Xs, axis=1)
+
+    def train_predict_decision_function(self, *args, **kwargs) -> np.ndarray:
+        assert not self._estimated
+        return super(StackGeneralization, self).train_predict_decision_function(*args, **kwargs)
+
+
+
+class EvoDAG(object):
+    def __init__(self, n_estimators: int=30,
+                 max_training_size: int=4000,
+                 n_jobs = 1,
+                 random_state: int=0,
+                 **kwargs) -> None:
+        self._st_kwargs = kwargs
+        self._n_estimators = n_estimators
+        self._max_training_size = max_training_size
+        self._n_jobs = n_jobs
+        self._random_state = random_state
+
+    def estimator(self, **kwargs):
         from EvoDAG.model import EvoDAG as model
         _ = DEFAULT_CL.copy()
         _.update(**self._st_kwargs)
@@ -143,17 +268,15 @@ class EvoDAG(BoW):
         return model(**_)
 
     @property
-    def stack_generalization_instance(self):
-        return self._m_st
+    def estimator_instance(self):
+        return self._m
 
-    @stack_generalization_instance.setter
-    def stack_generalization_instance(self, v):
-        self._m_st = v
+    @estimator_instance.setter
+    def estimator_instance(self, m):
+        self._m = m
 
-    def dependent_variable(self, D: List[Union[dict, list]], 
-                           y: Union[np.ndarray, None]=None) -> np.ndarray:
+    def dependent_variable(self, y: np.ndarray) -> np.ndarray:
         from EvoMSA.utils import LabelEncoderWrapper
-        y = super(EvoDAG, self).dependent_variable(D, y=y)
         if not hasattr(self, '_le'):
             self._le = LabelEncoderWrapper().fit(y)
             return self._le.transform(y)
@@ -163,16 +286,11 @@ class EvoDAG(BoW):
     def label_encoder(self):
         return self._le
 
-    def transform_models(self, D: List[Union[dict, list]]) -> List[np.ndarray]:
-        X = self.bow.transform(D)
-        models = Parallel(n_jobs=self._n_jobs)(delayed(m.decision_function)(X)
-                                               for m in self.models)
-        return models
-
-    def _fit(self, X: np.ndarray, y: np.ndarray):
+    def fit(self, X: np.ndarray, y: np.ndarray) -> 'EvoDAG':
         def _fit(tr, **kwargs):
-            return self.stack_generalization(**kwargs).fit(X[tr], y[tr])
+            return self.estimator(**kwargs).fit(X[tr], y[tr])
 
+        y = self.dependent_variable(y) 
         if X.shape[0] > self._max_training_size:
             index = [tr for tr, _ in StratifiedShuffleSplit(n_splits=self._n_estimators,
                                                             random_state=self._random_state,
@@ -182,49 +300,24 @@ class EvoDAG(BoW):
         _ = Parallel(n_jobs=self._n_jobs)(delayed(_fit)(tr,
                                                         seed=seed + self._random_state)
                                           for seed, tr in enumerate(index))
-        return _
-
-    def fit(self, D: List[Union[dict, list]], 
-            y: Union[np.ndarray, None]=None) -> 'EvoDAG':
-            
-        y = self.dependent_variable(D, y=y)
-        super(EvoDAG, self).fit(D, y)
-        models = self.transform_models(D)
-        if self._TR:
-            _ = self.train_predict_decision_function(D, y=y)
-            if isinstance(_, list):
-                models = _ + models
-            else:
-                models.insert(0, _)
-        X = np.array(models).T
-        self.stack_generalization_instance = self._fit(X, y)
+        self.estimator_instance = _
         return self
 
-    def transform(self, D: List[Union[dict, list]]) -> np.ndarray:
-        if self._TR:
-            _ = super(EvoDAG, self).decision_function(D)
-            _ = _ if isinstance(_, list) else [ _ ]
-        else:
-            _ = []
-        models = _ + self.transform_models(D)
-        return np.array(models).T
-
-    def _decision_function(self, D: List[Union[dict, list]]) -> list:
+    def _decision_function(self, X: np.ndarray) -> list:
         def _decision_function(ins, X):
             return np.array([x.full_array() 
                              for x in ins.decision_function(X)]).T
 
-        X = self.transform(D)
         _ = Parallel(n_jobs=self._n_jobs)(delayed(_decision_function)(ins, X)
-                                          for ins in self._m_st)
+                                          for ins in self.estimator_instance)
         return _
 
-    def decision_function(self, D: List[Union[dict, list]]) -> np.ndarray:
-        _ = self._decision_function(D)
+    def decision_function(self, X: np.ndarray) -> np.ndarray:
+        _ = self._decision_function(X)
         return np.median(_, axis=0)
 
-    def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
-        df = self.decision_function(D)
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        df = self.decision_function(X)
         hy = df.argmax(axis=1)
         return self.label_encoder.inverse_transform(hy)
 
