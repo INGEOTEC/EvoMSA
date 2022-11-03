@@ -103,7 +103,8 @@ class BoW(object):
                                             for tr, vs in kfolds)
         K = np.unique(y).shape[0]
         if hys[0].ndim == 1:
-            hy = np.empty(y.shape[0])
+            hy = np.empty((y.shape[0], 1))
+            hys = [np.atleast_2d(x).T for x in hys]
         else:
             hy = np.empty((y.shape[0], K))
         for (_, vs), pr in zip(kfolds, hys):

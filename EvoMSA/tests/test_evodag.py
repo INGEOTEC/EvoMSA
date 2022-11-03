@@ -116,3 +116,6 @@ def test_StackGeneralization_train_predict_decision_function():
                                     transform_models=[TextRepresentations(lang='es')])
     hy = text_repr.train_predict_decision_function(D)
     assert hy.shape[0] == len(D)
+    D1 = [x for x in D if x['klass'] in ['P', 'N']]
+    hy = text_repr.train_predict_decision_function(D1)
+    assert hy.shape[1] == 2
