@@ -106,3 +106,13 @@ def test_StackGeneralization():
                                     decision_function_models=[BoW(lang='es')],
                                     transform_models=[TextRepresentations(lang='es')]).fit(D)
     assert text_repr.predict(['Buen dia'])[0] == 'P'
+
+
+def test_StackGeneralization_train_predict_decision_function():
+    from EvoMSA.evodag import StackGeneralization, BoW, TextRepresentations
+    D = list(tweet_iterator(TWEETS))
+    text_repr = StackGeneralization(lang='es',
+                                    decision_function_models=[BoW(lang='es')],
+                                    transform_models=[TextRepresentations(lang='es')])
+    hy = text_repr.train_predict_decision_function(D)
+    assert hy.shape[0] == len(D)

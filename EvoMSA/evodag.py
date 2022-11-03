@@ -207,11 +207,14 @@ class StackGeneralization(BoW):
     """
     def __init__(self, decision_function_models: list=[], 
                  transform_models: list=[],
+                 decision_function: str='predict_proba',
                  n_jobs: int=1,
                  **kwargs) -> None:
         assert len(decision_function_models) or len(transform_models)
         assert n_jobs == 1
-        super(StackGeneralization, self).__init__(n_jobs=n_jobs, **kwargs)
+        super(StackGeneralization, self).__init__(n_jobs=n_jobs,
+                                                  decision_function=decision_function,
+                                                  **kwargs)
         self._decision_function_models = decision_function_models
         self._transform_models = transform_models
         self._estimated = False
@@ -240,7 +243,7 @@ class StackGeneralization(BoW):
 
     def train_predict_decision_function(self, *args, **kwargs) -> np.ndarray:
         assert not self._estimated
-        return super(StackGeneralization, self).__init__(*args, **kwargs)
+        return super(StackGeneralization, self).train_predict_decision_function(*args, **kwargs)
 
 
 
