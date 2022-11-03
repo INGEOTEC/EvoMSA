@@ -47,12 +47,9 @@ def test_BoW_train_predict_decision_function():
     D = list(tweet_iterator(TWEETS))
     bow = BoW(lang='es')
     hy = bow.train_predict_decision_function(D)
-    assert isinstance(hy, list)
-    assert hy[0].shape[0] == len(D)
-    bow = BoW(lang='es')
-    hy = bow.train_predict_decision_function([x for x in D if x['klass'] in ['P', 'N']])
     assert isinstance(hy, np.ndarray)
-    assert hy.shape[0] == len([x for x in D if x['klass'] in ['P', 'N']])
+    assert hy.shape[0] == len(D)
+    bow = BoW(lang='es')
 
 
 def test_BoW_predict():
@@ -68,7 +65,7 @@ def test_BoW_decision_function():
     D = list(tweet_iterator(TWEETS))
     bow = BoW(lang='es').fit(D)
     hy = bow.decision_function(D)
-    assert hy[0].shape[0] == len(D)
+    assert hy.shape[0] == len(D)
     bow = BoW(lang='es').fit([x for x in D if x['klass'] in ['P', 'N']])
     hy = bow.decision_function(D)
     assert hy.shape[0] == len(D)

@@ -89,12 +89,13 @@ class BoW(object):
         self._m = m
 
     def train_predict_decision_function(self, D: List[Union[dict, list]], 
-                                        y: Union[np.ndarray, None]=None) -> Union[List[np.ndarray], np.ndarray]:
+                                        y: Union[np.ndarray, None]=None) -> np.ndarray:
         def train_predict(tr, vs):
             m = self.estimator().fit(X[tr], y[tr])
             return getattr(m, self._decision_function)(X[vs])
 
         y = self.dependent_variable(D, y=y)
+        self._y = y
         kf = StratifiedKFold(shuffle=True, random_state=self._random_state)
         kfolds = [x for x in kf.split(D, y)]
         X = self.transform(D)
@@ -107,6 +108,7 @@ class BoW(object):
             hy = np.empty((y.shape[0], K))
         for (_, vs), pr in zip(kfolds, hys):
             hy[vs] = pr
+        delattr(self, '_y')        
         return hy
 
     def fit(self, D: List[Union[dict, list]], 
@@ -235,6 +237,11 @@ class StackGeneralization(BoW):
         Xs += [text_repr.decision_function(D)
                for text_repr in self._decision_function_models]
         return np.concatenate(Xs, axis=1)
+
+    def train_predict_decision_function(self, *args, **kwargs) -> np.ndarray:
+        assert not self._estimated
+        return super(StackGeneralization, self).__init__(*args, **kwargs)
+
 
 
 class EvoDAG(object):
