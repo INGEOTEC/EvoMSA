@@ -99,6 +99,15 @@ def test_TextRepresentations_fit():
     text_repr.predict(['Buen dia'])
 
 
+def test_TextRepresentations_key():
+    from EvoMSA.evodag import TextRepresentations
+    D = list(tweet_iterator(TWEETS))
+    O = TextRepresentations(lang='es').transform(D)    
+    X = [dict(klass=x['klass'], premise=x['text'], conclusion=x['text']) for x in D]
+    bow = TextRepresentations(lang='es', key=['premise', 'conclusion'])
+    assert abs(bow.transform(X) - O * 2).sum() == 0    
+
+
 def test_StackGeneralization():
     from EvoMSA.evodag import StackGeneralization, BoW, TextRepresentations
     D = list(tweet_iterator(TWEETS))
