@@ -23,7 +23,7 @@ EvoMSA
 .. image:: https://img.shields.io/conda/pn/conda-forge/evomsa.svg
 		:target: https://anaconda.org/conda-forge/evomsa
 
-.. image:: https://readthedocs.org/projects/evomsa/badge/?version=latest
+.. image:: https://readthedocs.org/projects/evomsa/badge/?version=docs
 		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
 
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
