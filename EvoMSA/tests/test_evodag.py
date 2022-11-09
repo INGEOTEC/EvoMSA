@@ -18,54 +18,26 @@ from microtc.utils import tweet_iterator
 import numpy as np
 
 
-def test_EvoDAG():
-    from EvoMSA.evodag import EvoDAG
-    try:
-        m = EvoDAG(lang='none')
-        assert False
-    except AssertionError:
-        pass
-    m = EvoDAG(lang='es', n_jobs=1, emoji=False)
-    assert isinstance(m.models, list)
-    n_models = len(m.models)
-    m = EvoDAG(lang='es', n_jobs=1, emoji=False,
-               skip_dataset=set(['HA']))
-    assert n_models > len(m.models)
-    m = EvoDAG(lang='es', n_jobs=1, dataset=False)
-    assert n_models < len(m.models)
-
-
-def test_EvoDAG_fit():
-    from EvoMSA.evodag import EvoDAG
-    D = list(tweet_iterator(TWEETS))
-    evodag = EvoDAG(lang='es', n_estimators=2,
-                    max_training_size=100).fit(D)
-    assert isinstance(evodag, EvoDAG)
-    assert isinstance(evodag._m_st, list)
-    nmodels = evodag.transform(D).shape[1]
-    evodag = EvoDAG(lang='es', n_estimators=1,
-                    max_training_size=len(D),
-                    TR=False).fit(D)
-    nmodels2 = evodag.transform(D).shape[1]
-    assert nmodels >  nmodels2
-
-
 def test_EvoDAG_decision_function():
-    from EvoMSA.evodag import EvoDAG
+    from EvoMSA.evodag import EvoDAG, TextRepresentations
     D = list(tweet_iterator(TWEETS))
-    evodag = EvoDAG(lang='es', 
-                    n_estimators=2,
-                    max_training_size=100).fit(D)
-    output = evodag._decision_function(D)
-    assert len(output) == 2 and isinstance(output, list)
+    class _EvoDAG(TextRepresentations):
+        def estimator(self):
+            return EvoDAG(n_estimators=2, 
+                          max_training_size=100)    
+    evodag = _EvoDAG(decision_function='decision_function').fit(D)
     hy = evodag.decision_function(D)    
     assert hy.shape[0] == 1000 and hy.shape[1] == 4
 
 
 def test_EvoDAG_predict():
-    from EvoMSA.evodag import EvoDAG
+    from EvoMSA.evodag import EvoDAG, TextRepresentations
     D = list(tweet_iterator(TWEETS))
-    evodag = EvoDAG(lang='es').fit(D)
+    class _EvoDAG(TextRepresentations):
+        def estimator(self):
+            return EvoDAG(n_estimators=2, 
+                          max_training_size=100)    
+    evodag = _EvoDAG().fit(D)
     hy = evodag.predict(D)
     assert (hy == [x['klass'] for x in D]).mean() > 0.25
     
@@ -75,12 +47,9 @@ def test_BoW_train_predict_decision_function():
     D = list(tweet_iterator(TWEETS))
     bow = BoW(lang='es')
     hy = bow.train_predict_decision_function(D)
-    assert isinstance(hy, list)
-    assert hy[0].shape[0] == len(D)
-    bow = BoW(lang='es')
-    hy = bow.train_predict_decision_function([x for x in D if x['klass'] in ['P', 'N']])
     assert isinstance(hy, np.ndarray)
-    assert hy.shape[0] == len([x for x in D if x['klass'] in ['P', 'N']])
+    assert hy.shape[0] == len(D)
+    bow = BoW(lang='es')
 
 
 def test_BoW_predict():
@@ -96,8 +65,66 @@ def test_BoW_decision_function():
     D = list(tweet_iterator(TWEETS))
     bow = BoW(lang='es').fit(D)
     hy = bow.decision_function(D)
-    assert hy[0].shape[0] == len(D)
+    assert hy.shape[0] == len(D)
     bow = BoW(lang='es').fit([x for x in D if x['klass'] in ['P', 'N']])
     hy = bow.decision_function(D)
     assert hy.shape[0] == len(D)
-    
+
+
+def test_BoW_key():
+    from EvoMSA.evodag import BoW
+    D = list(tweet_iterator(TWEETS))
+    O = BoW(lang='es').transform(D)    
+    X = [dict(klass=x['klass'], premise=x['text']) for x in D]    
+    bow = BoW(lang='es', key='premise')
+    assert abs(bow.transform(X) - O).sum() == 0
+    X = [dict(klass=x['klass'], premise=x['text'], conclusion=x['text']) for x in D]
+    bow = BoW(lang='es', key=['premise', 'conclusion'])
+    assert abs(bow.transform(X) - O * 2).sum() == 0
+
+
+def test_TextRepresentations_transform():
+    from EvoMSA.evodag import TextRepresentations
+    D = list(tweet_iterator(TWEETS))
+    text_repr = TextRepresentations(lang='es')
+    X = text_repr.transform(D)
+    assert X.shape[0] == len(D)
+    assert len(text_repr.text_representations) == X.shape[1]
+
+
+def test_TextRepresentations_fit():
+    from EvoMSA.evodag import TextRepresentations
+    D = list(tweet_iterator(TWEETS))
+    text_repr = TextRepresentations(lang='es').fit(D)
+    text_repr.predict(['Buen dia'])
+
+
+def test_TextRepresentations_key():
+    from EvoMSA.evodag import TextRepresentations
+    D = list(tweet_iterator(TWEETS))
+    O = TextRepresentations(lang='es').transform(D)    
+    X = [dict(klass=x['klass'], premise=x['text'], conclusion=x['text']) for x in D]
+    bow = TextRepresentations(lang='es', key=['premise', 'conclusion'])
+    assert abs(bow.transform(X) - O * 2).sum() == 0    
+
+
+def test_StackGeneralization():
+    from EvoMSA.evodag import StackGeneralization, BoW, TextRepresentations
+    D = list(tweet_iterator(TWEETS))
+    text_repr = StackGeneralization(lang='es',
+                                    decision_function_models=[BoW(lang='es')],
+                                    transform_models=[TextRepresentations(lang='es')]).fit(D)
+    assert text_repr.predict(['Buen dia'])[0] == 'P'
+
+
+def test_StackGeneralization_train_predict_decision_function():
+    from EvoMSA.evodag import StackGeneralization, BoW, TextRepresentations
+    D = list(tweet_iterator(TWEETS))
+    text_repr = StackGeneralization(lang='es',
+                                    decision_function_models=[BoW(lang='es')],
+                                    transform_models=[TextRepresentations(lang='es')])
+    hy = text_repr.train_predict_decision_function(D)
+    assert hy.shape[0] == len(D)
+    D1 = [x for x in D if x['klass'] in ['P', 'N']]
+    hy = text_repr.train_predict_decision_function(D1)
+    assert hy.shape[1] == 2
