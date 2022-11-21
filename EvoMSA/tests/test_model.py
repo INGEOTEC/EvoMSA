@@ -14,6 +14,7 @@
 import os
 from microtc.utils import tweet_iterator
 from test_base import StoreDelete
+import numpy as np
 TWEETS = os.path.join(os.path.dirname(__file__), 'tweets.json')
 
 
@@ -150,3 +151,17 @@ def test_TextModelInv():
     rr = [x for x in rr if x[:2] != "q:"]
     assert "hola" in rr
     txt.tokenize(dict(text="hola buen dia"))
+
+
+def test_GaussianBayes():
+    from scipy.stats import multivariate_normal
+    from EvoMSA.model import GaussianBayes  
+    X_1 = multivariate_normal(mean=[5, 5], cov=[[4, 0], [0, 2]]).rvs(size=1000)
+    X_2 = multivariate_normal(mean=[1.5, -1.5], cov=[[2, 1], [1, 3]]).rvs(size=1000)
+    X_3 = multivariate_normal(mean=[12.5, -3.5], cov=[[2, 3], [3, 7]]).rvs(size=1000)
+    X = np.concatenate((X_1, X_2, X_3))
+    y = np.array([1] * 1000 + [2] * 1000 + [3] * 1000)
+    bayes = GaussianBayes().fit(X, y)
+    hy = bayes.predict(X)
+    bayes = GaussianBayes(naive=True).fit(X, y)
+    hy_naive = bayes.predict(X)
