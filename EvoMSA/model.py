@@ -609,7 +609,7 @@ class GaussianBayes(object):
                 cov = np.var(X[mask], axis=0, ddof=1)
             else:
                 cov = np.cov(X[mask], rowvar=False)
-            _ = multivariate_normal(mean=mu, cov=cov)
+            _ = multivariate_normal(mean=mu, cov=cov, allow_singular=True)
             likelihood.append(_)
         self._likelihood = likelihood
 
