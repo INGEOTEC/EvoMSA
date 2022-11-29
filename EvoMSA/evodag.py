@@ -16,6 +16,7 @@
 from EvoMSA.base import DEFAULT_CL, DEFAULT_R
 from EvoMSA.utils import MODEL_LANG
 from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset
+from EvoMSA.model import GaussianBayes
 from joblib import Parallel, delayed
 from typing import Union, List, Set, Callable
 from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
@@ -172,8 +173,7 @@ class TextRepresentations(BoW):
         [self._text_representations.extend(k) for k in _]
 
     def estimator(self):
-        from sklearn.naive_bayes import GaussianNB
-        return GaussianNB()
+        return GaussianBayes()
 
     def transform(self, D: List[Union[List, dict]]) -> np.ndarray:
         if isinstance(self._key, str):
@@ -221,8 +221,7 @@ class StackGeneralization(BoW):
         self._estimated = False
 
     def estimator(self):
-        from sklearn.naive_bayes import GaussianNB
-        return GaussianNB()
+        return GaussianBayes()
 
     def fit(self, *args, **kwargs) -> 'StackGeneralization':
         super(StackGeneralization, self).fit(*args, **kwargs)
