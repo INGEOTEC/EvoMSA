@@ -128,3 +128,12 @@ def test_StackGeneralization_train_predict_decision_function():
     D1 = [x for x in D if x['klass'] in ['P', 'N']]
     hy = text_repr.train_predict_decision_function(D1)
     assert hy.shape[1] == 2
+
+
+def test_TextRepresentations_tr_setter():
+    from EvoMSA.evodag import TextRepresentations
+    D = list(tweet_iterator(TWEETS))
+    text_repr = TextRepresentations(lang='es')
+    tr = text_repr.text_representations
+    text_repr.text_representations = [tr[2], tr[3]]
+    text_repr.predict(['Buen dia'])

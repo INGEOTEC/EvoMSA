@@ -171,6 +171,10 @@ class TextRepresentations(BoW):
     def text_representations(self):
         return self._text_representations
 
+    @text_representations.setter
+    def text_representations(self, value):
+        self._text_representations = value
+
     def load_emoji(self) -> None:
         self._text_representations += load_emoji(lang=self._lang)
 
