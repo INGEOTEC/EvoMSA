@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Union
-import numpy as np
+from microtc.utils import save_model, tweet_iterator
 from b4msa.textmodel import TextModel
-from microtc.utils import tweet_iterator
-from sklearn.svm import LinearSVC
 from EvoMSA.ConceptModelling.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH, PATH as ConPATH
-import os
-from microtc.utils import save_model
+from scipy.stats import multivariate_normal
 from scipy.special import logsumexp
+from sklearn.svm import LinearSVC
+import numpy as np
+import os
 
 
 class BaseTextModel(object):
@@ -552,3 +552,84 @@ class TextModelInv(TextModel):
             result = " ".join(result)            
             
         return super(TextModelInv, self).tokenize(result)
+
+
+class GaussianBayes(object):
+    """
+    >>> from scipy.stats import multivariate_normal
+    >>> from EvoMSA.model import GaussianBayes  
+    >>> X_1 = multivariate_normal(mean=[5, 5], cov=[[4, 0], [0, 2]]).rvs(size=1000)
+    >>> X_2 = multivariate_normal(mean=[1.5, -1.5], cov=[[2, 1], [1, 3]]).rvs(size=1000)
+    >>> X_3 = multivariate_normal(mean=[12.5, -3.5], cov=[[2, 3], [3, 7]]).rvs(size=1000)
+    >>> X = np.concatenate((X_1, X_2, X_3))
+    >>> y = np.array([1] * 1000 + [2] * 1000 + [3] * 1000)
+    >>> bayes = GaussianBayes().fit(X, y)
+    >>> hy = bayes.predict(X)
+    >>> bayes = GaussianBayes(naive=True).fit(X, y)
+    >>> hy_naive = bayes.predict(X)
+    """
+    def __init__(self, naive=False) -> None:
+        self._naive = naive
+
+    @property
+    def naive(self):
+        return self._naive
+    
+    @property
+    def labels(self):
+        return self._labels
+
+    @labels.setter
+    def labels(self, labels):
+        self._labels = labels
+
+    @property
+    def prior(self):
+        return self._prior
+
+    @prior.setter
+    def prior(self, y):
+        labels, counts = np.unique(y, return_counts=True)
+        prior = counts / counts.sum()        
+        self.labels = labels
+        self._prior = np.log(prior)
+
+    @property
+    def likelihood(self):
+        return self._likelihood
+
+    @likelihood.setter
+    def likelihood(self, D):
+        X, y = D
+        likelihood = []
+        for k in self.labels:
+            mask = y == k
+            mu = np.mean(X[mask], axis=0)
+            if self.naive:
+                cov = np.var(X[mask], axis=0, ddof=1)
+            else:
+                cov = np.cov(X[mask], rowvar=False)
+            _ = multivariate_normal(mean=mu, cov=cov, allow_singular=True)
+            likelihood.append(_)
+        self._likelihood = likelihood
+
+    def fit(self, X, y):
+        self.prior = y
+        self.likelihood = (X, y)
+        return self
+
+    def predict_log_proba(self, X):
+        log_likelihood = np.vstack([m.logpdf(X) for m in self.likelihood]).T
+        prior = self.prior
+        posterior = log_likelihood + prior
+        evidence = np.atleast_2d(logsumexp(posterior, axis=1)).T
+        return posterior - evidence
+
+    def predict_proba(self, X):
+        _ = self.predict_log_proba(X)
+        return np.exp(_)
+
+    def predict(self, X):
+        hy = self.predict_log_proba(X)
+        _ = np.argmax(hy, axis=1)
+        return self.labels[_]

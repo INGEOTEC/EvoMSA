@@ -16,8 +16,11 @@
 from EvoMSA.base import DEFAULT_CL, DEFAULT_R
 from EvoMSA.utils import MODEL_LANG
 from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset
+from EvoMSA.model import GaussianBayes
 from joblib import Parallel, delayed
 from typing import Union, List, Set, Callable
+from sklearn.svm import LinearSVC
+from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
 from scipy.sparse import csr_matrix
 import numpy as np
@@ -37,6 +40,8 @@ class BoW(object):
                  key: Union[str, List[str]]='text',
                  mixer_func: Callable[[List], csr_matrix]=sum,
                  decision_function: str='decision_function',
+                 estimator_class=LinearSVC,
+                 estimator_kwargs=dict(),
                  n_jobs: int=1) -> None:
         assert lang in MODEL_LANG
         self._random_state = random_state
@@ -45,6 +50,8 @@ class BoW(object):
         self._key = key
         self._mixer_func = mixer_func
         self._decision_function = decision_function
+        self._estimator_class = estimator_class
+        self._estimator_kwargs = estimator_kwargs
 
     def transform(self, D: List[Union[List, dict]]) -> csr_matrix:
         assert len(D)
@@ -77,8 +84,7 @@ class BoW(object):
         return y
 
     def estimator(self):
-        from sklearn.svm import LinearSVC
-        return LinearSVC()
+        return self._estimator_class(**self._estimator_kwargs)
 
     @property
     def estimator_instance(self):
@@ -148,8 +154,10 @@ class TextRepresentations(BoW):
                  dataset: bool=True,
                  skip_dataset: Set[str]=set(),
                  decision_function='predict_proba',
+                 estimator_class=GaussianNB,
                  **kwargs) -> None:
         super(TextRepresentations, self).__init__(decision_function=decision_function,
+                                                  estimator_class=estimator_class,
                                                   **kwargs)
         assert emoji or dataset
         self._skip_dataset = skip_dataset
@@ -170,10 +178,6 @@ class TextRepresentations(BoW):
         _ = Parallel(n_jobs=self._n_jobs)(delayed(load_dataset)(lang=self._lang, name=name)
                                           for name in dataset_information(lang=self._lang) if name not in self._skip_dataset)
         [self._text_representations.extend(k) for k in _]
-
-    def estimator(self):
-        from sklearn.naive_bayes import GaussianNB
-        return GaussianNB()
 
     def transform(self, D: List[Union[List, dict]]) -> np.ndarray:
         if isinstance(self._key, str):
@@ -209,20 +213,18 @@ class StackGeneralization(BoW):
     def __init__(self, decision_function_models: list=[], 
                  transform_models: list=[],
                  decision_function: str='predict_proba',
+                 estimator_class=GaussianNB,
                  n_jobs: int=1,
                  **kwargs) -> None:
         assert len(decision_function_models) or len(transform_models)
         assert n_jobs == 1
         super(StackGeneralization, self).__init__(n_jobs=n_jobs,
                                                   decision_function=decision_function,
+                                                  estimator_class=estimator_class,
                                                   **kwargs)
         self._decision_function_models = decision_function_models
         self._transform_models = transform_models
         self._estimated = False
-
-    def estimator(self):
-        from sklearn.naive_bayes import GaussianNB
-        return GaussianNB()
 
     def fit(self, *args, **kwargs) -> 'StackGeneralization':
         super(StackGeneralization, self).fit(*args, **kwargs)
@@ -245,7 +247,6 @@ class StackGeneralization(BoW):
     def train_predict_decision_function(self, *args, **kwargs) -> np.ndarray:
         assert not self._estimated
         return super(StackGeneralization, self).train_predict_decision_function(*args, **kwargs)
-
 
 
 class EvoDAG(object):

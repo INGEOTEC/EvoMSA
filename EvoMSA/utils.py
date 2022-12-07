@@ -24,7 +24,9 @@ import os
 import numpy as np
 
 MICROTC='2.4.2'
-MODEL_LANG = ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
+MODEL_LANG = ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es',
+              'it' ,'ca', 'ko', 'hi', 'nl', 'pl', 'de',
+              'tl', 'in', 'ja', 'tr']
 
 
 class LabelEncoderWrapper(object):
