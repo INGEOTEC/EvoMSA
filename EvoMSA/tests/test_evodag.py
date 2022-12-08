@@ -144,3 +144,18 @@ def test_BoW_setter():
     bow = BoW(lang='es')
     bow.bow = True
     assert bow._bow
+
+
+def test_TextRepresentations_names():
+    from EvoMSA.evodag import TextRepresentations
+    text_repr = TextRepresentations(lang='es')
+    X = text_repr.transform(['buenos dias'])
+    assert X.shape[1] == len(text_repr.names)
+
+
+def test_TextRepresentations_select():
+    from EvoMSA.evodag import TextRepresentations
+    text_repr = TextRepresentations(lang='es')
+    text_repr.select([1, 10, 11])
+    X = text_repr.transform(['buenos dias'])
+    assert X.shape[1] == len(text_repr.names)

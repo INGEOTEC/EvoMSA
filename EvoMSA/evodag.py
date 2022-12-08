@@ -164,6 +164,7 @@ class TextRepresentations(BoW):
                                                   estimator_class=estimator_class,
                                                   **kwargs)
         assert emoji or dataset
+        self._names = []
         self._skip_dataset = skip_dataset
         self._text_representations = []
         if emoji:
@@ -179,13 +180,33 @@ class TextRepresentations(BoW):
     def text_representations(self, value):
         self._text_representations = value
 
+    def select(self, subset: list) -> None:
+        tr = self.text_representations
+        self.text_representations = [tr[i] for i in subset]
+        names = self.names
+        self.names = [names[i] for i in subset]
+
+    @property
+    def names(self):
+        return self._names
+
+    @names.setter
+    def names(self, value):
+        self._names = value
+
     def load_emoji(self) -> None:
-        self._text_representations += load_emoji(lang=self._lang)
+        emojis = load_emoji(lang=self._lang)
+        self.text_representations.extend(emojis)
+        self.names.extend([x.labels[-1] for x in emojis])
 
     def load_dataset(self) -> None:
+        names = [name for name in dataset_information(lang=self._lang)
+                 if name not in self._skip_dataset]
         _ = Parallel(n_jobs=self._n_jobs)(delayed(load_dataset)(lang=self._lang, name=name)
-                                          for name in dataset_information(lang=self._lang) if name not in self._skip_dataset)
-        [self._text_representations.extend(k) for k in _]
+                                          for name in names)
+        [self.text_representations.extend(k) for k in _]
+        [self.names.extend([name] if len(k) == 1 else [f'{name}({i.labels[-1]})' for i in k])
+         for k, name in zip(_, names)]        
 
     def transform(self, D: List[Union[List, dict]]) -> np.ndarray:
         if isinstance(self._key, str):
