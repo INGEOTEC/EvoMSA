@@ -53,9 +53,9 @@ class BoW(object):
         self._estimator_class = estimator_class
         self._estimator_kwargs = estimator_kwargs
 
-    def transform(self, D: List[Union[List, dict]]) -> csr_matrix:
+    def transform(self, D: List[Union[List, dict]], y=None) -> csr_matrix:
         assert len(D)
-        if self._key == 'text':
+        if self._key == 'text' or isinstance(D[0], str):
             return self.bow.transform(D)
         assert isinstance(D[0], dict)
         if isinstance(self._key, str):
@@ -105,10 +105,9 @@ class BoW(object):
             return getattr(m, self._decision_function)(X[vs])
 
         y = self.dependent_variable(D, y=y)
-        self._y = y
         kf = StratifiedKFold(shuffle=True, random_state=self._random_state)
         kfolds = [x for x in kf.split(D, y)]
-        X = self.transform(D)
+        X = self.transform(D, y=y)
         hys = Parallel(n_jobs=self._n_jobs)(delayed(train_predict)(tr, vs)
                                             for tr, vs in kfolds)
         K = np.unique(y).shape[0]
@@ -119,16 +118,13 @@ class BoW(object):
             hy = np.empty((y.shape[0], K))
         for (_, vs), pr in zip(kfolds, hys):
             hy[vs] = pr
-        delattr(self, '_y')        
         return hy
 
     def fit(self, D: List[Union[dict, list]], 
             y: Union[np.ndarray, None]=None) -> 'BoW':
         y = self.dependent_variable(D, y=y)
-        self._y = y
-        _ = self.transform(D)
+        _ = self.transform(D, y=y)
         self.estimator_instance = self.estimator().fit(_, y)
-        delattr(self, '_y')
         return self
 
     def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
@@ -208,14 +204,14 @@ class TextRepresentations(BoW):
         [self.names.extend([name] if len(k) == 1 else [f'{name}({i.labels[-1]})' for i in k])
          for k, name in zip(_, names)]        
 
-    def transform(self, D: List[Union[List, dict]]) -> np.ndarray:
+    def transform(self, D: List[Union[List, dict]], y=None) -> np.ndarray:
         if isinstance(self._key, str):
-            X = super(TextRepresentations, self).transform(D)
+            X = super(TextRepresentations, self).transform(D, y=y)
             models = Parallel(n_jobs=self._n_jobs)(delayed(m.decision_function)(X)
                                                    for m in self.text_representations)
             return np.array(models).T
         assert len(D) and isinstance(D[0], dict)
-        Xs = [self.bow.transform([x[key] for x in D])
+        Xs = [super(TextRepresentations, self).transform([x[key] for x in D], y=y)
               for key in self._key]
         with Parallel(n_jobs=self._n_jobs) as parallel:
             models = []
@@ -260,13 +256,13 @@ class StackGeneralization(BoW):
         self._estimated = True
         return self
 
-    def transform(self, D: List[Union[List, dict]]) -> np.ndarray:
+    def transform(self, D: List[Union[List, dict]], y=None) -> np.ndarray:
         Xs = [text_repr.transform(D)
               for text_repr in self._transform_models]
         if not self._estimated:
-            [text_repr.fit(D, y=self._y)
+            [text_repr.fit(D, y=y)
              for text_repr in self._decision_function_models]
-            Xs += [text_repr.train_predict_decision_function(D, y=self._y)
+            Xs += [text_repr.train_predict_decision_function(D, y=y)
                    for text_repr in self._decision_function_models]
             return np.concatenate(Xs, axis=1)
         Xs += [text_repr.decision_function(D)
