@@ -74,6 +74,10 @@ class BoW(object):
             bow = self._bow
         return bow
 
+    @bow.setter
+    def bow(self, value):
+        self._bow = value
+
     def dependent_variable(self, D: List[Union[dict, list]], 
                            y: Union[np.ndarray, None]=None) -> np.ndarray:
         assert isinstance(D, list) and len(D)
@@ -170,6 +174,10 @@ class TextRepresentations(BoW):
     @property
     def text_representations(self):
         return self._text_representations
+
+    @text_representations.setter
+    def text_representations(self, value):
+        self._text_representations = value
 
     def load_emoji(self) -> None:
         self._text_representations += load_emoji(lang=self._lang)
