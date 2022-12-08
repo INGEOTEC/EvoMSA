@@ -128,3 +128,34 @@ def test_StackGeneralization_train_predict_decision_function():
     D1 = [x for x in D if x['klass'] in ['P', 'N']]
     hy = text_repr.train_predict_decision_function(D1)
     assert hy.shape[1] == 2
+
+
+def test_TextRepresentations_tr_setter():
+    from EvoMSA.evodag import TextRepresentations
+    D = list(tweet_iterator(TWEETS))
+    text_repr = TextRepresentations(lang='es')
+    tr = text_repr.text_representations
+    text_repr.text_representations = tr[:3]
+    assert text_repr.transform(['Buen dia']).shape[1] == 3
+
+def test_BoW_setter():
+    from EvoMSA.evodag import BoW
+    D = list(tweet_iterator(TWEETS))
+    bow = BoW(lang='es')
+    bow.bow = True
+    assert bow._bow
+
+
+def test_TextRepresentations_names():
+    from EvoMSA.evodag import TextRepresentations
+    text_repr = TextRepresentations(lang='es')
+    X = text_repr.transform(['buenos dias'])
+    assert X.shape[1] == len(text_repr.names)
+
+
+def test_TextRepresentations_select():
+    from EvoMSA.evodag import TextRepresentations
+    text_repr = TextRepresentations(lang='es')
+    text_repr.select([1, 10, 11])
+    X = text_repr.transform(['buenos dias'])
+    assert X.shape[1] == len(text_repr.names)
