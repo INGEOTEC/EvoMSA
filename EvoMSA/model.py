@@ -136,7 +136,7 @@ class SVCWrapper(LinearSVC):
         super(SVCWrapper, self).__init__(*args, dual=dual, **kwargs)
 
     def get_params(self, *args, **kwargs):
-        return super(SVCWrapper).get_params(*args, **kwargs)
+        return super(SVCWrapper, self).get_params(*args, **kwargs)
 
 
 class Identity(BaseTextModel, BaseClassifier):
