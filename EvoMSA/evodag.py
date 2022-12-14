@@ -15,7 +15,7 @@
 
 from EvoMSA.base import DEFAULT_CL, DEFAULT_R
 from EvoMSA.utils import MODEL_LANG
-from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset
+from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset, load_keyword
 from EvoMSA.model import GaussianBayes
 from b4msa.textmodel import TextModel
 from joblib import Parallel, delayed
@@ -186,6 +186,7 @@ class TextRepresentations(BoW):
     def __init__(self, 
                  emoji: bool=True,
                  dataset: bool=True,
+                 keyword: bool=False,
                  skip_dataset: Set[str]=set(),
                  decision_function='predict_proba',
                  estimator_class=GaussianNB,
@@ -193,7 +194,7 @@ class TextRepresentations(BoW):
         super(TextRepresentations, self).__init__(decision_function=decision_function,
                                                   estimator_class=estimator_class,
                                                   **kwargs)
-        assert emoji or dataset
+        assert emoji or dataset or keyword
         self._names = []
         self._skip_dataset = skip_dataset
         self._text_representations = []
@@ -201,6 +202,8 @@ class TextRepresentations(BoW):
             self.load_emoji()
         if dataset:
             self.load_dataset()
+        if keyword:
+            self.load_keyword()
 
     @property
     def text_representations(self):
@@ -228,6 +231,11 @@ class TextRepresentations(BoW):
         emojis = load_emoji(lang=self._lang)
         self.text_representations.extend(emojis)
         self.names.extend([x.labels[-1] for x in emojis])
+
+    def load_keyword(self) -> None:
+        _ = load_keyword(lang=self._lang)
+        self.text_representations.extend(_)
+        self.names.extend([x.labels[-1] for x in _])        
 
     def load_dataset(self) -> None:
         names = [name for name in dataset_information(lang=self._lang)

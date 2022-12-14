@@ -181,4 +181,12 @@ def test_BoW_pretrain_False():
               b4msa_kwargs=dict(max_dimension=True,
                                 token_max_filter=2**10)).fit(_)
     X = bow.transform(_)
-    assert X.shape[1] == 2**10          
+    assert X.shape[1] == 2**10
+
+
+def test_TextRepresentations_keyword():
+    from EvoMSA.evodag import TextRepresentations
+    text_repr = TextRepresentations(lang='es', keyword=True,
+                                    emoji=False, dataset=False)
+    X = text_repr.transform(['hola'])
+    assert 2113 == X.shape[1]
