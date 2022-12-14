@@ -135,6 +135,9 @@ class SVCWrapper(LinearSVC):
     def __init__(self, *args, dual=False, **kwargs):
         super(SVCWrapper, self).__init__(*args, dual=dual, **kwargs)
 
+    def get_params(self, *args, **kwargs):
+        return super(SVCWrapper).get_params(*args, **kwargs)
+
 
 class Identity(BaseTextModel, BaseClassifier):
     """Identity function used as either text model or classifier or regressor"""
