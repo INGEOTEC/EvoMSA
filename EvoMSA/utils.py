@@ -394,6 +394,26 @@ def load_emoji(lang='es', emoji=None):
     return _load_text_repr(lang, 'emojis', emoji)
 
 
+def load_keyword(lang='es', keyword=None):
+    """
+    Download and load the Keyword representation
+
+    :param lang: ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
+    :type lang: str
+    :param emoji: emoji identifier
+    :type emoji: int
+
+    >>> from EvoMSA.utils import load_emoji, load_bow
+    >>> bow = load_bow(lang='es')
+    >>> emo = load_keyword(lang='es', keyword=0)
+    >>> X = bow.transform(['hola'])
+    >>> df = emo.decision_function(X)
+    """
+    lang = lang.lower().strip()
+    assert lang in MODEL_LANG
+    return _load_text_repr(lang, 'keywords', keyword)    
+
+
 def emoji_information(lang='es'):
     """
     Download and load the Emoji statistics

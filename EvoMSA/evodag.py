@@ -15,8 +15,9 @@
 
 from EvoMSA.base import DEFAULT_CL, DEFAULT_R
 from EvoMSA.utils import MODEL_LANG
-from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset
+from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset, load_keyword
 from EvoMSA.model import GaussianBayes
+from b4msa.textmodel import TextModel
 from joblib import Parallel, delayed
 from typing import Union, List, Set, Callable
 from sklearn.svm import LinearSVC
@@ -42,8 +43,10 @@ class BoW(object):
                  decision_function: str='decision_function',
                  estimator_class=LinearSVC,
                  estimator_kwargs=dict(),
+                 pretrain=True,
+                 b4msa_kwargs=dict(),
                  n_jobs: int=1) -> None:
-        assert lang in MODEL_LANG
+        assert lang is None or lang in MODEL_LANG
         self._random_state = random_state
         self._n_jobs = n_jobs
         self._lang = lang
@@ -52,9 +55,34 @@ class BoW(object):
         self._decision_function = decision_function
         self._estimator_class = estimator_class
         self._estimator_kwargs = estimator_kwargs
+        self._b4msa_kwargs = b4msa_kwargs
+        self._pretrain = pretrain
+        self._b4msa_estimated = False
+
+    @property
+    def pretrain(self):
+        return self._pretrain
+
+    @property
+    def lang(self):
+        return self._lang
+
+    def b4msa_fit(self, D):
+        assert len(D)
+        self._b4msa_estimated = True
+        if self._key == 'text' or isinstance(D[0], str):
+            return self.bow.fit(D)
+        assert isinstance(D[0], dict)
+        if isinstance(self._key, str):
+            key = self._key
+            return self.bow.fit([x[key] for x in D])
+        _ = [[x[key] for key in self._key] for x in D]
+        return self.bow.fit(_)
 
     def transform(self, D: List[Union[List, dict]], y=None) -> csr_matrix:
         assert len(D)
+        if not self.pretrain:
+            assert self._b4msa_estimated
         if self._key == 'text' or isinstance(D[0], str):
             return self.bow.transform(D)
         assert isinstance(D[0], dict)
@@ -70,7 +98,11 @@ class BoW(object):
         try:
             bow = self._bow
         except AttributeError:
-            self._bow = load_bow(lang=self._lang)
+            if self.pretrain:
+                self._bow = load_bow(lang=self._lang)
+            else:
+                self._bow = TextModel(lang=self.lang,
+                                      **self._b4msa_kwargs)
             bow = self._bow
         return bow
 
@@ -122,6 +154,8 @@ class BoW(object):
 
     def fit(self, D: List[Union[dict, list]], 
             y: Union[np.ndarray, None]=None) -> 'BoW':
+        if not self.pretrain:
+            self.b4msa_fit(D)
         y = self.dependent_variable(D, y=y)
         _ = self.transform(D, y=y)
         self.estimator_instance = self.estimator().fit(_, y)
@@ -152,6 +186,7 @@ class TextRepresentations(BoW):
     def __init__(self, 
                  emoji: bool=True,
                  dataset: bool=True,
+                 keyword: bool=False,
                  skip_dataset: Set[str]=set(),
                  decision_function='predict_proba',
                  estimator_class=GaussianNB,
@@ -159,7 +194,7 @@ class TextRepresentations(BoW):
         super(TextRepresentations, self).__init__(decision_function=decision_function,
                                                   estimator_class=estimator_class,
                                                   **kwargs)
-        assert emoji or dataset
+        assert emoji or dataset or keyword
         self._names = []
         self._skip_dataset = skip_dataset
         self._text_representations = []
@@ -167,6 +202,8 @@ class TextRepresentations(BoW):
             self.load_emoji()
         if dataset:
             self.load_dataset()
+        if keyword:
+            self.load_keyword()
 
     @property
     def text_representations(self):
@@ -194,6 +231,11 @@ class TextRepresentations(BoW):
         emojis = load_emoji(lang=self._lang)
         self.text_representations.extend(emojis)
         self.names.extend([x.labels[-1] for x in emojis])
+
+    def load_keyword(self) -> None:
+        _ = load_keyword(lang=self._lang)
+        self.text_representations.extend(_)
+        self.names.extend([x.labels[-1] for x in _])        
 
     def load_dataset(self) -> None:
         names = [name for name in dataset_information(lang=self._lang)

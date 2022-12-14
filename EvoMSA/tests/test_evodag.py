@@ -159,3 +159,34 @@ def test_TextRepresentations_select():
     text_repr.select([1, 10, 11])
     X = text_repr.transform(['buenos dias'])
     assert X.shape[1] == len(text_repr.names)
+
+
+def test_BoW_pretrain_False():
+    from EvoMSA.evodag import BoW
+    D = list(tweet_iterator(TWEETS))
+    
+    bow = BoW(lang='es', pretrain=False,
+              b4msa_kwargs=dict(max_dimension=True,
+                                token_max_filter=2**10)).fit(D)
+    X = bow.transform(D)
+    assert X.shape[1] == 2**10
+    _ = [dict(tt=x['text'], klass=x['klass']) for x in D]
+    bow = BoW(lang='es', pretrain=False, key='tt',
+              b4msa_kwargs=dict(max_dimension=True,
+                                token_max_filter=2**10)).fit(_)
+    X = bow.transform(_)
+    assert X.shape[1] == 2**10
+    _ = [dict(tt=x['text'], klass=x['klass'], tt2=x['text']) for x in D]
+    bow = BoW(lang='es', pretrain=False, key=['tt', 'tt2'],
+              b4msa_kwargs=dict(max_dimension=True,
+                                token_max_filter=2**10)).fit(_)
+    X = bow.transform(_)
+    assert X.shape[1] == 2**10
+
+
+def test_TextRepresentations_keyword():
+    from EvoMSA.evodag import TextRepresentations
+    text_repr = TextRepresentations(lang='es', keyword=True,
+                                    emoji=False, dataset=False)
+    X = text_repr.transform(['hola'])
+    assert 2113 == X.shape[1]
