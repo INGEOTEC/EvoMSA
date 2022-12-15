@@ -139,7 +139,7 @@ class BoW(object):
     def train_predict_decision_function(self, D: List[Union[dict, list]], 
                                         y: Union[np.ndarray, None]=None) -> np.ndarray:
         def train_predict(tr, vs):
-            m = self.estimator(**self._estimator_kwargs).fit(X[tr], y[tr])
+            m = self.estimator().fit(X[tr], y[tr])
             return getattr(m, self._decision_function)(X[vs])
 
         y = self.dependent_variable(D, y=y)
@@ -166,7 +166,7 @@ class BoW(object):
         def params_predictions(b):
             mask = np.ones(len(D), dtype=bool)
             mask[b] = False
-            ins = self.estimator(**self._estimator_kwargs)
+            ins = self.estimator()
             ins.fit(X[b], y[b])
             if mask.sum():
                 y_test = y[mask]
@@ -226,8 +226,9 @@ class TextRepresentations(BoW):
                  dataset: bool=True,
                  keyword: bool=True,
                  skip_dataset: Set[str]=set(),
+                 estimator_kwargs=dict(dual=False),
                  **kwargs) -> None:
-        super(TextRepresentations, self).__init__(**kwargs)
+        super(TextRepresentations, self).__init__(estimator_kwargs=estimator_kwargs, **kwargs)
         assert emoji or dataset or keyword
         self._skip_dataset = skip_dataset
         self._names = []
