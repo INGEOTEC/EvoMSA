@@ -24,6 +24,7 @@ from sklearn.svm import LinearSVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
 from scipy.sparse import csr_matrix
+from tqdm import tqdm
 import numpy as np
 
 
@@ -48,7 +49,8 @@ class BoW(object):
                  kfold_instance=StratifiedKFold,
                  kfold_kwargs: dict=dict(random_state=0,
                                          shuffle=True),
-                 n_jobs: int=1) -> None:
+                 n_jobs: int=1,
+                 bar: Union[Callable, None]=tqdm) -> None:
         assert lang is None or lang in MODEL_LANG
         self._n_jobs = n_jobs
         self._lang = lang
@@ -62,6 +64,7 @@ class BoW(object):
         self._pretrain = pretrain
         self._kfold_instance = kfold_instance
         self._kfold_kwargs = kfold_kwargs
+        self._bar = bar
         self._b4msa_estimated = False
 
     @property
@@ -147,7 +150,7 @@ class BoW(object):
         kfolds = [x for x in kf.split(D, y)]
         X = self.transform(D, y=y)
         hys = Parallel(n_jobs=self._n_jobs)(delayed(train_predict)(tr, vs)
-                                            for tr, vs in kfolds)
+                                            for tr, vs in self._bar(kfolds))
         K = np.unique(y).shape[0]
         if hys[0].ndim == 1:
             hy = np.empty((y.shape[0], 1))
@@ -180,7 +183,7 @@ class BoW(object):
         X = self.transform(D, y=y)
         B = np.random.randint(len(D), size=(N, len(D))) if B is None else B
         _ = Parallel(n_jobs=self._n_jobs)(delayed(params_predictions)(b)
-                                            for b in B)
+                                            for b in self._bar(B))
         coefs, ys, hys = [], [], []
         [(coefs.append(coef), ys.append(y), hys.append(hy))
          for coef, y, hy in _]
@@ -280,7 +283,8 @@ class TextRepresentations(BoW):
                          get_params: Callable=lambda x: x.coef_,
                          B: Union[np.ndarray, None]=None,
                          N: int=500):
-        params, _, _ = self.bootstrap(D=D, y=y, get_params=get_params, B=B, N=N)
+        params, _, _ = self.bootstrap(D=D, y=y, get_params=get_params,
+                                      B=B, N=N)
         mean, se = self.mean_standard_error(params)
         mask = np.fabs(mean / se) > 2
         mask = np.any(mask, axis=0)
