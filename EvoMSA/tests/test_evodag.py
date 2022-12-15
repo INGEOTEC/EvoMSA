@@ -25,7 +25,8 @@ def test_EvoDAG_decision_function():
         def estimator(self):
             return EvoDAG(n_estimators=2, 
                           max_training_size=100)    
-    evodag = _EvoDAG(decision_function='decision_function').fit(D)
+    evodag = _EvoDAG(keyword=False, emoji=False,
+                     decision_function='decision_function').fit(D)
     hy = evodag.decision_function(D)    
     assert hy.shape[0] == 1000 and hy.shape[1] == 4
 
@@ -37,7 +38,7 @@ def test_EvoDAG_predict():
         def estimator(self):
             return EvoDAG(n_estimators=2, 
                           max_training_size=100)    
-    evodag = _EvoDAG().fit(D)
+    evodag = _EvoDAG(keyword=False, emoji=False).fit(D)
     hy = evodag.predict(D)
     assert (hy == [x['klass'] for x in D]).mean() > 0.25
     
@@ -86,7 +87,7 @@ def test_BoW_key():
 def test_TextRepresentations_transform():
     from EvoMSA.evodag import TextRepresentations
     D = list(tweet_iterator(TWEETS))
-    text_repr = TextRepresentations(lang='es')
+    text_repr = TextRepresentations(lang='es', keyword=False, emoji=False)
     X = text_repr.transform(D)
     assert X.shape[0] == len(D)
     assert len(text_repr.text_representations) == X.shape[1]
@@ -95,16 +96,16 @@ def test_TextRepresentations_transform():
 def test_TextRepresentations_fit():
     from EvoMSA.evodag import TextRepresentations
     D = list(tweet_iterator(TWEETS))
-    text_repr = TextRepresentations(lang='es').fit(D)
+    text_repr = TextRepresentations(lang='es', keyword=False, emoji=False).fit(D)
     text_repr.predict(['Buen dia'])
 
 
 def test_TextRepresentations_key():
     from EvoMSA.evodag import TextRepresentations
     D = list(tweet_iterator(TWEETS))
-    O = TextRepresentations(lang='es').transform(D)    
+    O = TextRepresentations(lang='es', keyword=False, emoji=False).transform(D)    
     X = [dict(klass=x['klass'], premise=x['text'], conclusion=x['text']) for x in D]
-    bow = TextRepresentations(lang='es', key=['premise', 'conclusion'])
+    bow = TextRepresentations(lang='es', keyword=False, emoji=False, key=['premise', 'conclusion'])
     assert abs(bow.transform(X) - O * 2).sum() == 0    
 
 
@@ -113,7 +114,7 @@ def test_StackGeneralization():
     D = list(tweet_iterator(TWEETS))
     text_repr = StackGeneralization(lang='es',
                                     decision_function_models=[BoW(lang='es')],
-                                    transform_models=[TextRepresentations(lang='es')]).fit(D)
+                                    transform_models=[TextRepresentations(lang='es', keyword=False, emoji=False)]).fit(D)
     assert text_repr.predict(['Buen dia'])[0] == 'P'
 
 
@@ -122,7 +123,7 @@ def test_StackGeneralization_train_predict_decision_function():
     D = list(tweet_iterator(TWEETS))
     text_repr = StackGeneralization(lang='es',
                                     decision_function_models=[BoW(lang='es')],
-                                    transform_models=[TextRepresentations(lang='es')])
+                                    transform_models=[TextRepresentations(lang='es', keyword=False, emoji=False)])
     hy = text_repr.train_predict_decision_function(D)
     assert hy.shape[0] == len(D)
     D1 = [x for x in D if x['klass'] in ['P', 'N']]
@@ -133,7 +134,7 @@ def test_StackGeneralization_train_predict_decision_function():
 def test_TextRepresentations_tr_setter():
     from EvoMSA.evodag import TextRepresentations
     D = list(tweet_iterator(TWEETS))
-    text_repr = TextRepresentations(lang='es')
+    text_repr = TextRepresentations(lang='es', keyword=False, emoji=False)
     tr = text_repr.text_representations
     text_repr.text_representations = tr[:3]
     assert text_repr.transform(['Buen dia']).shape[1] == 3
@@ -148,14 +149,14 @@ def test_BoW_setter():
 
 def test_TextRepresentations_names():
     from EvoMSA.evodag import TextRepresentations
-    text_repr = TextRepresentations(lang='es')
+    text_repr = TextRepresentations(lang='es', keyword=False, emoji=False)
     X = text_repr.transform(['buenos dias'])
     assert X.shape[1] == len(text_repr.names)
 
 
 def test_TextRepresentations_select():
     from EvoMSA.evodag import TextRepresentations
-    text_repr = TextRepresentations(lang='es')
+    text_repr = TextRepresentations(lang='es', keyword=False, emoji=False)
     text_repr.select([1, 10, 11])
     X = text_repr.transform(['buenos dias'])
     assert X.shape[1] == len(text_repr.names)
@@ -190,3 +191,41 @@ def test_TextRepresentations_keyword():
                                     emoji=False, dataset=False)
     X = text_repr.transform(['hola'])
     assert 2113 == X.shape[1]
+
+
+def test_BoW_label_key():
+    from EvoMSA.evodag import BoW
+    D = list(tweet_iterator(TWEETS))
+    _ = [dict(tt=x['text'], label=x['klass']) for x in D]
+    bow = BoW(lang='es', pretrain=False, key='tt',
+              label_key='label',  
+              b4msa_kwargs=dict(max_dimension=True,
+                                token_max_filter=2**10)).fit(_)
+    assert bow.predict(['buenos días'])[0] == 'P'
+
+
+def test_BoW_bootstrap():
+    from EvoMSA.evodag import BoW
+    D = list(tweet_iterator(TWEETS))
+    params, y, hy = BoW(lang='es').bootstrap(D, N=5)
+    assert len(params) == 5 and len(hy) == 5 and len(y) == 5
+
+
+def test_BoW_mean_standard_error():
+    from EvoMSA.evodag import BoW
+    D = list(tweet_iterator(TWEETS))
+    params, y, hy = BoW(lang='es').bootstrap(D, N=5)
+    m, se = BoW.mean_standard_error(params)
+    assert m.shape == params[0].shape
+
+
+def test_TextRepresentations_select2():
+    from EvoMSA.evodag import TextRepresentations
+    D = list(tweet_iterator(TWEETS))    
+    text_repr = TextRepresentations(lang='es', 
+                                    emoji=False,
+                                    keyword=False,
+                                    n_jobs=-1)
+    n_names = len(text_repr.names)
+    text_repr.select(D=D, N=10)
+    assert len(text_repr.names) < n_names
