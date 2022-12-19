@@ -204,28 +204,20 @@ def test_BoW_label_key():
     assert bow.predict(['buenos días'])[0] == 'P'
 
 
-def test_BoW_bootstrap():
-    from EvoMSA.evodag import BoW
-    D = list(tweet_iterator(TWEETS))
-    params, y, hy = BoW(lang='es').bootstrap(D, N=5)
-    assert len(params) == 5 and len(hy) == 5 and len(y) == 5
-
-
-def test_BoW_mean_standard_error():
-    from EvoMSA.evodag import BoW
-    D = list(tweet_iterator(TWEETS))
-    params, y, hy = BoW(lang='es').bootstrap(D, N=5)
-    m, se = BoW.mean_standard_error(params)
-    assert m.shape == params[0].shape
-
-
 def test_TextRepresentations_select2():
     from EvoMSA.evodag import TextRepresentations
     D = list(tweet_iterator(TWEETS))    
     text_repr = TextRepresentations(lang='es', 
                                     emoji=False,
                                     keyword=False,
-                                    n_jobs=-1)
+                                    n_jobs=1)
     n_names = len(text_repr.names)
-    text_repr.select(D=D, N=10)
+    text_repr.select(D=D)
     assert len(text_repr.names) < n_names
+
+
+def test_BoW_names():
+    from EvoMSA.evodag import BoW
+    bow = BoW(lang='es')
+    X = bow.transform(['hola'])
+    assert len(bow.names) == X.shape[1]
