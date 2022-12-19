@@ -17,6 +17,7 @@ from EvoMSA.base import DEFAULT_CL, DEFAULT_R
 from EvoMSA.utils import MODEL_LANG
 from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset, load_keyword
 from EvoMSA.model import GaussianBayes
+from EvoMSA.model_selection import KruskalFS
 from b4msa.textmodel import TextModel
 from joblib import Parallel, delayed
 from typing import Union, List, Set, Callable, Tuple
@@ -49,8 +50,7 @@ class BoW(object):
                  kfold_instance=StratifiedKFold,
                  kfold_kwargs: dict=dict(random_state=0,
                                          shuffle=True),
-                 n_jobs: int=1,
-                 bar: Union[Callable, None]=tqdm) -> None:
+                 n_jobs: int=1) -> None:
         assert lang is None or lang in MODEL_LANG
         self._n_jobs = n_jobs
         self._lang = lang
@@ -64,8 +64,14 @@ class BoW(object):
         self._pretrain = pretrain
         self._kfold_instance = kfold_instance
         self._kfold_kwargs = kfold_kwargs
-        self._bar = bar
         self._b4msa_estimated = False
+
+    @property
+    def names(self):
+        _names = [None] * len(self.bow.id2token)
+        for k, v in self.bow.id2token.items():
+            _names[k] = v
+        return _names   
 
     @property
     def pretrain(self):
@@ -150,7 +156,7 @@ class BoW(object):
         kfolds = [x for x in kf.split(D, y)]
         X = self.transform(D, y=y)
         hys = Parallel(n_jobs=self._n_jobs)(delayed(train_predict)(tr, vs)
-                                            for tr, vs in self._bar(kfolds))
+                                            for tr, vs in kfolds)
         K = np.unique(y).shape[0]
         if hys[0].ndim == 1:
             hy = np.empty((y.shape[0], 1))
@@ -160,38 +166,6 @@ class BoW(object):
         for (_, vs), pr in zip(kfolds, hys):
             hy[vs] = pr
         return hy
-
-    def bootstrap(self, D: List[Union[dict, list]], 
-                  y: Union[np.ndarray, None]=None,
-                  get_params: Callable=lambda x: x.coef_,
-                  B: Union[np.ndarray, None]=None,
-                  N: int=500) -> Tuple[list, list, list]:
-        def params_predictions(b):
-            mask = np.ones(len(D), dtype=bool)
-            mask[b] = False
-            ins = self.estimator()
-            ins.fit(X[b], y[b])
-            if mask.sum():
-                y_test = y[mask]
-                hy = ins.predict(X[mask])
-            else:
-                y_test = None
-                hy = None
-            return get_params(ins), y_test, hy
-
-        y = self.dependent_variable(D, y=y)
-        X = self.transform(D, y=y)
-        B = np.random.randint(len(D), size=(N, len(D))) if B is None else B
-        _ = Parallel(n_jobs=self._n_jobs)(delayed(params_predictions)(b)
-                                            for b in self._bar(B))
-        coefs, ys, hys = [], [], []
-        [(coefs.append(coef), ys.append(y), hys.append(hy))
-         for coef, y, hy in _]
-        return coefs, ys, hys
-
-    @staticmethod
-    def mean_standard_error(params):
-        return np.mean(params, axis=0), np.std(params, axis=0)
 
     def fit(self, D: List[Union[dict, list]], 
             y: Union[np.ndarray, None]=None) -> 'BoW':
@@ -254,9 +228,8 @@ class TextRepresentations(BoW):
     def select(self, subset: Union[list, None]=None,
                D: List[Union[dict, list, None]]=None, 
                y: Union[np.ndarray, None]=None,
-               get_params: Callable=lambda x: x.coef_,
-               B: Union[np.ndarray, None]=None,
-               N: int=500, max_size: int=2**10) -> None:
+               feature_selection: Callable=KruskalFS,
+               feature_selection_kwargs: dict=dict()) -> None:
         assert subset is not None or D is not None
         if subset is not None:
             tr = self.text_representations
@@ -264,31 +237,11 @@ class TextRepresentations(BoW):
             names = self.names
             self.names = [names[i] for i in subset]
             return
-        if len(D) > max_size:
-            index = np.arange(len(D))
-            np.random.shuffle(index)
-            index = index[:max_size]
-            y = y[index] if y is not None else y
-            subset = self.linear_selection(D=[D[i] for i in index],
-                                           y=y,
-                                           get_params=get_params,
-                                           B=B, N=N)
-        else:
-            subset = self.linear_selection(D=D, y=y, get_params=get_params,
-                                           B=B, N=N)
-        self.select(subset=subset)
-
-    def linear_selection(self, D: List[Union[dict, list, None]]=None, 
-                         y: Union[np.ndarray, None]=None,
-                         get_params: Callable=lambda x: x.coef_,
-                         B: Union[np.ndarray, None]=None,
-                         N: int=500):
-        params, _, _ = self.bootstrap(D=D, y=y, get_params=get_params,
-                                      B=B, N=N)
-        mean, se = self.mean_standard_error(params)
-        mask = np.fabs(mean / se) > 2
-        mask = np.any(mask, axis=0)
-        return np.where(mask)[0]
+        y = self.dependent_variable(D, y=y)
+        X = self.transform(D)
+        feature_selection = feature_selection(**feature_selection_kwargs).fit(X, y=y)
+        index = feature_selection.get_support(indices=True)
+        self.select(subset=index)
 
     @property
     def names(self):
