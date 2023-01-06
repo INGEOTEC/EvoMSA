@@ -221,3 +221,26 @@ def test_BoW_names():
     bow = BoW(lang='es')
     X = bow.transform(['hola'])
     assert len(bow.names) == X.shape[1]
+
+
+def test_TextRepresentations_unit():
+    from EvoMSA.evodag import TextRepresentations
+    D = list(tweet_iterator(TWEETS))    
+    text_repr = TextRepresentations(lang='es', 
+                                    emoji=False,
+                                    keyword=False,
+                                    n_jobs=1,
+                                    unit_vector=True)
+    X = text_repr.transform(['buenos días'])
+    
+    _ = np.sqrt((X ** 2).sum(axis=1))
+    np.testing.assert_almost_equal(_, 1)
+    text_repr = TextRepresentations(lang='es', 
+                                    emoji=False,
+                                    keyword=False,
+                                    n_jobs=1,
+                                    key=['text', 'text'],
+                                    unit_vector=True)
+    X = text_repr.transform([dict(text='buenos días')])
+    _ = np.sqrt((X ** 2).sum(axis=1))
+    np.testing.assert_almost_equal(_, 1)

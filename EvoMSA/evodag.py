@@ -169,7 +169,7 @@ class BoW(object):
 
     def fit(self, D: List[Union[dict, list]], 
             y: Union[np.ndarray, None]=None) -> 'BoW':
-        if not self.pretrain:
+        if not self.pretrain and not self._b4msa_estimated:
             self.b4msa_fit(D)
         y = self.dependent_variable(D, y=y)
         _ = self.transform(D, y=y)
@@ -204,12 +204,14 @@ class TextRepresentations(BoW):
                  keyword: bool=True,
                  skip_dataset: Set[str]=set(),
                  estimator_kwargs=dict(dual=False),
+                 unit_vector=True,
                  **kwargs) -> None:
         super(TextRepresentations, self).__init__(estimator_kwargs=estimator_kwargs, **kwargs)
         assert emoji or dataset or keyword
         self._skip_dataset = skip_dataset
         self._names = []
         self._text_representations = []
+        self._unit_vector = unit_vector
         if emoji:
             self.load_emoji()
         if dataset:
@@ -275,7 +277,11 @@ class TextRepresentations(BoW):
             X = super(TextRepresentations, self).transform(D, y=y)
             models = Parallel(n_jobs=self._n_jobs)(delayed(m.decision_function)(X)
                                                    for m in self.text_representations)
-            return np.array(models).T
+            _ = np.array(models).T
+            if self._unit_vector:
+                return _ / np.atleast_2d(np.linalg.norm(_)).T
+            else:
+                return _
         assert len(D) and isinstance(D[0], dict)
         Xs = [super(TextRepresentations, self).transform([x[key] for x in D], y=y)
               for key in self._key]
@@ -285,8 +291,11 @@ class TextRepresentations(BoW):
                 _ = parallel(delayed(m.decision_function)(X)
                              for m in self.text_representations)
                 models.append(np.array(_).T)
-        return self._mixer_func(models)                
-
+        _ = self._mixer_func(models)
+        if self._unit_vector:
+            return _ / np.atleast_2d(np.linalg.norm(_)).T
+        else:
+            return _
 
 class StackGeneralization(BoW):
     """
