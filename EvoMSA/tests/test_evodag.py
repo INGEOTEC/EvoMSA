@@ -103,9 +103,11 @@ def test_TextRepresentations_fit():
 def test_TextRepresentations_key():
     from EvoMSA.evodag import TextRepresentations
     D = list(tweet_iterator(TWEETS))
-    O = TextRepresentations(lang='es', keyword=False, emoji=False).transform(D)    
+    O = TextRepresentations(lang='es', unit_vector=False,
+                            keyword=False, emoji=False).transform(D)    
     X = [dict(klass=x['klass'], premise=x['text'], conclusion=x['text']) for x in D]
-    bow = TextRepresentations(lang='es', keyword=False, emoji=False, key=['premise', 'conclusion'])
+    bow = TextRepresentations(lang='es', unit_vector=False,
+                              keyword=False, emoji=False, key=['premise', 'conclusion'])
     assert abs(bow.transform(X) - O * 2).sum() == 0    
 
 
