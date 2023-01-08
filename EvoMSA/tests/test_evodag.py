@@ -233,10 +233,10 @@ def test_TextRepresentations_unit():
                                     keyword=False,
                                     n_jobs=1,
                                     unit_vector=True)
-    X = text_repr.transform(['buenos días'])
+    X = text_repr.transform(['buenos días', 'adios'])
     
     _ = np.sqrt((X ** 2).sum(axis=1))
-    np.testing.assert_almost_equal(_, 1)
+    np.testing.assert_almost_equal(_, np.array([1, 1]))
     text_repr = TextRepresentations(lang='es', 
                                     emoji=False,
                                     keyword=False,
