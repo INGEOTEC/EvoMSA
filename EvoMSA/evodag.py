@@ -279,7 +279,7 @@ class TextRepresentations(BoW):
                                                    for m in self.text_representations)
             _ = np.array(models).T
             if self._unit_vector:
-                return _ / np.atleast_2d(np.linalg.norm(_)).T
+                return _ / np.atleast_2d(np.linalg.norm(_, axis=1)).T
             else:
                 return _
         assert len(D) and isinstance(D[0], dict)
@@ -293,7 +293,7 @@ class TextRepresentations(BoW):
                 models.append(np.array(_).T)
         _ = self._mixer_func(models)
         if self._unit_vector:
-            return _ / np.atleast_2d(np.linalg.norm(_)).T
+            return _ / np.atleast_2d(np.linalg.norm(_, axis=1)).T
         else:
             return _
 
