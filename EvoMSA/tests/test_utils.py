@@ -97,4 +97,28 @@ def test_load_dataset():
     X = bow.transform(['this is funny'])
     df = ds.decision_function(X)    
     np.testing.assert_almost_equal(df[0], -0.389922806003241)
-    ds.labels = None        
+    ds.labels = None
+
+
+def test_corrupted_model():
+    from EvoMSA.evodag import TextRepresentations
+    from EvoMSA.utils import MICROTC
+    import EvoMSA
+    from os.path import dirname, join, isfile
+    import gzip
+    text_repr = TextRepresentations(lang='es', 
+                                    emoji=False,
+                                    keyword=False,
+                                    n_jobs=1,
+                                    unit_vector=True)
+    output = join(dirname(EvoMSA.__file__), 'models', f'es_HA_muTC{MICROTC}.json.gz')
+    assert isfile(output)
+    with gzip.open(output, 'w') as fpt:
+        fpt.write(bytes('x', encoding='utf-8'))
+    text_repr = TextRepresentations(lang='es', 
+                                    emoji=False,
+                                    keyword=False,
+                                    n_jobs=1,
+                                    unit_vector=True)
+    
+

@@ -294,6 +294,7 @@ def load_bow(lang='es'):
 
     :param lang: ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
     :type lang: str
+    
     >>> from EvoMSA.utils import load_bow
     >>> bow = load_bow(lang='en')
     >>> repr = bow['hi']
@@ -355,6 +356,7 @@ class Linear(object):
 
 
 def _load_text_repr(lang='es', name='emojis', k=None):
+    import os
     from os.path import isdir, join, isfile, dirname
     from urllib.error import HTTPError    
 
@@ -362,13 +364,18 @@ def _load_text_repr(lang='es', name='emojis', k=None):
     if not isdir(diroutput):
         os.mkdir(diroutput)
     fname = join(diroutput, f'{lang}_{name}_muTC{MICROTC}.json.gz')
+    try:
+        if isfile(fname):
+            models = [Linear(**x) for x in tweet_iterator(fname)]
+    except Exception:
+        os.unlink(fname)
     if not isfile(fname):
         path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{lang}_{name}_muTC{MICROTC}.json.gz'
         try:
             request.urlretrieve(path, fname)
         except HTTPError:
             raise Exception(path)
-    models = [Linear(**x) for x in tweet_iterator(fname)]
+        models = [Linear(**x) for x in tweet_iterator(fname)]
     if k is None:
         return models
     return models[k]
@@ -451,7 +458,7 @@ def emoji_information(lang='es'):
 
 def load_dataset(lang='es', name='HA', k=None):
     """
-    Download and load the Emoji representation
+    Download and load the Dataset representation
 
     :param lang: ['ar', 'zh', 'en', 'es']
     :type lang: str
