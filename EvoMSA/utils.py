@@ -294,6 +294,7 @@ def load_bow(lang='es'):
 
     :param lang: ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
     :type lang: str
+    
     >>> from EvoMSA.utils import load_bow
     >>> bow = load_bow(lang='en')
     >>> repr = bow['hi']

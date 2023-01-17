@@ -231,19 +231,19 @@ class TextRepresentations(BoW):
                D: List[Union[dict, list, None]]=None, 
                y: Union[np.ndarray, None]=None,
                feature_selection: Callable=KruskalFS,
-               feature_selection_kwargs: dict=dict()) -> None:
+               feature_selection_kwargs: dict=dict()) -> 'TextRepresentations':
         assert subset is not None or D is not None
         if subset is not None:
             tr = self.text_representations
             self.text_representations = [tr[i] for i in subset]
             names = self.names
             self.names = [names[i] for i in subset]
-            return
+            return self
         y = self.dependent_variable(D, y=y)
         X = self.transform(D)
         feature_selection = feature_selection(**feature_selection_kwargs).fit(X, y=y)
         index = feature_selection.get_support(indices=True)
-        self.select(subset=index)
+        return self.select(subset=index)
 
     @property
     def names(self):

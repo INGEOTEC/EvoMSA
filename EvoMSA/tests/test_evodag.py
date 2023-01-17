@@ -216,6 +216,11 @@ def test_TextRepresentations_select2():
     n_names = len(text_repr.names)
     text_repr.select(D=D)
     assert len(text_repr.names) < n_names
+    text_repr = TextRepresentations(lang='es', 
+                                    emoji=False,
+                                    keyword=False,
+                                    n_jobs=1).select(D=D)
+    assert isinstance(text_repr, TextRepresentations)
 
 
 def test_BoW_names():
