@@ -251,3 +251,19 @@ def test_TextRepresentations_unit():
     X = text_repr.transform([dict(text='buenos días')])
     _ = np.sqrt((X ** 2).sum(axis=1))
     np.testing.assert_almost_equal(_, 1)
+
+
+def test_BoW_property():
+    from EvoMSA.evodag import BoW
+    bow = BoW()
+    bow.kfold_instance = '!'
+    bow.kfold_kwargs = '*'
+    assert bow._kfold_instance == '!' and bow._kfold_kwargs == '*'
+    bow.estimator_class = '1'
+    bow.estimator_kwargs = '2'
+    assert bow._estimator_class == '1' and bow._estimator_kwargs == '2'
+    bow.decision_function_name = '3'
+    assert bow._decision_function == '3'
+    bow.key = '4'
+    bow.label_key = '5'
+    assert bow._key == '4' and bow._label_key == '5'
