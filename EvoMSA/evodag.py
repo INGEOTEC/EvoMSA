@@ -54,17 +54,41 @@ class BoW(object):
         assert lang is None or lang in MODEL_LANG
         self._n_jobs = n_jobs
         self._lang = lang
-        self._key = key
-        self._label_key = label_key
+        self.key = key
+        self.label_key = label_key
         self._mixer_func = mixer_func
-        self._decision_function = decision_function
-        self._estimator_class = estimator_class
-        self._estimator_kwargs = estimator_kwargs
+        self.decision_function_name = decision_function
+        self.estimator_class = estimator_class
+        self.estimator_kwargs = estimator_kwargs
         self._b4msa_kwargs = b4msa_kwargs
         self._pretrain = pretrain
-        self._kfold_instance = kfold_instance
-        self._kfold_kwargs = kfold_kwargs
+        self.kfold_instance = kfold_instance
+        self.kfold_kwargs = kfold_kwargs
         self._b4msa_estimated = False
+
+    @property
+    def label_key(self):
+        return self._label_key
+
+    @label_key.setter
+    def label_key(self, value):
+        self._label_key = value
+
+    @property
+    def key(self):
+        return self._key
+
+    @key.setter
+    def key(self, value):
+        self._key = value
+
+    @property
+    def decision_function_name(self):
+        return self._decision_function
+
+    @decision_function_name.setter
+    def decision_function_name(self, value):
+        self._decision_function = value
 
     @property
     def names(self):
@@ -81,31 +105,21 @@ class BoW(object):
     def lang(self):
         return self._lang
 
-    def b4msa_fit(self, D):
-        assert len(D)
-        self._b4msa_estimated = True
-        if self._key == 'text' or isinstance(D[0], str):
-            return self.bow.fit(D)
-        assert isinstance(D[0], dict)
-        if isinstance(self._key, str):
-            key = self._key
-            return self.bow.fit([x[key] for x in D])
-        _ = [[x[key] for key in self._key] for x in D]
-        return self.bow.fit(_)
+    @property
+    def kfold_instance(self):
+        return self._kfold_instance
 
-    def transform(self, D: List[Union[List, dict]], y=None) -> csr_matrix:
-        assert len(D)
-        if not self.pretrain:
-            assert self._b4msa_estimated
-        if self._key == 'text' or isinstance(D[0], str):
-            return self.bow.transform(D)
-        assert isinstance(D[0], dict)
-        if isinstance(self._key, str):
-            key = self._key
-            return self.bow.transform([x[key] for x in D])
-        Xs = [self.bow.transform([x[key] for x in D])
-              for key in self._key]
-        return self._mixer_func(Xs)
+    @kfold_instance.setter
+    def kfold_instance(self, value):
+        self._kfold_instance = value
+
+    @property
+    def kfold_kwargs(self):
+        return self._kfold_kwargs
+
+    @kfold_kwargs.setter
+    def kfold_kwargs(self, value):
+        self._kfold_kwargs = value
 
     @property
     def bow(self):
@@ -124,10 +138,52 @@ class BoW(object):
     def bow(self, value):
         self._bow = value
 
+    @property
+    def estimator_class(self):
+        return self._estimator_class
+
+    @estimator_class.setter
+    def estimator_class(self, value):
+        self._estimator_class = value
+
+    @property
+    def estimator_kwargs(self):
+        return self._estimator_kwargs
+
+    @estimator_kwargs.setter
+    def estimator_kwargs(self, value):
+        self._estimator_kwargs = value        
+
+    def b4msa_fit(self, D):
+        assert len(D)
+        self._b4msa_estimated = True
+        if self.key == 'text' or isinstance(D[0], str):
+            return self.bow.fit(D)
+        assert isinstance(D[0], dict)
+        if isinstance(self.key, str):
+            key = self.key
+            return self.bow.fit([x[key] for x in D])
+        _ = [[x[key] for key in self.key] for x in D]
+        return self.bow.fit(_)
+
+    def transform(self, D: List[Union[List, dict]], y=None) -> csr_matrix:
+        assert len(D)
+        if not self.pretrain:
+            assert self._b4msa_estimated
+        if self.key == 'text' or isinstance(D[0], str):
+            return self.bow.transform(D)
+        assert isinstance(D[0], dict)
+        if isinstance(self.key, str):
+            key = self.key
+            return self.bow.transform([x[key] for x in D])
+        Xs = [self.bow.transform([x[key] for x in D])
+              for key in self.key]
+        return self._mixer_func(Xs)
+
     def dependent_variable(self, D: List[Union[dict, list]], 
                            y: Union[np.ndarray, None]=None) -> np.ndarray:
         assert isinstance(D, list) and len(D)
-        label_key = self._label_key
+        label_key = self.label_key
         if y is None:
             assert isinstance(D[0], dict)
             y = np.array([x[label_key] for x in D])
@@ -149,10 +205,10 @@ class BoW(object):
                                         y: Union[np.ndarray, None]=None) -> np.ndarray:
         def train_predict(tr, vs):
             m = self.estimator().fit(X[tr], y[tr])
-            return getattr(m, self._decision_function)(X[vs])
+            return getattr(m, self.decision_function_name)(X[vs])
 
         y = self.dependent_variable(D, y=y)
-        kf = self._kfold_instance(**self._kfold_kwargs)
+        kf = self.kfold_instance(**self.kfold_kwargs)
         kfolds = [x for x in kf.split(D, y)]
         X = self.transform(D, y=y)
         hys = Parallel(n_jobs=self._n_jobs)(delayed(train_predict)(tr, vs)
@@ -182,7 +238,7 @@ class BoW(object):
 
     def decision_function(self, D: List[Union[dict, list]]) -> Union[list, np.ndarray]:
         _ = self.transform(D)
-        hy = getattr(self.estimator_instance, self._decision_function)(_)
+        hy = getattr(self.estimator_instance, self.decision_function_name)(_)
         if hy.ndim == 1:
             return np.atleast_2d(hy).T
         return hy
@@ -273,7 +329,7 @@ class TextRepresentations(BoW):
          for k, name in zip(_, names)]        
 
     def transform(self, D: List[Union[List, dict]], y=None) -> np.ndarray:
-        if isinstance(self._key, str):
+        if isinstance(self.key, str):
             X = super(TextRepresentations, self).transform(D, y=y)
             models = Parallel(n_jobs=self._n_jobs)(delayed(m.decision_function)(X)
                                                    for m in self.text_representations)
@@ -284,7 +340,7 @@ class TextRepresentations(BoW):
                 return _
         assert len(D) and isinstance(D[0], dict)
         Xs = [super(TextRepresentations, self).transform([x[key] for x in D], y=y)
-              for key in self._key]
+              for key in self.key]
         with Parallel(n_jobs=self._n_jobs) as parallel:
             models = []
             for X in Xs:
