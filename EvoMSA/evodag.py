@@ -238,7 +238,7 @@ class BoW(object):
 
     def decision_function(self, D: List[Union[dict, list]]) -> Union[list, np.ndarray]:
         _ = self.transform(D)
-        hy = getattr(self.estimator_instance, self._decision_function_name)(_)
+        hy = getattr(self.estimator_instance, self.decision_function_name)(_)
         if hy.ndim == 1:
             return np.atleast_2d(hy).T
         return hy
