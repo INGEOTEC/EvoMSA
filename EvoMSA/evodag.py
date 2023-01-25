@@ -31,9 +31,57 @@ import numpy as np
 
 class BoW(object):
     """
+    BoW is a bag-of-words text classifier. It is described in 
+    "A Simple Approach to Multilingual Polarity Classification in Twitter. 
+    Eric S. Tellez, Sabino Miranda-Jiménez, Mario Graff, 
+    Daniela Moctezuma, Ranyart R. Suárez, Oscar S. Siordia. 
+    Pattern Recognition Letters" and 
+    "An Automated Text Categorization Framework based 
+    on Hyperparameter Optimization. Eric S. Tellez, Daniela Moctezuma, 
+    Sabino Miranda-Jímenez, Mario Graff. 
+    Knowledge-Based Systems Volume 149, 1 June 2018." 
+
+    BoW uses, by default, a pre-trained bag-of-words representation. The 
+    representation was trained on 524,288 (:math:`2^{19}`) tweets
+    randomly selected. The pre-trained representations are used
+    when the parameters :attr:`lang` and :attr:`pretrain` are
+    set; :attr:`pretrain` by default is set to True, and the default 
+    language is Spanish (es). The available languages are:
+    Arabic (ar), Catalan (ca), German (de), English (en), 
+    Spanish (es), French (fr), Hindi (hi), Indonesian (in), 
+    Italian (it), Japanese (ja), Korean (ko), Dutch (nl),
+    Polish (pl), Portuguese (pt), Russian (ru), Tagalog (tl), 
+    Turkish (tr), and Chinese (zh).
+    
+
+    :param lang: Language. (ar | ca | de | en | es | fr | hi | in | it | ja | ko | nl | pl | pt | ru | tl | tr | zh), default='es'.
+    :type lang: str
+    :param pretrain: Whether to use a pre-trained representation. default=True.
+    :type pretrain: bool
+    :param b4msa_kwargs: :py:class:`b4msa.textmodel.TextModel` keyword arguments used to train a bag-of-words representation. default=dict().
+    :type b4msa_kwargs: dict
+    :param estimator_class:
+    :type estimator_class: class
+    :param estimator_kwargs: 
+    :type estimator_kwargs: dict
+    :param key:
+    :type key: Union[str, List[str]]
+    :param label_key:
+    :type label_key: str
+    :param mixer_func:
+    :type mixer_func: Callable[[List], csr_matrix]
+    :param decision_function:
+    :type decision_function: str
+    :param kfold_instance:
+    :type kfold_instance: class
+    :param kfold_kwargs:
+    :type kfold_kwargs: dict
+    :param n_jobs: Number of jobs. default=1
+    :type n_jobs: int
+
     >>> from microtc.utils import tweet_iterator
     >>> from EvoMSA.tests.test_base import TWEETS
-    >>> from EvoMSA.evodag import BoW
+    >>> from EvoMSA import BoW
     >>> bow = BoW(lang='es').fit(list(tweet_iterator(TWEETS)))
     >>> bow.predict(['Buenos dias']).tolist()
     ['P']
@@ -361,7 +409,8 @@ class StackGeneralization(BoW):
     >>> emoji =  TextRepresentations(lang='es', dataset=False)
     >>> dataset = TextRepresentations(lang='es', emoji=False)
     >>> bow = BoW(lang='es')
-    >>> stacking = StackGeneralization(decision_function_models=[bow], transform_models=[dataset, emoji])
+    >>> stacking = StackGeneralization(decision_function_models=[bow],
+                                       transform_models=[dataset, emoji])
     >>> stacking.fit(list(tweet_iterator(TWEETS)))
     >>> stacking.predict(['Buenos dias']).tolist()
     ['P']
