@@ -1,0 +1,74 @@
+.. _v2:
+
+EvoMSA 2.0
+====================================
+.. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg
+		:target: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml
+
+.. image:: https://coveralls.io/repos/github/INGEOTEC/EvoMSA/badge.svg?branch=develop
+		:target: https://coveralls.io/github/INGEOTEC/EvoMSA?branch=develop
+
+.. image:: https://badge.fury.io/py/EvoMSA.svg
+		:target: https://badge.fury.io/py/EvoMSA
+
+.. image:: https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/evomsa-feedstock?branchName=main
+	    :target: https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=16466&branchName=main
+
+.. image:: https://img.shields.io/conda/vn/conda-forge/evomsa.svg
+		:target: https://anaconda.org/conda-forge/evomsa
+
+.. image:: https://img.shields.io/conda/pn/conda-forge/evomsa.svg
+		:target: https://anaconda.org/conda-forge/evomsa
+
+.. image:: https://readthedocs.org/projects/evomsa/badge/?version=docs
+		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
+
+.. image:: https://colab.research.google.com/assets/colab-badge.svg
+		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
+
+
+
+EvoMSA is a stack generalization algorithm specialized in text classification
+problems. A text classifier :math:`c`, can be seen as a composition of two functions,
+i.e., :math:`c \equiv g \circ m`; where :math:`m` transforms the text into a vector space,
+i.e., :math:`m: \text{text} \rightarrow \mathbb R^d` and :math:`g` is the classifier
+(:math:`g: \mathbb R^d \rightarrow \mathbb N`) or regressor (:math:`g: \mathbb R^d \rightarrow \mathbb R`).
+Stack generalization is a technique to combine classifiers (regressors) to produce 
+another classifier (regressor) responsible for making the prediction. 
+
+EvoMSA 2.0 removes two text representations, i.e., functions :math:`m`, particularly 
+the sentiment lexicon-based model, and the aggressiveness model. It was decided 
+to remove them because these models are the ones that require more work to be 
+implemented in another language and, on the other hand, are the ones that 
+contribute less to the performance of the algorithm. However, it increments
+the number of human-annotated models, the emoji models, and introduces a new
+model, namely keyword models.
+
+EvoMSA 2.0 increments the number of supported languages, currently it
+supports Arabic (ar), Catalan (ca), German (de), English (en), 
+Spanish (es), French (fr), Hindi (hi), Indonesian (in), 
+Italian (it), Japanese (ja), Korean (ko), Dutch (nl),
+Polish (pl), Portuguese (pt), Russian (ru), Tagalog (tl), 
+Turkish (tr), and Chinese (zh). It also provides pre-trained models
+that include the bag-of-words text representations, emoji, 
+and keyword models. These models were trained on Twitter data. 
+
+:py:class:`BoW`
+================================
+
+.. autoclass:: EvoMSA.evodag.BoW
+   :members:
+
+
+:py:class:`TextRepresentations`
+================================
+
+.. autoclass:: EvoMSA.evodag.TextRepresentations
+   :members:
+
+:py:class:`StackGeneralization`
+================================
+
+.. autoclass:: EvoMSA.evodag.StackGeneralization
+   :members:
+
