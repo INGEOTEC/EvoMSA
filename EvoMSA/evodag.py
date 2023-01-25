@@ -72,8 +72,8 @@ class BoW(object):
     :type mixer_func: Callable[[List], csr_matrix]
     :param decision_function:
     :type decision_function: str
-    :param kfold_instance:
-    :type kfold_instance: class
+    :param kfold_class:
+    :type kfold_class: class
     :param kfold_kwargs:
     :type kfold_kwargs: dict
     :param n_jobs: Number of jobs. default=1
@@ -95,7 +95,7 @@ class BoW(object):
                  estimator_kwargs=dict(),
                  pretrain=True,
                  b4msa_kwargs=dict(),
-                 kfold_instance=StratifiedKFold,
+                 kfold_class=StratifiedKFold,
                  kfold_kwargs: dict=dict(random_state=0,
                                          shuffle=True),
                  n_jobs: int=1) -> None:
@@ -110,7 +110,7 @@ class BoW(object):
         self.estimator_kwargs = estimator_kwargs
         self._b4msa_kwargs = b4msa_kwargs
         self._pretrain = pretrain
-        self.kfold_instance = kfold_instance
+        self.kfold_class = kfold_class
         self.kfold_kwargs = kfold_kwargs
         self._b4msa_estimated = False
 
@@ -154,11 +154,11 @@ class BoW(object):
         return self._lang
 
     @property
-    def kfold_instance(self):
+    def kfold_class(self):
         return self._kfold_instance
 
-    @kfold_instance.setter
-    def kfold_instance(self, value):
+    @kfold_class.setter
+    def kfold_class(self, value):
         self._kfold_instance = value
 
     @property
@@ -256,7 +256,7 @@ class BoW(object):
             return getattr(m, self.decision_function_name)(X[vs])
 
         y = self.dependent_variable(D, y=y)
-        kf = self.kfold_instance(**self.kfold_kwargs)
+        kf = self.kfold_class(**self.kfold_kwargs)
         kfolds = [x for x in kf.split(D, y)]
         X = self.transform(D, y=y)
         hys = Parallel(n_jobs=self._n_jobs)(delayed(train_predict)(tr, vs)
