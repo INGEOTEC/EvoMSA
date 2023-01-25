@@ -256,7 +256,7 @@ def test_TextRepresentations_unit():
 def test_BoW_property():
     from EvoMSA.evodag import BoW
     bow = BoW()
-    bow.kfold_instance = '!'
+    bow.kfold_class = '!'
     bow.kfold_kwargs = '*'
     assert bow._kfold_instance == '!' and bow._kfold_kwargs == '*'
     bow.estimator_class = '1'
@@ -267,3 +267,15 @@ def test_BoW_property():
     bow.key = '4'
     bow.label_key = '5'
     assert bow._key == '4' and bow._label_key == '5'
+
+
+def test_config_regressor():
+    from EvoMSA.evodag import BoW, config_regressor
+    D = list(tweet_iterator(TWEETS))
+    y = [x['klass'] for x in D]
+    labels = {v: k for k, v in enumerate(np.unique(y))}
+    y_c = np.array([labels[x['klass']] for x in D])
+    bow = config_regressor(BoW(lang='es')).fit(D, y_c)
+    hy = bow.predict(D)
+    assert np.unique(hy).shape[0] > len(labels)
+
