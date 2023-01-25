@@ -29,6 +29,17 @@ from tqdm import tqdm
 import numpy as np
 
 
+def config_regressor(instance):
+    from sklearn.svm import LinearSVR
+    from sklearn.model_selection import KFold
+
+    instance.estimator_class = LinearSVR
+    instance.estimator_kwargs = dict()
+    instance.decision_function_name = 'predict'
+    instance.kfold_class = KFold
+    return instance
+
+
 class BoW(object):
     """
     BoW is a bag-of-words text classifier. It is described in 
