@@ -256,7 +256,7 @@ def test_TextRepresentations_unit():
 def test_BoW_property():
     from EvoMSA.evodag import BoW
     bow = BoW()
-    bow.kfold_instance = '!'
+    bow.kfold_class = '!'
     bow.kfold_kwargs = '*'
     assert bow._kfold_instance == '!' and bow._kfold_kwargs == '*'
     bow.estimator_class = '1'
