@@ -74,7 +74,7 @@ this can help to grasp as easily as possible EvoMSA's goals.
 Version 2.0 
 ==================================
 
-The EvoMSA next version is documented in the following link: :ref:`v2`
+EvoMSA's next version is documented in the following link: :ref:`v2`
 
 Quickstart Guide
 ===================
