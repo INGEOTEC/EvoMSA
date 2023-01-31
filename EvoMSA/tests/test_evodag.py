@@ -26,7 +26,7 @@ def test_EvoDAG_decision_function():
             return EvoDAG(n_estimators=2, 
                           max_training_size=100)    
     evodag = _EvoDAG(keyword=False, emoji=False,
-                     decision_function='decision_function').fit(D)
+                     decision_function_name='decision_function').fit(D)
     hy = evodag.decision_function(D)    
     assert hy.shape[0] == 1000 and hy.shape[1] == 4
 
