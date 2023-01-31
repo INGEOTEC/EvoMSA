@@ -26,7 +26,7 @@ def test_EvoDAG_decision_function():
             return EvoDAG(n_estimators=2, 
                           max_training_size=100)    
     evodag = _EvoDAG(keyword=False, emoji=False,
-                     decision_function='decision_function').fit(D)
+                     decision_function_name='decision_function').fit(D)
     hy = evodag.decision_function(D)    
     assert hy.shape[0] == 1000 and hy.shape[1] == 4
 
@@ -279,3 +279,22 @@ def test_config_regressor():
     hy = bow.predict(D)
     assert np.unique(hy).shape[0] > len(labels)
 
+
+def test_TextRepresentations_extend():
+    from EvoMSA.evodag import TextRepresentations
+    from EvoMSA.utils import MICROTC, Linear
+    from EvoMSA import base
+    from microtc.utils import tweet_iterator
+    from os.path import isfile, dirname, join
+    lang = 'es'
+    text_repr = TextRepresentations(lang=lang, keyword=True,
+                                    emoji=False, dataset=False)
+    text_repr = TextRepresentations(lang=lang, keyword=False,
+                                    emoji=False, dataset=False)                                    
+    diroutput = join(dirname(base.__file__), 'models')
+    name = 'keywords'
+    fname = join(diroutput, f'{lang}_{name}_muTC{MICROTC}.json.gz')
+    _ = [Linear(**x) for x in tweet_iterator(fname)]
+    text_repr.text_representations_extend(_)
+    X = text_repr.transform(['hola'])
+    assert 2113 == X.shape[1]

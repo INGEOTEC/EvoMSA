@@ -101,7 +101,7 @@ class BoW(object):
                  key: Union[str, List[str]]='text',
                  label_key: str='klass',
                  mixer_func: Callable[[List], csr_matrix]=sum,
-                 decision_function: str='decision_function',
+                 decision_function_name: str='decision_function',
                  estimator_class=LinearSVC,
                  estimator_kwargs=dict(),
                  pretrain=True,
@@ -116,7 +116,7 @@ class BoW(object):
         self.key = key
         self.label_key = label_key
         self._mixer_func = mixer_func
-        self.decision_function_name = decision_function
+        self.decision_function_name = decision_function_name
         self.estimator_class = estimator_class
         self.estimator_kwargs = estimator_kwargs
         self._b4msa_kwargs = b4msa_kwargs
@@ -322,7 +322,6 @@ class TextRepresentations(BoW):
                  unit_vector=True,
                  **kwargs) -> None:
         super(TextRepresentations, self).__init__(estimator_kwargs=estimator_kwargs, **kwargs)
-        assert emoji or dataset or keyword
         self._skip_dataset = skip_dataset
         self._names = []
         self._text_representations = []
@@ -341,6 +340,15 @@ class TextRepresentations(BoW):
     @text_representations.setter
     def text_representations(self, value):
         self._text_representations = value
+
+    def text_representations_extend(self, value):
+        names = set(self.names)
+        for x in value:
+            label = x.labels[-1]
+            if label not in names:
+                self.text_representations.append(x)
+                self.names.append(label)
+                names.add(label)
 
     def select(self, subset: Union[list, None]=None,
                D: List[Union[dict, list, None]]=None, 
@@ -428,14 +436,14 @@ class StackGeneralization(BoW):
     """
     def __init__(self, decision_function_models: list=[], 
                  transform_models: list=[],
-                 decision_function: str='predict_proba',
+                 decision_function_name: str='predict_proba',
                  estimator_class=GaussianNB,
                  n_jobs: int=1,
                  **kwargs) -> None:
         assert len(decision_function_models) or len(transform_models)
         assert n_jobs == 1
         super(StackGeneralization, self).__init__(n_jobs=n_jobs,
-                                                  decision_function=decision_function,
+                                                  decision_function_name=decision_function_name,
                                                   estimator_class=estimator_class,
                                                   **kwargs)
         self._decision_function_models = decision_function_models
