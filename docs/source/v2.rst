@@ -273,8 +273,15 @@ the value :math:`\mathbf{x^{'}}_i` corresponds to
 	\mathbf{x^{'}}_i = \mathbf w_i \cdot \frac{\sum_t \mathbf{v_t}}{\mid\mid \sum_t \mathbf{v_t} \mid\mid} + \mathbf w_{i_0},
 
 where :math:`\mathbf{v_t}` is the vector associated to the 
-token :math:`t` of the text :math:`x`. Finally, the vector 
-representing the text :math:`x` is the 
+token :math:`t` of the text :math:`x`. In matrix notation, vector :math:`\mathbf{x'}` is
+
+.. math:: 
+	\mathbf{x^{'}} = \mathbf W \cdot \frac{\sum_t \mathbf{v_t}}{\mid\mid \sum_t \mathbf{v_t} \mid\mid} + \mathbf{w_0},
+
+where matrix :math:`W \in \mathbb R^{M \times d}` contains the weights, 
+and :math:`\mathbf{w_0} \in \mathbb R^M` is the bias. 
+
+Finally, the vector representing the text :math:`x` is the 
 normalized :math:`\mathbf{x^{'}}`, i.e.,
 
 .. math::
