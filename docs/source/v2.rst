@@ -54,12 +54,55 @@ that include the bag-of-words text representations, emoji,
 and keyword models. These models were trained on Twitter data. 
 
 The other enhancement is on the implementation. There are three main 
-classes :py:class:`BoW`, :py:class:`TextRepresentations`, 
-and :py:class:`StackGeneralization`. 
-:py:class:`BoW` and :py:class:`TextRepresentations` are text
-classifiers; :py:class:`BoW` is the parent of :py:class:`TextRepresentations`.
+classes :ref:`BoW`, :ref:`TextRepresentations`, 
+and :ref:`StackGeneralization`. 
+:ref:`BoW` and :ref:`TextRepresentations` are text
+classifiers; :ref:`BoW` is the parent of :ref:`TextRepresentations`.
 The stack generalization technique is implemented in 
-:py:class:`StackGeneralization`.
+:ref:`StackGeneralization`.
+
+Citing
+======
+
+If you find EvoMSA useful for any academic/scientific purpose, we
+would appreciate citations to the following reference:
+  
+.. code:: bibtex
+
+	  @article{DBLP:journals/corr/abs-1812-02307,
+	  author = {Mario Graff and Sabino Miranda{-}Jim{\'{e}}nez
+	                 and Eric Sadit Tellez and Daniela Moctezuma},
+	  title     = {EvoMSA: {A} Multilingual Evolutionary Approach for Sentiment Analysis},
+	  journal   = {Computational Intelligence Magazine},
+	  volume    = {15},
+	  issue     = {1},
+	  year      = {2020},
+	  pages     = {76 -- 88},
+	  url       = {https://ieeexplore.ieee.org/document/8956106},
+	  month     = {Feb.}
+	  }
+
+	
+Installing EvoMSA
+=======================
+
+EvoMSA can be easly install using anaconda
+
+.. code:: bash
+
+	  conda install -c conda-forge EvoMSA
+
+or can be install using pip, it depends on numpy, scipy, 
+scikit-learn and b4msa.
+
+.. code:: bash
+
+	  pip install cython
+	  pip install sparsearray
+	  pip install evodag
+	  pip install EvoMSA
+
+.. _BoW:
 
 :py:class:`BoW`
 ================================
@@ -213,6 +256,7 @@ as can be seen in the following code.
 >>> bow.decision_function(['buenos días'])
 array([[-1.5749252 , -1.0800899 , -0.21577256,  0.56413664]])
 
+.. _TextRepresentations:
 
 :py:class:`TextRepresentations`
 ================================
@@ -270,12 +314,26 @@ classifier. That is,
 the value :math:`\mathbf{x^{'}}_i` corresponds to
 
 .. math:: 
-	\mathbf{x^{'}}_i = \mathbf w_i \cdot \frac{\sum_t \mathbf{v_t}}{\mid\mid \sum_t \mathbf{v_t} \mid\mid} + \mathbf w_{i_0},
+	\mathbf{x^{'}}_i = \mathbf w_i \cdot \frac{\sum_t \mathbf{v_t}}{\mid\mid \sum_k \mathbf{v_k} \mid\mid} + \mathbf w_{i_0},
 
 where :math:`\mathbf{v_t}` is the vector associated to the 
-token :math:`t` of the text :math:`x`. Finally, the vector 
-representing the text :math:`x` is the 
-normalized :math:`\mathbf{x^{'}}`, i.e.,
+token :math:`t` of the text :math:`x`. In matrix notation, vector :math:`\mathbf{x'}` is
+
+.. math:: 
+	\mathbf{x^{'}} = \mathbf W \cdot \frac{\sum_t \mathbf{v_t}}{\mid\mid \sum_k \mathbf{v_k} \mid\mid} + \mathbf{w_0},
+
+where matrix :math:`\mathbf W \in \mathbb R^{M \times d}` contains the weights, 
+and :math:`\mathbf{w_0} \in \mathbb R^M` is the bias. Another way to see 
+the previous formulation is by defining a 
+vector :math:`\mathbf{u_t} = \frac{1}{\mid\mid \sum_k \mathbf{v_k} \mid\mid} \mathbf W \mathbf{v_t}` 
+Consequently, vector :math:`\mathbf{x'}` is defined as 
+
+.. math:: 
+	\mathbf{x'} = \sum_t \mathbf{u_t} + \mathbf{w_0}.
+
+It can be observed that each token is associated with a vector in the space defined by the 
+classifiers and that :math:`\mathbf{x'}` is the sum of all vectors plus the bias vector (i.e., :math:`\mathbf{w_0}`). 
+Finally, the vector representing the text :math:`x` is the normalized :math:`\mathbf{x^{'}}`, i.e.,
 
 .. math::
 	\mathbf x = \frac{\mathbf{x^{'}}}{\mid\mid \mathbf{x^{'}} \mid\mid}.
@@ -314,6 +372,8 @@ with index 9 and its description.
 
 The value 0.01 indicates that the emoji would be present
 in the sentence *I love this song.*
+
+.. _StackGeneralization:
 
 :py:class:`StackGeneralization`
 ================================
