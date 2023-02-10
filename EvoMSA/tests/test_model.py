@@ -89,7 +89,7 @@ def test_OutputClassifier():
     from sklearn.preprocessing import LabelEncoder
     data = [x for x in tweet_iterator(TWEETS)]
     c = TextModel().fit(data)
-    X = c.transform(data])
+    X = c.transform(data)
     y = [x['klass'] for x in data]
     le = LabelEncoder().fit(y)
     y = le.transform(y)
