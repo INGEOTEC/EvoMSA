@@ -122,3 +122,15 @@ def test_corrupted_model():
                                     unit_vector=True)
     
 
+def test_b4msa_params():
+    from EvoMSA.utils import b4msa_params
+    for lang in ['ar', 'ca', 'de', 'en', 'es', 'fr',
+                 'hi', 'in', 'it', 'ja', 'ko', 'nl', 
+                 'pl', 'pt', 'ru', 'tl', 'tr', 'zh']:
+        params = b4msa_params(lang=lang, dim=13)
+        if lang == 'ja' or lang == 'zh':
+            assert [1, 2, 3] == params['token_list']
+        else:
+            assert  params['token_list'] == [-2, -1, 2, 3, 4]
+        assert params['token_max_filter'] == 2**13
+        

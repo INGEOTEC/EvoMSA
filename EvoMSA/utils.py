@@ -505,3 +505,33 @@ def dataset_information(lang='es'):
             raise Exception(path)    
     data = load_model(fname)
     return data
+
+
+def b4msa_params(lang, dim=15):
+    from microtc.params import OPTION_DELETE, OPTION_NONE    
+    assert lang in ['ar', 'ca', 'de', 'en', 'es', 'fr',
+                    'hi', 'in', 'it', 'ja', 'ko', 'nl', 
+                    'pl', 'pt', 'ru', 'tl', 'tr', 'zh']
+    tm_kwargs=dict(num_option=OPTION_NONE,
+                   usr_option=OPTION_DELETE,
+                   url_option=OPTION_DELETE, 
+                   emo_option=OPTION_NONE,
+                   hashtag_option=OPTION_NONE,
+                   ent_option=OPTION_NONE,
+                   lc=True, 
+                   del_dup=False,
+                   del_punc=True,
+                   del_diac=True,
+                   select_ent=False,
+                   select_suff=False,
+                   select_conn=False,
+                   max_dimension=True,
+                   unit_vector=True, 
+                   token_max_filter=2**dim)
+    if lang == 'ja' or lang == 'zh':
+        tm_kwargs['token_list'] = [1, 2, 3]
+    else:
+        tm_kwargs['token_list'] = [-2, -1, 2, 3, 4]
+    return tm_kwargs
+    
+

@@ -84,11 +84,13 @@ def test_ThumbsUpDownAr():
 
 
 def test_OutputClassifier():
+    from b4msa.textmodel import TextModel
     from EvoMSA.model import Corpus, OutputClassifier
     from sklearn.preprocessing import LabelEncoder
-    c = Corpus([x['text'] for x in tweet_iterator(TWEETS)])
-    X = c.transform([x['text'] for x in tweet_iterator(TWEETS)])
-    y = [x['klass'] for x in tweet_iterator(TWEETS)]
+    data = [x for x in tweet_iterator(TWEETS)]
+    c = TextModel().fit(data)
+    X = c.transform(data)
+    y = [x['klass'] for x in data]
     le = LabelEncoder().fit(y)
     y = le.transform(y)
     b = OutputClassifier(output='xx')
