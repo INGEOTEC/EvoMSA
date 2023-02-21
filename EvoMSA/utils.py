@@ -17,16 +17,17 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import recall_score
 from urllib import request
-from microtc.utils import load_model, tweet_iterator
+from microtc.utils import load_model, tweet_iterator, Counter
 from scipy.sparse import csr_matrix
+import numpy as np
 import hashlib
 import os
-import numpy as np
+import gzip
 
-MICROTC='2.4.2'
-MODEL_LANG = ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es',
-              'it' ,'ca', 'ko', 'hi', 'nl', 'pl', 'de',
-              'tl', 'in', 'ja', 'tr']
+MICROTC = '2.4.9'
+MODEL_LANG = ['ar', 'ca', 'de', 'en', 'es', 'fr',
+              'hi', 'in', 'it', 'ja', 'ko', 'nl',
+              'pl', 'pt', 'ru', 'tl', 'tr', 'zh']
 
 
 class LabelEncoderWrapper(object):
@@ -288,17 +289,7 @@ class ConfidenceInterval(object):
                                              nbootstrap=nbootstrap)
 
 
-def load_bow(lang='es'):
-    """
-    Download and load the Bag of Word text representation
-
-    :param lang: ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
-    :type lang: str
-    
-    >>> from EvoMSA.utils import load_bow
-    >>> bow = load_bow(lang='en')
-    >>> repr = bow['hi']
-    """
+def load_bow(lang='es', d=17, func='most_common_by_type'):
     from os.path import join, dirname, isdir, isfile
     from urllib.error import HTTPError
 
@@ -307,14 +298,21 @@ def load_bow(lang='es'):
     diroutput = join(dirname(__file__), 'models')
     if not isdir(diroutput):
         os.mkdir(diroutput)
-    fname = join(diroutput, f'{lang}_{MICROTC}.microtc')
-    if not isfile(fname):
-        path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{lang}_{MICROTC}.microtc'
+    filename = f'{lang}_{MICROTC}_bow_{func}_{d}.json.gz'        
+    if not isfile(join(diroutput, filename)):
+        path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{filename}'
+        filename = join(diroutput, filename)
         try:
-            request.urlretrieve(path, fname)
+            request.urlretrieve(path, filename)
         except HTTPError:
-            raise Exception(path)    
-    return load_model(fname)
+            raise Exception(path)
+    try:
+        with gzip.open(filename, 'rb') as fpt:
+            freq = str(fpt.read(), encoding='utf-8')
+    except Exception:
+        os.unlink(filename)
+        raise Exception(filename)
+    return Counter.fromjson(freq)
 
 
 class Linear(object):
@@ -509,9 +507,7 @@ def dataset_information(lang='es'):
 
 def b4msa_params(lang, dim=15):
     from microtc.params import OPTION_DELETE, OPTION_NONE    
-    assert lang in ['ar', 'ca', 'de', 'en', 'es', 'fr',
-                    'hi', 'in', 'it', 'ja', 'ko', 'nl', 
-                    'pl', 'pt', 'ru', 'tl', 'tr', 'zh']
+    assert lang in MODEL_LANG
     tm_kwargs=dict(num_option=OPTION_NONE,
                    usr_option=OPTION_DELETE,
                    url_option=OPTION_DELETE, 

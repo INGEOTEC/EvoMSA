@@ -15,10 +15,11 @@
 
 from EvoMSA.base import DEFAULT_CL, DEFAULT_R
 from EvoMSA.utils import MODEL_LANG
-from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset, load_keyword
+from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset, load_keyword, b4msa_params
 from EvoMSA.model import GaussianBayes
 from EvoMSA.model_selection import KruskalFS
 from b4msa.textmodel import TextModel
+from microtc.weighting import TFIDF
 from joblib import Parallel, delayed
 from typing import Union, List, Set, Callable, Tuple
 from sklearn.svm import LinearSVC
@@ -97,7 +98,9 @@ class BoW(object):
     >>> bow.predict(['Buenos dias']).tolist()
     ['P']
     """
-    def __init__(self, lang: str='es', 
+    def __init__(self, lang: str='es',
+                 voc_size_exponent: int=17,
+                 voc_selection: str='most_common_by_type', 
                  key: Union[str, List[str]]='text',
                  label_key: str='klass',
                  mixer_func: Callable[[List], csr_matrix]=sum,
@@ -111,6 +114,11 @@ class BoW(object):
                                          shuffle=True),
                  n_jobs: int=1) -> None:
         assert lang is None or lang in MODEL_LANG
+        if lang in MODEL_LANG:
+            assert voc_size_exponent >= 13 and voc_size_exponent <= 17
+            assert voc_selection in ['most_common_by_type', 'most_common']
+        self._voc_size_exponent = voc_size_exponent
+        self._voc_selection = voc_selection
         self._n_jobs = n_jobs
         self._lang = lang
         self.key = key
@@ -186,7 +194,18 @@ class BoW(object):
             bow = self._bow
         except AttributeError:
             if self.pretrain:
-                self._bow = load_bow(lang=self._lang)
+                freq = load_bow(lang=self.lang,
+                                d=self._voc_size_exponent, 
+                                func=self._voc_selection)
+                params = b4msa_params(lang=self.lang,
+                                      dim=self._voc_size_exponent)
+                params.update(self._b4msa_kwargs)
+                bow = TextModel(**params)
+                tfidf = TFIDF()
+                tfidf.N = freq.update_calls
+                tfidf.word2id, tfidf.wordWeight = tfidf.counter2weight(freq)
+                bow.model = tfidf
+                self._bow = bow
             else:
                 self._bow = TextModel(lang=self.lang,
                                       **self._b4msa_kwargs)
