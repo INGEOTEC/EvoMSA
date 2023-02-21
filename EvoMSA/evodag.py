@@ -117,8 +117,8 @@ class BoW(object):
         if lang in MODEL_LANG:
             assert voc_size_exponent >= 13 and voc_size_exponent <= 17
             assert voc_selection in ['most_common_by_type', 'most_common']
-        self._voc_size_exponent = voc_size_exponent
-        self._voc_selection = voc_selection
+        self.voc_size_exponent = voc_size_exponent
+        self.voc_selection = voc_selection
         self._n_jobs = n_jobs
         self._lang = lang
         self.key = key
@@ -132,6 +132,22 @@ class BoW(object):
         self.kfold_class = kfold_class
         self.kfold_kwargs = kfold_kwargs
         self._b4msa_estimated = False
+
+    @property
+    def voc_selection(self):
+        return self._voc_selection
+    
+    @voc_selection.setter
+    def voc_selection(self, value):
+        self._voc_selection = value
+
+    @property
+    def voc_size_exponent(self):
+        return self._voc_size_exponent
+    
+    @voc_size_exponent.setter
+    def voc_size_exponent(self, value):
+        self._voc_size_exponent = value
 
     @property
     def label_key(self):
@@ -195,8 +211,8 @@ class BoW(object):
         except AttributeError:
             if self.pretrain:
                 freq = load_bow(lang=self.lang,
-                                d=self._voc_size_exponent, 
-                                func=self._voc_selection)
+                                d=self.voc_size_exponent, 
+                                func=self.voc_selection)
                 params = b4msa_params(lang=self.lang,
                                       dim=self._voc_size_exponent)
                 params.update(self._b4msa_kwargs)
