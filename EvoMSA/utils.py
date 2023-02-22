@@ -301,11 +301,11 @@ def load_bow(lang='es', d=17, func='most_common_by_type'):
     filename = f'{lang}_{MICROTC}_bow_{func}_{d}.json.gz'        
     if not isfile(join(diroutput, filename)):
         path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{filename}'
-        filename = join(diroutput, filename)
         try:
-            request.urlretrieve(path, filename)
+            request.urlretrieve(path, join(diroutput, filename))
         except HTTPError:
             raise Exception(path)
+    filename = join(diroutput, filename)        
     try:
         with gzip.open(filename, 'rb') as fpt:
             freq = str(fpt.read(), encoding='utf-8')
