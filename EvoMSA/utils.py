@@ -16,13 +16,20 @@ from sklearn.model_selection import BaseCrossValidator
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import recall_score
-from urllib import request
 from microtc.utils import load_model, tweet_iterator, Counter
 from scipy.sparse import csr_matrix
+from os.path import join, dirname, isdir, isfile
+from urllib import request
+from urllib.error import HTTPError
 import numpy as np
 import hashlib
 import os
 import gzip
+try:
+    USE_TQDM = True
+    from tqdm import tqdm
+except ImportError:
+    USE_TQDM = False
 
 MICROTC = '2.4.9'
 MODEL_LANG = ['ar', 'ca', 'de', 'en', 'es', 'fr',
@@ -289,30 +296,68 @@ class ConfidenceInterval(object):
                                              nbootstrap=nbootstrap)
 
 
-def load_bow(lang='es', d=17, func='most_common_by_type'):
-    from os.path import join, dirname, isdir, isfile
-    from urllib.error import HTTPError
+class Download(object):
+    def __init__(self, url, output='t.tmp') -> None:
+        self._url = url
+        self._output = output
+        try:
+            request.urlretrieve(url, output, reporthook=self.progress)
+        except HTTPError:
+            self.close()
+            raise Exception(url)
+        self.close()
+    
+    @property
+    def tqdm(self):
+        if not USE_TQDM:
+            return None
+        try:
+            return self._tqdm
+        except AttributeError:
+            self._tqdm = tqdm(total=self._nblocks)
+        return self._tqdm
+    
+    def close(self):
+        if USE_TQDM:
+            self.tqdm.close()
+        
+    def update(self):
+        if USE_TQDM:
+            self.tqdm.update()
+
+    def progress(self, nblocks, block_size, total):
+        self._nblocks = total // block_size
+        self.update()
+
+        
+def load_bow(lang='es', d=17, func='most_common_by_type', v1=False):
+    def load(filename):
+        try:
+            with gzip.open(filename, 'rb') as fpt:
+                return str(fpt.read(), encoding='utf-8')
+        except Exception:
+            os.unlink(filename)
+            raise Exception(filename)
 
     lang = lang.lower().strip()
     assert lang in MODEL_LANG
     diroutput = join(dirname(__file__), 'models')
     if not isdir(diroutput):
         os.mkdir(diroutput)
+    if v1:
+        filename = f'{lang}_2.4.2.microtc'
+        url = f'https://github.com/INGEOTEC/text_models/releases/download/models/{filename}'
+        output = join(diroutput, filename)
+        if not isfile(output):
+            Download(url, output)
+        return load_model(output)
+
     filename = f'{lang}_{MICROTC}_bow_{func}_{d}.json.gz'        
-    if not isfile(join(diroutput, filename)):
-        path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{filename}'
-        try:
-            request.urlretrieve(path, join(diroutput, filename))
-        except HTTPError:
-            raise Exception(path)
-    filename = join(diroutput, filename)        
-    try:
-        with gzip.open(filename, 'rb') as fpt:
-            freq = str(fpt.read(), encoding='utf-8')
-    except Exception:
-        os.unlink(filename)
-        raise Exception(filename)
-    return Counter.fromjson(freq)
+    url = f'https://github.com/INGEOTEC/text_models/releases/download/models/{filename}'
+    output = join(diroutput, filename)
+    if not isfile(output):
+        Download(url, output)
+    return Counter.fromjson(load(output))
 
 
 class Linear(object):
@@ -352,51 +397,38 @@ class Linear(object):
             return self._labels[np.where(hy > 0, 1, 0)]
         return np.where(hy > 0, 1, -1)
 
-
-def _load_text_repr(lang='es', name='emojis', k=None):
+    
+def _load_text_repr(lang='es', name='emojis', k=None, v1=False):
     import os
     from os.path import isdir, join, isfile, dirname
-    from urllib.error import HTTPError    
-
+    from urllib.error import HTTPError
+    def load(filename):
+        try:
+            return [Linear(**x) for x in tweet_iterator(filename)]
+        except Exception:
+            os.unlink(filename)
+    lang = lang.lower().strip()
+    assert lang in MODEL_LANG
     diroutput = join(dirname(__file__), 'models')
     if not isdir(diroutput):
         os.mkdir(diroutput)
-    fname = join(diroutput, f'{lang}_{name}_muTC{MICROTC}.json.gz')
-    try:
-        if isfile(fname):
-            models = [Linear(**x) for x in tweet_iterator(fname)]
-    except Exception:
-        os.unlink(fname)
-    if not isfile(fname):
-        path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{lang}_{name}_muTC{MICROTC}.json.gz'
-        try:
-            request.urlretrieve(path, fname)
-        except HTTPError:
-            raise Exception(path)
-        models = [Linear(**x) for x in tweet_iterator(fname)]
-    if k is None:
-        return models
-    return models[k]
+    if v1:
+        filename = f'{lang}_{name}_muTC2.4.2.json.gz'
+        url = f'https://github.com/INGEOTEC/text_models/releases/download/models/{filename}'
+        output = join(diroutput, filename)
+        if not isfile(output):
+            Download(url, output)
+        models = load(output)
+        if k is None:
+            return models
+        return models[k]
 
 
-def load_emoji(lang='es', emoji=None):
-    """
-    Download and load the Emoji representation
+def load_emoji(lang='es', emoji=None, v1=False):
 
-    :param lang: ['ar', 'zh', 'en', 'fr', 'pt', 'ru', 'es']
-    :type lang: str
-    :param emoji: emoji identifier
-    :type emoji: int
-
-    >>> from EvoMSA.utils import load_emoji, load_bow
-    >>> bow = load_bow(lang='en')
-    >>> emo = load_emoji(lang='en', emoji=0)
-    >>> X = bow.transform(['this is funny'])
-    >>> df = emo.decision_function(X)
-    """
     lang = lang.lower().strip()
     assert lang in MODEL_LANG
-    return _load_text_repr(lang, 'emojis', emoji)
+    return _load_text_repr(lang, 'emojis', emoji, v1=v1)
 
 
 def load_keyword(lang='es', keyword=None):
@@ -454,7 +486,7 @@ def emoji_information(lang='es'):
     return dos
     
 
-def load_dataset(lang='es', name='HA', k=None):
+def load_dataset(lang='es', name='HA', k=None, v1=False):
     """
     Download and load the Dataset representation
 
@@ -471,7 +503,7 @@ def load_dataset(lang='es', name='HA', k=None):
     """
     lang = lang.lower().strip()
     assert lang in ['ar', 'zh', 'en', 'es']
-    return _load_text_repr(lang, name, k)    
+    return _load_text_repr(lang, name, k, v1=v1)    
 
 
 def dataset_information(lang='es'):
