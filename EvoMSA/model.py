@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Union
-from microtc.utils import save_model, tweet_iterator
+from microtc.utils import save_model, tweet_iterator, SparseMatrix
 from b4msa.textmodel import TextModel
 from EvoMSA.ConceptModelling.thumbs_up_down import ThumbsUpDown, _ARABIC, _ENGLISH, _SPANISH, PATH as ConPATH
 from scipy.stats import multivariate_normal
@@ -292,7 +292,7 @@ class LabeledDataSet(BaseTextModel, BaseClassifier):
         save_model(ins, output)
 
 
-class Corpus(BaseTextModel):
+class Corpus(BaseTextModel, SparseMatrix):
     """Text model using only words"""
 
     def __init__(self, corpus=None, **kwargs):
@@ -300,7 +300,7 @@ class Corpus(BaseTextModel):
         self._m = {}
         self._num_terms = 0
         self._training = True
-        self._textModel = TextModel([''], token_list=[-1])
+        self._textModel = TextModel(token_list=[-1])
         if corpus is not None:
             self.fit(corpus)
 
@@ -342,7 +342,7 @@ class Corpus(BaseTextModel):
         >>> textmodel = TextModel().fit(corpus)
         >>> X = textmodel.transform(corpus)
         """
-        return self._textModel.tonp([self.__getitem__(x) for x in texts])
+        return self.tonp([self.__getitem__(x) for x in texts])
 
     def __getitem__(self, d):
         tokens = []

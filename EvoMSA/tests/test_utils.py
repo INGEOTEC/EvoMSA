@@ -109,7 +109,7 @@ def test_corrupted_model():
     bow = load_bow(lang='en', v1=True)
     ds = load_dataset(lang='en', name='HA', k=0, v1=True)
 
-    output = join(dirname(EvoMSA.__file__), 'models', f'es_HA_muTC2.4.2.json.gz')
+    output = join(dirname(EvoMSA.__file__), 'models', f'en_HA_muTC2.4.2.json.gz')
     assert isfile(output)
     with gzip.open(output, 'w') as fpt:
         fpt.write(bytes('x', encoding='utf-8'))
