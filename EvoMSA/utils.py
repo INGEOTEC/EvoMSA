@@ -314,7 +314,7 @@ class Download(object):
         try:
             return self._tqdm
         except AttributeError:
-            self._tqdm = tqdm(total=self._nblocks)
+            self._tqdm = tqdm(total=self._nblocks, leave=False)
         return self._tqdm
     
     def close(self):
@@ -434,11 +434,15 @@ def _load_text_repr(lang='es', name='emojis',
     return models[k]
 
 
-def load_emoji(lang='es', emoji=None, v1=False):
+def load_emoji(lang='es', emoji=None,
+               d=17, func='most_common_by_type',
+               v1=False):
 
     lang = lang.lower().strip()
     assert lang in MODEL_LANG
-    return _load_text_repr(lang, 'emojis', emoji, v1=v1)
+    return _load_text_repr(lang, 'emojis',
+                           emoji, d=d, func=func,
+                           v1=v1)
 
 
 def load_keyword(lang='es', keyword=None, v1=False):

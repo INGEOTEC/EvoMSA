@@ -429,6 +429,12 @@ class TextRepresentations(BoW):
             emojis = load_emoji(lang=self.lang, v1=self.v1)
             self.text_representations.extend(emojis)
             self.names.extend([x.labels[-1] for x in emojis])
+        else:
+            data = load_emoji(lang=self.lang,
+                              d=self.voc_size_exponent, 
+                              func=self.voc_selection)
+            self.text_representations.extend(data)
+            self.names.extend([x.labels[-1] for x in data])            
 
     def load_keyword(self) -> None:
         if self.v1:
