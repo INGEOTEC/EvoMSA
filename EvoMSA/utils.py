@@ -373,10 +373,16 @@ class Linear(object):
 
     def __init__(self, coef: Union[list, np.ndarray],
                  intercept: float=0,
-                 labels: Union[list, np.ndarray, None]=None) -> None:
+                 labels: Union[list, np.ndarray, None]=None,
+                 N: int=0) -> None:
         self._coef = np.atleast_1d(coef)
         self._intercept = intercept
         self._labels = np.atleast_1d(labels) if labels is not None else labels
+        self._N = N
+    
+    @property
+    def N(self):
+        return self._N
 
     @property
     def labels(self):
@@ -398,7 +404,9 @@ class Linear(object):
         return np.where(hy > 0, 1, -1)
 
     
-def _load_text_repr(lang='es', name='emojis', k=None, v1=False):
+def _load_text_repr(lang='es', name='emojis', 
+                    k=None,  d=17, func='most_common_by_type',
+                    v1=False):
     import os
     from os.path import isdir, join, isfile, dirname
     from urllib.error import HTTPError
@@ -414,14 +422,16 @@ def _load_text_repr(lang='es', name='emojis', k=None, v1=False):
         os.mkdir(diroutput)
     if v1:
         filename = f'{lang}_{name}_muTC2.4.2.json.gz'
-        url = f'https://github.com/INGEOTEC/text_models/releases/download/models/{filename}'
-        output = join(diroutput, filename)
-        if not isfile(output):
-            Download(url, output)
-        models = load(output)
-        if k is None:
-            return models
-        return models[k]
+    else:
+        filename = f'{lang}_{MICROTC}_{name}_{func}_{d}.json.gz'
+    url = f'https://github.com/INGEOTEC/text_models/releases/download/models/{filename}'
+    output = join(diroutput, filename)
+    if not isfile(output):
+        Download(url, output)
+    models = load(output)
+    if k is None:
+        return models
+    return models[k]
 
 
 def load_emoji(lang='es', emoji=None, v1=False):
@@ -473,7 +483,9 @@ def emoji_information(lang='es'):
     return dos
     
 
-def load_dataset(lang='es', name='HA', k=None, v1=False):
+def load_dataset(lang='es', name='HA', 
+                 k=None, d=17, func='most_common_by_type',
+                 v1=False):
     """
     Download and load the Dataset representation
 
@@ -490,7 +502,9 @@ def load_dataset(lang='es', name='HA', k=None, v1=False):
     """
     lang = lang.lower().strip()
     assert lang in ['ar', 'zh', 'en', 'es']
-    return _load_text_repr(lang, name, k, v1=v1)    
+    return _load_text_repr(lang, name, 
+                           k, d=d, func=func,
+                           v1=v1)    
 
 
 def dataset_information(lang='es'):

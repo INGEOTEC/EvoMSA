@@ -112,6 +112,7 @@ class BoW(object):
                  kfold_class=StratifiedKFold,
                  kfold_kwargs: dict=dict(random_state=0,
                                          shuffle=True),
+                 v1: bool=False,
                  n_jobs: int=1) -> None:
         assert lang is None or lang in MODEL_LANG
         if lang in MODEL_LANG:
@@ -132,6 +133,15 @@ class BoW(object):
         self.kfold_class = kfold_class
         self.kfold_kwargs = kfold_kwargs
         self._b4msa_estimated = False
+        self.v1 = v1
+
+    @property
+    def v1(self):
+        return self._v1
+    
+    @v1.setter
+    def v1(self, value):
+        self._v1 = value
 
     @property
     def voc_selection(self):
@@ -210,18 +220,21 @@ class BoW(object):
             bow = self._bow
         except AttributeError:
             if self.pretrain:
-                freq = load_bow(lang=self.lang,
-                                d=self.voc_size_exponent, 
-                                func=self.voc_selection)
-                params = b4msa_params(lang=self.lang,
-                                      dim=self._voc_size_exponent)
-                params.update(self._b4msa_kwargs)
-                bow = TextModel(**params)
-                tfidf = TFIDF()
-                tfidf.N = freq.update_calls
-                tfidf.word2id, tfidf.wordWeight = tfidf.counter2weight(freq)
-                bow.model = tfidf
-                self._bow = bow
+                if self.v1:
+                    self._bow = load_bow(lang=self.lang, v1=self.v1)
+                else:
+                    freq = load_bow(lang=self.lang,
+                                    d=self.voc_size_exponent, 
+                                    func=self.voc_selection)
+                    params = b4msa_params(lang=self.lang,
+                                        dim=self._voc_size_exponent)
+                    params.update(self._b4msa_kwargs)
+                    bow = TextModel(**params)
+                    tfidf = TFIDF()
+                    tfidf.N = freq.update_calls
+                    tfidf.word2id, tfidf.wordWeight = tfidf.counter2weight(freq)
+                    bow.model = tfidf
+                    self._bow = bow
             else:
                 self._bow = TextModel(lang=self.lang,
                                       **self._b4msa_kwargs)
@@ -412,23 +425,32 @@ class TextRepresentations(BoW):
         self._names = value
 
     def load_emoji(self) -> None:
-        emojis = load_emoji(lang=self._lang)
-        self.text_representations.extend(emojis)
-        self.names.extend([x.labels[-1] for x in emojis])
+        if self.v1:
+            emojis = load_emoji(lang=self.lang, v1=self.v1)
+            self.text_representations.extend(emojis)
+            self.names.extend([x.labels[-1] for x in emojis])
 
     def load_keyword(self) -> None:
-        _ = load_keyword(lang=self._lang)
-        self.text_representations.extend(_)
-        self.names.extend([x.labels[-1] for x in _])        
+        if self.v1:
+            _ = load_keyword(lang=self.lang, v1=self.v1)
+            self.text_representations.extend(_)
+            self.names.extend([x.labels[-1] for x in _])        
 
     def load_dataset(self) -> None:
-        names = [name for name in dataset_information(lang=self._lang)
-                 if name not in self._skip_dataset]
-        _ = Parallel(n_jobs=self._n_jobs)(delayed(load_dataset)(lang=self._lang, name=name)
-                                          for name in names)
-        [self.text_representations.extend(k) for k in _]
-        [self.names.extend([name] if len(k) == 1 else [f'{name}({i.labels[-1]})' for i in k])
-         for k, name in zip(_, names)]        
+        if self.v1:
+            names = [name for name in dataset_information(lang=self.lang)
+                    if name not in self._skip_dataset]
+            _ = Parallel(n_jobs=self._n_jobs)(delayed(load_dataset)(lang=self.lang, name=name, v1=self.v1)
+                                            for name in names)
+            [self.text_representations.extend(k) for k in _]
+            [self.names.extend([name] if len(k) == 1 else [f'{name}({i.labels[-1]})' for i in k])
+            for k, name in zip(_, names)]
+        else:
+            data = load_dataset(lang=self.lang, name='datasets',
+                                d=self.voc_size_exponent, 
+                                func=self.voc_selection)
+            self.text_representations.extend(data)
+            self.names.extend([x.labels[-1] for x in data])
 
     def transform(self, D: List[Union[List, dict]], y=None) -> np.ndarray:
         if isinstance(self.key, str):

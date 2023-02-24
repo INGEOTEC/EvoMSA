@@ -26,6 +26,7 @@ def test_EvoDAG_decision_function():
             return EvoDAG(n_estimators=2, 
                           max_training_size=100)    
     evodag = _EvoDAG(keyword=False, emoji=False,
+                     v1=True,
                      decision_function_name='decision_function').fit(D)
     hy = evodag.decision_function(D)    
     assert hy.shape[0] == 1000 and hy.shape[1] == 4
@@ -38,7 +39,8 @@ def test_EvoDAG_predict():
         def estimator(self):
             return EvoDAG(n_estimators=2, 
                           max_training_size=100)    
-    evodag = _EvoDAG(keyword=False, emoji=False).fit(D)
+    evodag = _EvoDAG(keyword=False, v1=True,
+                     emoji=False).fit(D)
     hy = evodag.predict(D)
     assert (hy == [x['klass'] for x in D]).mean() > 0.25
     
@@ -57,6 +59,9 @@ def test_BoW_predict():
     from EvoMSA.evodag import BoW
     D = list(tweet_iterator(TWEETS))
     bow = BoW(lang='es').fit(D)
+    hy = bow.predict(D)
+    assert hy.shape[0] == len(D)
+    bow = BoW(lang='es', v1=True).fit(D)
     hy = bow.predict(D)
     assert hy.shape[0] == len(D)
 
@@ -87,7 +92,9 @@ def test_BoW_key():
 def test_TextRepresentations_transform():
     from EvoMSA.evodag import TextRepresentations
     D = list(tweet_iterator(TWEETS))
-    text_repr = TextRepresentations(lang='es', keyword=False, emoji=False)
+    text_repr = TextRepresentations(lang='es', 
+                                    keyword=False, 
+                                    emoji=False)
     X = text_repr.transform(D)
     assert X.shape[0] == len(D)
     assert len(text_repr.text_representations) == X.shape[1]
@@ -96,7 +103,9 @@ def test_TextRepresentations_transform():
 def test_TextRepresentations_fit():
     from EvoMSA.evodag import TextRepresentations
     D = list(tweet_iterator(TWEETS))
-    text_repr = TextRepresentations(lang='es', keyword=False, emoji=False).fit(D)
+    text_repr = TextRepresentations(lang='es', 
+                                    keyword=False, 
+                                    emoji=False).fit(D)
     text_repr.predict(['Buen dia'])
 
 
