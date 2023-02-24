@@ -199,6 +199,7 @@ def test_BoW_pretrain_False():
 def test_TextRepresentations_keyword():
     from EvoMSA.evodag import TextRepresentations
     text_repr = TextRepresentations(lang='es', keyword=True,
+                                    v1=True,
                                     emoji=False, dataset=False)
     X = text_repr.transform(['hola'])
     assert 2113 == X.shape[1]
@@ -296,13 +297,13 @@ def test_TextRepresentations_extend():
     from microtc.utils import tweet_iterator
     from os.path import isfile, dirname, join
     lang = 'es'
-    text_repr = TextRepresentations(lang=lang, keyword=True,
+    text_repr = TextRepresentations(lang=lang, keyword=True, v1=True,
                                     emoji=False, dataset=False)
-    text_repr = TextRepresentations(lang=lang, keyword=False,
+    text_repr = TextRepresentations(lang=lang, keyword=False, v1=True,
                                     emoji=False, dataset=False)                                    
     diroutput = join(dirname(base.__file__), 'models')
     name = 'keywords'
-    fname = join(diroutput, f'{lang}_{name}_muTC{MICROTC}.json.gz')
+    fname = join(diroutput, f'{lang}_{name}_muTC2.4.2.json.gz')
     _ = [Linear(**x) for x in tweet_iterator(fname)]
     text_repr.text_representations_extend(_)
     X = text_repr.transform(['hola'])
