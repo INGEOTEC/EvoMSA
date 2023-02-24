@@ -308,3 +308,11 @@ def test_TextRepresentations_extend():
     text_repr.text_representations_extend(_)
     X = text_repr.transform(['hola'])
     assert 2113 == X.shape[1]
+
+
+def test_TextRepresentations_emojis_v2():
+    from EvoMSA.evodag import TextRepresentations
+    lang = 'ca'
+    text_repr = TextRepresentations(lang=lang, keyword=False,
+                                    emoji=True, dataset=False)
+    text_repr.transform(['xxx'])
