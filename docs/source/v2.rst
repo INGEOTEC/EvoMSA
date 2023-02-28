@@ -378,6 +378,8 @@ in the sentence *I love this song.*
 :py:class:`StackGeneralization`
 ================================
 
+:py:class:`StackGeneralization` implements a stack generalization approach to 
+combine the output of text classifiers or regressors. 
 
 Documentation
 ================================
