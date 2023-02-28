@@ -179,34 +179,34 @@ and stored it in a variable :py:attr:`X`.
 
 >>> X = bow.transform(['good morning'])
 >>> X
-<1x16384 sparse matrix of type '<class 'numpy.float64'>'
-	with 35 stored elements in Compressed Sparse Row format>
+<1x131072 sparse matrix of type '<class 'numpy.float64'>'
+	with 39 stored elements in Compressed Sparse Row format>
 
 The non-zero components are found in :py:attr:`X.indices`
 
 >>> X.indices
-array([   5,   10,   20,   25,   30,   37,   41,   43,   53,   64,  138,
-        148,  166,  175,  217,  220,  272,  394,  438,  461,  484,  524,
-        538,  565,  592,  654,  655,  662,  748, 1198, 1227, 1365, 1594,
-       1636, 1898], dtype=int32)
+array([   7,    9,   21,   24,   31,   34,   37,   40,   44,   61,  150,
+        178,  202,  217,  229,  277,  309,  528,  573,  601,  663,  717,
+        776,  780,  789,  825,  890,  937,  976, 1099, 1908, 2125, 2624,
+       3225, 3315, 3677, 4177, 6558, 9443], dtype=int32)
 
 However, one might wonder which token corresponds to each component; 
 this information is in :py:attr:`BoW.names`. For example, 
-the tokens associated with components 748 and 1898 are: *good*
+the tokens associated with components 1099 and 4177 are: *good*
 and *morning*, as can be seen below. 
 
->>> bow.names[748], bow.names[1898]
+>>> bow.names[1099], bow.names[4177]
 ('good', 'morning')
 
 The IDF values associate to each token are in the dictionary 
 :py:attr:`BoW.bow.token_weight`, e.g., the IDF value of text 
 *morning* is 
 
->>> bow.bow.token_weight[1898]
-6.354566724835741
+>>> bow.bow.token_weight[4177]
+7.079042426281991
 
-Nonetheless, the value that the component 1898 has in the variable :py:attr:`X` is
-0.2714 because the vector that represents *good morning* has been
+Nonetheless, the value that the component 4177 has in the variable :py:attr:`X` is
+0.2523 because the vector that represents *good morning* has been
 normalized to have a unit length. 
 
 Text Classifier
@@ -254,7 +254,7 @@ This information can be found in :py:attr:`BoW.decision_function`
 as can be seen in the following code.
 
 >>> bow.decision_function(['buenos días'])
-array([[-1.5749252 , -1.0800899 , -0.21577256,  0.56413664]])
+array([[-1.4054791 , -1.0134042 , -0.57912116,  0.90450178]])
 
 .. _TextRepresentations:
 
@@ -282,7 +282,7 @@ This complex behavior comes from associating each component to the
 decision value of a text classifier trained on a labeled dataset which
 is different from the one solving, albeit nothing forbids to be related to it. 
 The datasets, from which these decision functions come, can be built either 
-using a semi-supervised approach or by annotating texts.
+using a self-supervised approach or by annotating texts.
 
 Without loss of generality, it is assumed that there are :math:`M` 
 labeled datasets each one contains a binary text classification problem;  
@@ -342,9 +342,9 @@ Finally, the vector representing the text :math:`x` is the normalized :math:`\ma
 EvoMSA 2.0 has three sets of text representations, namely :py:attr:`dataset`,
 :py:attr:`emoji`, and :py:attr:`keyword`. The dataset text representations 
 were built on datasets coming from text-categorization competitions, 
-the emoji representations are semi-supervised datasets where
+the emoji representations are self-supervised datasets where
 each task is to predict the presence of the emoji; and the keyword 
-representations are also semi-supervised datasets where the task is to 
+representations are also self-supervised datasets where the task is to 
 predict the presence of a word; the words selected correspond to the
 words of the vocabulary in the pre-trained bag-of-words model. 
 
@@ -354,7 +354,7 @@ is to initialize the model which can be done with the following
 instructions.
 
 >>> from EvoMSA import TextRepresentations
->>> emoji = TextRepresentations(emoji=True, keyword=False, dataset=False)
+>>> emoji = TextRepresentations(lang='en', emoji=True, keyword=False, dataset=False)
 
 The method :py:attr:`TextRepresentations.transform` receives a list
 of text to be represented on this vector space, the following code
@@ -367,10 +367,10 @@ contains the description of each component, for example
 the following code shows the value for the component
 with index 9 and its description.
 
->>> X[:, 9], emoji.names[9]
-(array([0.01017417]), '🎶')
+>>> X[:, 59], emoji.names[59]
+(array([0.05337313]), '🎶')
 
-The value 0.01 indicates that the emoji would be present
+The value 0.05 indicates that the emoji would be present
 in the sentence *I love this song.*
 
 .. _StackGeneralization:
