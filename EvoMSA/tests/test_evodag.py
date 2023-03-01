@@ -343,4 +343,17 @@ def test_TextRepresentations_cache():
     X1 = tr.transform(['buenos dias'])
     tr.cache = X
     X2 = tr.transform(['xxx'])
-    assert np.fabs(X1 - X2).sum() == 0    
+    assert np.fabs(X1 - X2).sum() == 0
+
+
+def test_BoW_weights():
+    from EvoMSA.evodag import BoW
+    bow = BoW(lang='es', voc_size_exponent=13)
+    assert len(bow.names) == len(bow.weights)
+
+
+def test_TextRepresentations_weights():
+    from EvoMSA.evodag import TextRepresentations
+    bow = TextRepresentations(lang='es', voc_size_exponent=13)
+    assert len(bow.names) == bow.weights.shape[0]
+    assert len(bow.names) == bow.bias.shape[0]    

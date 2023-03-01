@@ -199,7 +199,18 @@ class BoW(object):
         _names = [None] * len(self.bow.id2token)
         for k, v in self.bow.id2token.items():
             _names[k] = v
-        return _names   
+        return _names
+
+    @property
+    def weights(self):
+        try:
+            return self._weights
+        except AttributeError:
+            w = [None] * len(self.bow.token_weight)
+            for k, v in self.bow.token_weight.items():
+                w[k] = v
+            self._weights = w
+            return self._weights
 
     @property
     def pretrain(self):
@@ -395,6 +406,24 @@ class TextRepresentations(BoW):
             self.load_dataset()
         if keyword:
             self.load_keyword()
+
+    @property
+    def weights(self):
+        try:
+            return self._weights
+        except AttributeError:
+            w = np.array([x._coef for x in self.text_representations])
+            self._weights = w
+            return self._weights
+
+    @property
+    def bias(self):
+        try:
+            return self._bias
+        except AttributeError:
+            w = np.array([x._intercept for x in self.text_representations])
+            self._bias = w
+            return self._bias       
 
     @property
     def text_representations(self):
