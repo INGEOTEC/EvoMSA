@@ -316,3 +316,31 @@ def test_TextRepresentations_emojis_v2():
     text_repr = TextRepresentations(lang=lang, keyword=False,
                                     emoji=True, dataset=False)
     text_repr.transform(['xxx'])
+
+
+def test_BoW_cache():
+    from EvoMSA.evodag import BoW
+    # D = list(tweet_iterator(TWEETS))
+    bow = BoW(lang='es')
+    X1 = bow.transform(['buenos dias'])
+
+    bow2 = BoW(lang='es')
+    bow2.cache = X1
+    assert bow2._cache is not None
+    X2 = bow2.transform(['XXX'])
+    assert abs(X1 - X2).sum() == 0
+
+
+def test_TextRepresentations_cache():
+    from EvoMSA.evodag import BoW, TextRepresentations
+    # D = list(tweet_iterator(TWEETS))
+    bow = BoW(lang='es', voc_size_exponent=13)
+    tr = TextRepresentations(keyword=False,
+                             dataset=False,
+                             voc_size_exponent=13,
+                             lang='es')
+    X = bow.transform(['buenos dias'])
+    X1 = tr.transform(['buenos dias'])
+    tr.cache = X
+    X2 = tr.transform(['xxx'])
+    assert np.fabs(X1 - X2).sum() == 0    

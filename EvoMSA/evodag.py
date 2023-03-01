@@ -136,6 +136,17 @@ class BoW(object):
         self.v1 = v1
 
     @property
+    def cache(self):
+        try:
+            return self._cache
+        except AttributeError:
+            return None
+        
+    @cache.setter
+    def cache(self, value):
+        self._cache = value
+
+    @property
     def v1(self):
         return self._v1
     
@@ -277,6 +288,10 @@ class BoW(object):
         assert len(D)
         if not self.pretrain:
             assert self._b4msa_estimated
+        if self.pretrain and self.cache is not None:
+            X = self.cache
+            self.cache = None
+            return X
         if self.key == 'text' or isinstance(D[0], str):
             return self.bow.transform(D)
         assert isinstance(D[0], dict)
