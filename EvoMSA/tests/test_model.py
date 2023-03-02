@@ -24,6 +24,8 @@ def test_corpus():
     a = c['hola hola mundo']
     assert len(a) == 3
     assert a[0] == a[1]
+    X = c.transform(['hola mundo'])
+    assert X.data.shape[0] > 0
 
 
 def test_bernoulli():
