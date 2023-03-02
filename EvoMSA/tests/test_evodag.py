@@ -379,7 +379,10 @@ def test_BoW_weights():
 
 def test_TextRepresentations_weights():
     from EvoMSA.evodag import TextRepresentations
-    bow = TextRepresentations(lang='es', voc_size_exponent=13)
+    bow = TextRepresentations(lang='es',
+                              keyword=False,
+                              dataset=False,                              
+                              voc_size_exponent=13)
     assert len(bow.names) == bow.weights.shape[0]
     assert len(bow.names) == bow.bias.shape[0]
 

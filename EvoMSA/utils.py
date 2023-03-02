@@ -303,7 +303,6 @@ class Download(object):
         try:
             request.urlretrieve(url, output, reporthook=self.progress)
         except HTTPError:
-            self.close()
             raise Exception(url)
         self.close()
     
