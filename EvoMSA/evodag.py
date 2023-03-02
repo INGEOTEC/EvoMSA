@@ -484,7 +484,13 @@ class TextRepresentations(BoW):
         if self.v1:
             _ = load_keyword(lang=self.lang, v1=self.v1)
             self.text_representations.extend(_)
-            self.names.extend([x.labels[-1] for x in _])        
+            self.names.extend([x.labels[-1] for x in _])
+        else:       
+            data = load_keyword(lang=self.lang,
+                                d=self.voc_size_exponent, 
+                                func=self.voc_selection)
+            self.text_representations.extend(data)
+            self.names.extend([x.labels[-1] for x in data])            
 
     def load_dataset(self) -> None:
         if self.v1:

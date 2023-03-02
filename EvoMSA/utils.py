@@ -445,11 +445,15 @@ def load_emoji(lang='es', emoji=None,
                            v1=v1)
 
 
-def load_keyword(lang='es', keyword=None, v1=False):
+def load_keyword(lang='es', keyword=None,
+                 d=17, func='most_common_by_type',
+                 v1=False):
 
     lang = lang.lower().strip()
     assert lang in MODEL_LANG
-    return _load_text_repr(lang, 'keywords', keyword, v1=v1)    
+    return _load_text_repr(lang, 'keywords', 
+                           keyword, d=d, func=func,
+                           v1=v1)    
 
 
 def emoji_information(lang='es'):

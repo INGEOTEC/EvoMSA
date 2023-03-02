@@ -93,6 +93,7 @@ def test_TextRepresentations_transform():
     from EvoMSA.evodag import TextRepresentations
     D = list(tweet_iterator(TWEETS))
     text_repr = TextRepresentations(lang='es', 
+                                    voc_size_exponent=13,
                                     keyword=False, 
                                     emoji=False)
     X = text_repr.transform(D)
@@ -104,6 +105,7 @@ def test_TextRepresentations_fit():
     from EvoMSA.evodag import TextRepresentations
     D = list(tweet_iterator(TWEETS))
     text_repr = TextRepresentations(lang='es', 
+                                    voc_size_exponent=13,
                                     keyword=False, 
                                     emoji=False).fit(D)
     text_repr.predict(['Buen dia'])
@@ -113,9 +115,11 @@ def test_TextRepresentations_key():
     from EvoMSA.evodag import TextRepresentations
     D = list(tweet_iterator(TWEETS))
     O = TextRepresentations(lang='es', unit_vector=False,
+                            voc_size_exponent=13,
                             keyword=False, emoji=False).transform(D)    
     X = [dict(klass=x['klass'], premise=x['text'], conclusion=x['text']) for x in D]
     bow = TextRepresentations(lang='es', unit_vector=False,
+                              voc_size_exponent=13,
                               keyword=False, emoji=False, key=['premise', 'conclusion'])
     assert abs(bow.transform(X) - O * 2).sum() == 0    
 
@@ -125,7 +129,10 @@ def test_StackGeneralization():
     D = list(tweet_iterator(TWEETS))
     text_repr = StackGeneralization(lang='es',
                                     decision_function_models=[BoW(lang='es')],
-                                    transform_models=[TextRepresentations(lang='es', keyword=False, emoji=False)]).fit(D)
+                                    transform_models=[TextRepresentations(lang='es', 
+                                                                          voc_size_exponent=13,
+                                                                          keyword=False, 
+                                                                          emoji=False)]).fit(D)
     assert text_repr.predict(['Buen dia'])[0] == 'P'
 
 
@@ -134,7 +141,10 @@ def test_StackGeneralization_train_predict_decision_function():
     D = list(tweet_iterator(TWEETS))
     text_repr = StackGeneralization(lang='es',
                                     decision_function_models=[BoW(lang='es')],
-                                    transform_models=[TextRepresentations(lang='es', keyword=False, emoji=False)])
+                                    transform_models=[TextRepresentations(lang='es', 
+                                                                          keyword=False, 
+                                                                          voc_size_exponent=13,
+                                                                          emoji=False)])
     hy = text_repr.train_predict_decision_function(D)
     assert hy.shape[0] == len(D)
     D1 = [x for x in D if x['klass'] in ['P', 'N']]
@@ -145,7 +155,10 @@ def test_StackGeneralization_train_predict_decision_function():
 def test_TextRepresentations_tr_setter():
     from EvoMSA.evodag import TextRepresentations
     D = list(tweet_iterator(TWEETS))
-    text_repr = TextRepresentations(lang='es', keyword=False, emoji=False)
+    text_repr = TextRepresentations(lang='es', 
+                                    keyword=False, 
+                                    voc_size_exponent=13,
+                                    emoji=False)
     tr = text_repr.text_representations
     text_repr.text_representations = tr[:3]
     assert text_repr.transform(['Buen dia']).shape[1] == 3
@@ -160,14 +173,20 @@ def test_BoW_setter():
 
 def test_TextRepresentations_names():
     from EvoMSA.evodag import TextRepresentations
-    text_repr = TextRepresentations(lang='es', keyword=False, emoji=False)
+    text_repr = TextRepresentations(lang='es', 
+                                    voc_size_exponent=13,
+                                    keyword=False, 
+                                    emoji=False)
     X = text_repr.transform(['buenos dias'])
     assert X.shape[1] == len(text_repr.names)
 
 
 def test_TextRepresentations_select():
     from EvoMSA.evodag import TextRepresentations
-    text_repr = TextRepresentations(lang='es', keyword=False, emoji=False)
+    text_repr = TextRepresentations(lang='es', 
+                                    voc_size_exponent=13,
+                                    keyword=False, 
+                                    emoji=False)
     text_repr.select([1, 10, 11])
     X = text_repr.transform(['buenos dias'])
     assert X.shape[1] == len(text_repr.names)
@@ -222,6 +241,7 @@ def test_TextRepresentations_select2():
     text_repr = TextRepresentations(lang='es', 
                                     emoji=False,
                                     keyword=False,
+                                    voc_size_exponent=13,
                                     n_jobs=1)
     n_names = len(text_repr.names)
     text_repr.select(D=D)
@@ -229,6 +249,7 @@ def test_TextRepresentations_select2():
     text_repr = TextRepresentations(lang='es', 
                                     emoji=False,
                                     keyword=False,
+                                    voc_size_exponent=13,
                                     n_jobs=1).select(D=D)
     assert isinstance(text_repr, TextRepresentations)
 
@@ -247,6 +268,7 @@ def test_TextRepresentations_unit():
                                     emoji=False,
                                     keyword=False,
                                     n_jobs=1,
+                                    voc_size_exponent=13,
                                     unit_vector=True)
     X = text_repr.transform(['buenos días', 'adios'])
     
@@ -256,6 +278,7 @@ def test_TextRepresentations_unit():
                                     emoji=False,
                                     keyword=False,
                                     n_jobs=1,
+                                    voc_size_exponent=13,
                                     key=['text', 'text'],
                                     unit_vector=True)
     X = text_repr.transform([dict(text='buenos días')])
@@ -314,8 +337,10 @@ def test_TextRepresentations_emojis_v2():
     from EvoMSA.evodag import TextRepresentations
     lang = 'ca'
     text_repr = TextRepresentations(lang=lang, keyword=False,
+                                    voc_size_exponent=13,
                                     emoji=True, dataset=False)
-    text_repr.transform(['xxx'])
+    X = text_repr.transform(['xxx'])
+    assert X.shape[0] and X.shape[1] == 136
 
 
 def test_BoW_cache():
@@ -356,4 +381,14 @@ def test_TextRepresentations_weights():
     from EvoMSA.evodag import TextRepresentations
     bow = TextRepresentations(lang='es', voc_size_exponent=13)
     assert len(bow.names) == bow.weights.shape[0]
-    assert len(bow.names) == bow.bias.shape[0]    
+    assert len(bow.names) == bow.bias.shape[0]
+
+
+def test_TextRepresentations_keywords_v2():
+    from EvoMSA.evodag import TextRepresentations
+    lang = 'ca'
+    text_repr = TextRepresentations(lang=lang, keyword=True,
+                                    voc_size_exponent=13,
+                                    emoji=False, dataset=False)
+    X = text_repr.transform(['xxx'])        
+    assert X.shape[0] == 1 and X.shape[1] == 503 
