@@ -394,7 +394,7 @@ def test_TextRepresentations_keywords_v2():
                                     voc_size_exponent=13,
                                     emoji=False, dataset=False)
     X = text_repr.transform(['xxx'])        
-    assert X.shape[0] == 1 and X.shape[1] == 503
+    assert X.shape[0] == 1 and X.shape[1] == 2022
 
 
 def test_TextRepresentations_fromjson(): 
