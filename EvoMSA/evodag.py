@@ -15,11 +15,12 @@
 
 from EvoMSA.base import DEFAULT_CL, DEFAULT_R
 from EvoMSA.utils import MODEL_LANG
-from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset, load_keyword, b4msa_params
+from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset, load_keyword, b4msa_params, Linear
 from EvoMSA.model import GaussianBayes
 from EvoMSA.model_selection import KruskalFS
 from b4msa.textmodel import TextModel
 from microtc.weighting import TFIDF
+from microtc.utils import tweet_iterator
 from joblib import Parallel, delayed
 from typing import Union, List, Set, Callable, Tuple
 from sklearn.svm import LinearSVC
@@ -532,6 +533,23 @@ class TextRepresentations(BoW):
             return _ / np.atleast_2d(np.linalg.norm(_, axis=1)).T
         else:
             return _
+        
+    @classmethod
+    def fromjson(cls, filename,
+                 emoji=False,
+                 dataset=False,
+                 keyword=False,
+                 **kwargs):
+        ins = cls(emoji=emoji,
+                  dataset=dataset,
+                  keyword=keyword,
+                  **kwargs)
+        
+        models = [Linear(**kwargs)
+                  for kwargs in tweet_iterator(filename)]
+        ins.text_representations_extend(models)
+        return ins
+        
 
 class StackGeneralization(BoW):
     """
