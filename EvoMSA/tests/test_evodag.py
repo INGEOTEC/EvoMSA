@@ -394,4 +394,30 @@ def test_TextRepresentations_keywords_v2():
                                     voc_size_exponent=13,
                                     emoji=False, dataset=False)
     X = text_repr.transform(['xxx'])        
-    assert X.shape[0] == 1 and X.shape[1] == 503 
+    assert X.shape[0] == 1 and X.shape[1] == 503
+
+
+def test_TextRepresentations_fromjson(): 
+    from EvoMSA.evodag import TextRepresentations
+    from EvoMSA.utils import MICROTC
+    from EvoMSA import base
+    from os.path import join, dirname, isfile
+
+    lang = 'ca'
+    text_repr = TextRepresentations(lang=lang, keyword=True,
+                                    voc_size_exponent=13,
+                                    emoji=False, dataset=False)
+    func = 'most_common_by_type'
+    d = 13
+    name = 'keywords'
+    filename = f'{lang}_{MICROTC}_{name}_{func}_{d}.json.gz'
+    diroutput = join(dirname(base.__file__), 'models')
+    path = join(diroutput, filename)
+    assert isfile(path)
+    text_repr2 = TextRepresentations.fromjson(path,
+                                              lang=lang,
+                                              voc_size_exponent=13)
+    for a, b in zip(text_repr.names, text_repr2.names):
+        assert a == b
+    text = ['hola']
+    assert np.all(text_repr.transform(text) == text_repr2.transform(text))
