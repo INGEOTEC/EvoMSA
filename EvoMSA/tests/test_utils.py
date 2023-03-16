@@ -65,8 +65,9 @@ def test_download():
 def test_load_bow():
     from EvoMSA.utils import load_bow
     bow = load_bow(lang='en')
-    repr = bow['hi']
-    assert len(repr) == 7
+    assert bow['hi'] == 15344
+    bow = load_bow(lang='en', v1=True)
+    assert len(bow['hi']) == 7
 
 
 def test_emoji_information():
@@ -78,7 +79,7 @@ def test_emoji_information():
 def test_load_emoji():
     from EvoMSA.utils import load_emoji, emoji_information
     info = emoji_information()
-    emojis = load_emoji(lang='es')
+    emojis = load_emoji(lang='es', v1=True)
     assert isinstance(emojis, list)
     assert len(emojis) == len(info)
 
@@ -92,8 +93,8 @@ def test_dataset_information():
 def test_load_dataset():
     from EvoMSA.utils import load_dataset, load_bow
     import numpy as np
-    bow = load_bow(lang='en')
-    ds = load_dataset(lang='en', name='HA', k=0)
+    bow = load_bow(lang='en', v1=True)
+    ds = load_dataset(lang='en', name='HA', k=0, v1=True)
     X = bow.transform(['this is funny'])
     df = ds.decision_function(X)    
     np.testing.assert_almost_equal(df[0], -0.389922806003241)
@@ -101,25 +102,24 @@ def test_load_dataset():
 
 
 def test_corrupted_model():
-    from EvoMSA.evodag import TextRepresentations
-    from EvoMSA.utils import MICROTC
+    from EvoMSA.utils import load_dataset, load_bow
     import EvoMSA
     from os.path import dirname, join, isfile
     import gzip
-    text_repr = TextRepresentations(lang='es', 
-                                    emoji=False,
-                                    keyword=False,
-                                    n_jobs=1,
-                                    unit_vector=True)
-    output = join(dirname(EvoMSA.__file__), 'models', f'es_HA_muTC{MICROTC}.json.gz')
+    bow = load_bow(lang='en', v1=True)
+    ds = load_dataset(lang='en', name='HA', k=0, v1=True)
+
+    output = join(dirname(EvoMSA.__file__), 'models', f'en_HA_muTC2.4.2.json.gz')
     assert isfile(output)
     with gzip.open(output, 'w') as fpt:
         fpt.write(bytes('x', encoding='utf-8'))
-    text_repr = TextRepresentations(lang='es', 
-                                    emoji=False,
-                                    keyword=False,
-                                    n_jobs=1,
-                                    unit_vector=True)
+    try:
+        ds =  load_dataset(lang='en', name='HA', k=0, v1=True)
+        assert False
+    except Exception:
+        pass
+    ds =  load_dataset(lang='en', name='HA', k=0, v1=True)
+
     
 
 def test_b4msa_params():
