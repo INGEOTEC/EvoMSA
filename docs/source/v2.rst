@@ -117,7 +117,7 @@ of pairs (:math:`x`, :math:`y`), where :math:`x` is a text and
 :math:`y` is the label associated with it. The bag-of-words
 representation :math:`m` is a pre-trained model with 
 term frequency inverse document frequency (TFIDF) as the weighting scheme;
-the parameters of pre-trained :math:`m` were estimated from 524,288 (:math:`2^{19}`)
+the parameters of pre-trained :math:`m` were estimated from 4,194,304 (:math:`2^{22}`)
 tweets randomly selected.
 
 The bag-of-words representation used is described in
@@ -384,11 +384,11 @@ combine the output of text classifiers or regressors.
 Documentation
 ================================
 
-.. autoclass:: EvoMSA.evodag.BoW
+.. autoclass:: EvoMSA.text_repr.BoW
    :members:
 
-.. autoclass:: EvoMSA.evodag.TextRepresentations
+.. autoclass:: EvoMSA.text_repr.TextRepresentations
    :members:
 
-.. autoclass:: EvoMSA.evodag.StackGeneralization
+.. autoclass:: EvoMSA.text_repr.StackGeneralization
    :members:

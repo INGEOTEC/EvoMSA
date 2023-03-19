@@ -52,7 +52,7 @@ class BoW(object):
     Knowledge-Based Systems Volume 149, 1 June 2018." 
 
     BoW uses, by default, a pre-trained bag-of-words representation. The 
-    representation was trained on 524,288 (:math:`2^{19}`) tweets
+    representation was trained on 4,194,304 (:math:`2^{22}`) tweets
     randomly selected. The pre-trained representations are used
     when the parameters :attr:`lang` and :attr:`pretrain` are
     set; :attr:`pretrain` by default is set to True, and the default 
@@ -70,21 +70,21 @@ class BoW(object):
     :type pretrain: bool
     :param b4msa_kwargs: :py:class:`b4msa.textmodel.TextModel` keyword arguments used to train a bag-of-words representation. default=dict().
     :type b4msa_kwargs: dict
-    :param estimator_class:
+    :param estimator_class: Classifier or Regressor
     :type estimator_class: class
-    :param estimator_kwargs: 
+    :param estimator_kwargs: Keyword parameters for the estimator
     :type estimator_kwargs: dict
-    :param key:
+    :param key: Key where the text is in the dictionary (default='text')
     :type key: Union[str, List[str]]
-    :param label_key:
+    :param label_key: Key where the response is in the dictionary (default='klass')
     :type label_key: str
-    :param mixer_func:
+    :param mixer_func: Function to combine the output in case of multiple texts
     :type mixer_func: Callable[[List], csr_matrix]
-    :param decision_function:
+    :param decision_function: Name of the decision function (detaulf='decision_function')
     :type decision_function: str
-    :param kfold_class:
+    :param kfold_class: Class of the KFold procedure (default=StratifiedKFold)
     :type kfold_class: class
-    :param kfold_kwargs:
+    :param kfold_kwargs: Keyword parameters for the KFold class
     :type kfold_kwargs: dict
     :param n_jobs: Number of jobs. default=1
     :type n_jobs: int
@@ -135,6 +135,7 @@ class BoW(object):
 
     @property
     def cache(self):
+        """If the cache is set, it is returned when calling :py:attr:`BoW.transform`; afterward, it is unset."""
         try:
             return self._cache
         except AttributeError:
@@ -146,6 +147,7 @@ class BoW(object):
 
     @property
     def v1(self):
+        """Whether to use the Version 1.0 text representations"""
         return self._v1
     
     @v1.setter
@@ -154,6 +156,7 @@ class BoW(object):
 
     @property
     def voc_selection(self):
+        """Method used to select the vocabulary"""
         return self._voc_selection
     
     @voc_selection.setter
@@ -162,6 +165,7 @@ class BoW(object):
 
     @property
     def voc_size_exponent(self):
+        """Vocabulary size :math:`2^v`; where :math:`v` is :py:attr:`voc_size_exponent` """
         return self._voc_size_exponent
     
     @voc_size_exponent.setter
@@ -170,6 +174,7 @@ class BoW(object):
 
     @property
     def label_key(self):
+        """Key where the response is in the dictionary."""
         return self._label_key
 
     @label_key.setter
@@ -178,6 +183,7 @@ class BoW(object):
 
     @property
     def key(self):
+        """Key where the text(s) is(are) in the dictionary."""
         return self._key
 
     @key.setter
@@ -294,6 +300,15 @@ class BoW(object):
         return self.bow.fit(_)
 
     def transform(self, D: List[Union[List, dict]], y=None) -> csr_matrix:
+        """Represent the texts into a vector space
+
+        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries. 
+
+        >>> from EvoMSA import BoW
+        >>> X = BoW(lang='en').transform(['Hi', 'Good morning'])
+        >>> X = BoW(lang='en').transform([dict(text='Hi'), dict(text='Good morning')])
+        """
         assert len(D)
         if not self.pretrain:
             assert self._b4msa_estimated
@@ -377,7 +392,7 @@ class BoW(object):
 
 class TextRepresentations(BoW):
     """
-    >>> from EvoMSA.evodag import TextRepresentations
+    >>> from EvoMSA import TextRepresentations
     >>> from microtc.utils import tweet_iterator
     >>> from EvoMSA.tests.test_base import TWEETS    
     >>> text_repr =  TextRepresentations(lang='es')
@@ -550,7 +565,7 @@ class TextRepresentations(BoW):
 
 class StackGeneralization(BoW):
     """
-    >>> from EvoMSA.evodag import TextRepresentations, BoW, StackGeneralization
+    >>> from EvoMSA import TextRepresentations, BoW, StackGeneralization
     >>> from microtc.utils import tweet_iterator
     >>> from EvoMSA.tests.test_base import TWEETS    
     >>> emoji =  TextRepresentations(lang='es', dataset=False)
