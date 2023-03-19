@@ -576,7 +576,15 @@ class StackGeneralization(BoW):
                                                   **kwargs)
         self._decision_function_models = decision_function_models
         self._transform_models = transform_models
-        self._estimated = False
+        self.estimated = False
+
+    @property
+    def estimated(self):
+        return self._estimated
+    
+    @estimated.setter
+    def estimated(self, value):
+        self._estimated = value
 
     def fit(self, *args, **kwargs) -> 'StackGeneralization':
         super(StackGeneralization, self).fit(*args, **kwargs)
@@ -586,7 +594,7 @@ class StackGeneralization(BoW):
     def transform(self, D: List[Union[List, dict]], y=None) -> np.ndarray:
         Xs = [text_repr.transform(D)
               for text_repr in self._transform_models]
-        if not self._estimated:
+        if not self.estimated:
             [text_repr.fit(D, y=y)
              for text_repr in self._decision_function_models]
             Xs += [text_repr.train_predict_decision_function(D, y=y)
@@ -597,7 +605,7 @@ class StackGeneralization(BoW):
         return np.concatenate(Xs, axis=1)
 
     def train_predict_decision_function(self, *args, **kwargs) -> np.ndarray:
-        assert not self._estimated
+        assert not self.estimated
         return super(StackGeneralization, self).train_predict_decision_function(*args, **kwargs)
 
 
