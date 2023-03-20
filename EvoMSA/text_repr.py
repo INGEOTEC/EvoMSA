@@ -133,123 +133,111 @@ class BoW(object):
         self._b4msa_estimated = False
         self.v1 = v1
 
-    @property
-    def cache(self):
-        """If the cache is set, it is returned when calling :py:attr:`BoW.transform`; afterward, it is unset."""
-        try:
-            return self._cache
-        except AttributeError:
-            return None
-        
-    @cache.setter
-    def cache(self, value):
-        self._cache = value
+    def fit(self, D: List[Union[dict, list]], 
+            y: Union[np.ndarray, None]=None) -> 'BoW':
+        """Estimate the parameters of the BoW (:py:func:`BoW.b4msa_fit`)
+        and the classifier or regressor (:py:attr:`BoW.estimator_class` - 
+        the fitted instance is accesible at :py:attr:`BoW.estimator_instance`) 
+        using the dataset (`D`, `y`).
 
-    @property
-    def v1(self):
-        """Whether to use the Version 1.0 text representations"""
-        return self._v1
+        :param D: Texts; in the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries. 
+        :param y: Response variable. The response variable can also be in `D` on the key :py:attr:`BoW.label_key`.
+        :type y: Array or None
+
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW
+        >>> import numpy as np
+        >>> D = list(tweet_iterator(TWEETS))
+        >>> bow = BoW(lang='es').fit(D)                
+        """
+        if not self.pretrain and not self._b4msa_estimated:
+            self.b4msa_fit(D)
+        y = self.dependent_variable(D, y=y)
+        _ = self.transform(D, y=y)
+        self.estimator_instance = self.estimator().fit(_, y)
+        return self
     
-    @v1.setter
-    def v1(self, value):
-        self._v1 = value
+    def transform(self, D: List[Union[List, dict]], y=None) -> csr_matrix:
+        """Represent the texts in `D` in the vector space.
 
-    @property
-    def voc_selection(self):
-        """Method used to select the vocabulary"""
-        return self._voc_selection
-    
-    @voc_selection.setter
-    def voc_selection(self, value):
-        self._voc_selection = value
+        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries. 
 
-    @property
-    def voc_size_exponent(self):
-        """Vocabulary size :math:`2^v`; where :math:`v` is :py:attr:`voc_size_exponent` """
-        return self._voc_size_exponent
-    
-    @voc_size_exponent.setter
-    def voc_size_exponent(self, value):
-        self._voc_size_exponent = value
+        >>> from EvoMSA import BoW
+        >>> X = BoW(lang='en').transform(['Hi', 'Good morning'])
+        >>> X = BoW(lang='en').transform([dict(text='Hi'), dict(text='Good morning')])
+        >>> X.shape
+        (2, 131072)
+        """
+        assert len(D)
+        if not self.pretrain:
+            assert self._b4msa_estimated
+        if self.pretrain and self.cache is not None:
+            X = self.cache
+            self.cache = None
+            return X
+        if self.key == 'text' or isinstance(D[0], str):
+            return self.bow.transform(D)
+        assert isinstance(D[0], dict)
+        if isinstance(self.key, str):
+            key = self.key
+            return self.bow.transform([x[key] for x in D])
+        Xs = [self.bow.transform([x[key] for x in D])
+              for key in self.key]
+        return self._mixer_func(Xs)    
 
-    @property
-    def label_key(self):
-        """Key where the response is in the dictionary."""
-        return self._label_key
+    def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
+        """Predict the response variable on the dataset `D`.
 
-    @label_key.setter
-    def label_key(self, value):
-        self._label_key = value
+        :param D: Texts; in the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries.
 
-    @property
-    def key(self):
-        """Key where the text(s) is(are) in the dictionary."""
-        return self._key
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW
+        >>> bow = BoW(lang='es').fit(list(tweet_iterator(TWEETS)))
+        >>> bow.predict(['Buenos dias']).tolist()
+        ['P']                
+        """
+        _ = self.transform(D)
+        return self.estimator_instance.predict(_)
 
-    @key.setter
-    def key(self, value):
-        self._key = value
+    def decision_function(self, D: List[Union[dict, list]]) -> Union[list, np.ndarray]:
+        """Decision function of the estimate response variable in `D`.
 
-    @property
-    def decision_function_name(self):
-        """Name of the estimator's decision function"""
-        return self._decision_function
+        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries.
 
-    @decision_function_name.setter
-    def decision_function_name(self, value):
-        self._decision_function = value
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW
+        >>> bow = BoW(lang='es').fit(list(tweet_iterator(TWEETS)))
+        >>> bow.decision_function(['Buenos dias'])
+        array([[-1.40547754, -1.01340503, -0.57912244,  0.90450322]])      
+        """
 
-    @property
-    def names(self):
-        """Vector space components"""
-        _names = [None] * len(self.bow.id2token)
-        for k, v in self.bow.id2token.items():
-            _names[k] = v
-        return _names
-
-    @property
-    def weights(self):
-        """Vector space weights"""
-        try:
-            return self._weights
-        except AttributeError:
-            w = [None] * len(self.bow.token_weight)
-            for k, v in self.bow.token_weight.items():
-                w[k] = v
-            self._weights = w
-            return self._weights
-
-    @property
-    def pretrain(self):
-        """Whether the to use pre-trained text representations"""
-        return self._pretrain
-
-    @property
-    def lang(self):
-        """Language of the pre-trained text representations"""
-        return self._lang
-
-    @property
-    def kfold_class(self):
-        """Class to produce the kfolds"""
-        return self._kfold_instance
-
-    @kfold_class.setter
-    def kfold_class(self, value):
-        self._kfold_instance = value
-
-    @property
-    def kfold_kwargs(self):
-        """Keyword arguments of the kfold class"""
-        return self._kfold_kwargs
-
-    @kfold_kwargs.setter
-    def kfold_kwargs(self, value):
-        self._kfold_kwargs = value
+        _ = self.transform(D)
+        hy = getattr(self.estimator_instance, self.decision_function_name)(_)
+        if hy.ndim == 1:
+            return np.atleast_2d(hy).T
+        return hy
 
     @property
     def bow(self):
-        """Bag of Word text representation"""
+        """Bag of Word text representation.
+        
+        The following example tokenizes *hi*.
+        The notation is the following, the first 'hi' corresponds to the word *hi*.
+        Then, there come the q-grams of characters, the token 'q:hi' represents 
+        the q-gram *hi*. All the q-grams start with the prefix 'q:'. Finally, 
+        the character ~ represents a space.
+
+        >>> bow = BoW(lang='en')
+        >>> bow.bow.tokenize(['hi'])
+        ['hi', 'q:~h', 'q:hi', 'q:i~', 'q:~hi', 'q:hi~', 'q:~hi~']        
+        """
         try:
             bow = self._bow
         except AttributeError:
@@ -280,25 +268,74 @@ class BoW(object):
         self._bow = value
 
     @property
-    def estimator_class(self):
-        """Class of the classifier or regressor"""
-        return self._estimator_class
-
-    @estimator_class.setter
-    def estimator_class(self, value):
-        self._estimator_class = value
+    def names(self):
+        """Vector space components"""
+        _names = [None] * len(self.bow.id2token)
+        for k, v in self.bow.id2token.items():
+            _names[k] = v
+        return _names
 
     @property
-    def estimator_kwargs(self):
-        """Keyword arguments of the estimator :py:class:`BoW.estimator_class`"""
-        return self._estimator_kwargs
+    def weights(self):
+        """Vector space weights"""
+        try:
+            return self._weights
+        except AttributeError:
+            w = [None] * len(self.bow.token_weight)
+            for k, v in self.bow.token_weight.items():
+                w[k] = v
+            self._weights = w
+            return self._weights
 
-    @estimator_kwargs.setter
-    def estimator_kwargs(self, value):
-        self._estimator_kwargs = value        
+    @property
+    def pretrain(self):
+        """Whether the to use pre-trained text representations
+        
+        The parameters of the BoW text representation 
+        are :py:attr:`BoW.lang`, :py:attr:`BoW.voc_selection`,
+        and :py:attr:`BoW.voc_size_exponent`. The aforementioned parameters are
+        not available on Version 1.0 (:py:attr:`BoW.v1`).
+
+        """
+        return self._pretrain
+
+    @property
+    def lang(self):
+        """Language of the pre-trained text representations"""
+        return self._lang
+    
+    @property
+    def voc_selection(self):
+        """Method used to select the vocabulary"""
+        return self._voc_selection
+    
+    @voc_selection.setter
+    def voc_selection(self, value):
+        self._voc_selection = value
+
+    @property
+    def voc_size_exponent(self):
+        """Vocabulary size :math:`2^v`; where :math:`v` is :py:attr:`voc_size_exponent` """
+        return self._voc_size_exponent
+    
+    @voc_size_exponent.setter
+    def voc_size_exponent(self, value):
+        self._voc_size_exponent = value
+    
+    @property
+    def v1(self):
+        """Whether to use the Version 1.0 text representations. 
+        This version is only available for Arabic (ar), English (en), and Spanish (es).
+        """
+        return self._v1
+    
+    @v1.setter
+    def v1(self, value):
+        self._v1 = value
 
     def b4msa_fit(self, D: List[Union[List, dict]]):
-        """Estimate the parameters of the BoW (:py:class:`BoW.bow`) in case it is not pretrained (:py:attr:`BoW.pretrain`)
+        """Estimate the parameters of the BoW (:py:class:`BoW.bow`) 
+        in case it is not pretrained (:py:attr:`BoW.pretrain`)
         
         :param D: Dataset
         :type D: List of texts or dictionaries.
@@ -322,65 +359,6 @@ class BoW(object):
             return self.bow.fit([x[key] for x in D])
         _ = [[x[key] for key in self.key] for x in D]
         return self.bow.fit(_)
-
-    def transform(self, D: List[Union[List, dict]], y=None) -> csr_matrix:
-        """Represent the texts into a vector space
-
-        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
-        :type D: List of texts or dictionaries. 
-
-        >>> from EvoMSA import BoW
-        >>> X = BoW(lang='en').transform(['Hi', 'Good morning'])
-        >>> X = BoW(lang='en').transform([dict(text='Hi'), dict(text='Good morning')])
-        >>> X.shape
-        (2, 131072)
-        """
-        assert len(D)
-        if not self.pretrain:
-            assert self._b4msa_estimated
-        if self.pretrain and self.cache is not None:
-            X = self.cache
-            self.cache = None
-            return X
-        if self.key == 'text' or isinstance(D[0], str):
-            return self.bow.transform(D)
-        assert isinstance(D[0], dict)
-        if isinstance(self.key, str):
-            key = self.key
-            return self.bow.transform([x[key] for x in D])
-        Xs = [self.bow.transform([x[key] for x in D])
-              for key in self.key]
-        return self._mixer_func(Xs)
-
-    def dependent_variable(self, D: List[Union[dict, list]], 
-                           y: Union[np.ndarray, None]=None) -> np.ndarray:
-        """Obtain the response variable
-
-        :param D: Dataset
-        :type D: List of texts or dictionaries
-        :param y: Response variable
-        :type y: Array or None 
-        """
-        assert isinstance(D, list) and len(D)
-        label_key = self.label_key
-        if y is None:
-            assert isinstance(D[0], dict)
-            y = np.array([x[label_key] for x in D])
-        assert isinstance(y, np.ndarray)
-        return y
-
-    def estimator(self):
-        """Create an estimator instance using :py:attr:`BoW.estimator_class` and :py:attr:`BoW.estimator_kwargs`"""
-        return self.estimator_class(**self.estimator_kwargs)
-
-    @property
-    def estimator_instance(self):
-        """Estimator - Classifier or Regressor fitted (:py:attr:`BoW.fit`) on the dataset"""
-        return self._m
-
-    @estimator_instance.setter
-    def estimator_instance(self, m):
-        self._m = m
 
     def train_predict_decision_function(self, D: List[Union[dict, list]], 
                                         y: Union[np.ndarray, None]=None) -> np.ndarray:
@@ -427,65 +405,111 @@ class BoW(object):
         for (_, vs), pr in zip(kfolds, hys):
             hy[vs] = pr
         return hy
+    
+    def dependent_variable(self, D: List[Union[dict, list]], 
+                           y: Union[np.ndarray, None]=None) -> np.ndarray:
+        """Obtain the response variable
 
-    def fit(self, D: List[Union[dict, list]], 
-            y: Union[np.ndarray, None]=None) -> 'BoW':
-        """Estimate the parameters of the BoW (:py:func:`BoW.b4msa_fit`) and the classifier or regressor using the dataset `D` and `y`
-
-        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
-        :type D: List of texts or dictionaries. 
+        :param D: Dataset
+        :type D: List of texts or dictionaries
         :param y: Response variable
-        :type y: Array or None
-
-        >>> from microtc.utils import tweet_iterator
-        >>> from EvoMSA.tests.test_base import TWEETS
-        >>> from EvoMSA import BoW
-        >>> import numpy as np
-        >>> D = list(tweet_iterator(TWEETS))
-        >>> bow = BoW(lang='es').fit(D)                
+        :type y: Array or None 
         """
-        if not self.pretrain and not self._b4msa_estimated:
-            self.b4msa_fit(D)
-        y = self.dependent_variable(D, y=y)
-        _ = self.transform(D, y=y)
-        self.estimator_instance = self.estimator().fit(_, y)
-        return self
+        assert isinstance(D, list) and len(D)
+        label_key = self.label_key
+        if y is None:
+            assert isinstance(D[0], dict)
+            y = np.array([x[label_key] for x in D])
+        assert isinstance(y, np.ndarray)
+        return y
 
-    def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
-        """Predict the response on the dataset `D`
+    def estimator(self):
+        """Create an estimator instance using :py:attr:`BoW.estimator_class` and :py:attr:`BoW.estimator_kwargs`"""
+        return self.estimator_class(**self.estimator_kwargs)
 
-        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
-        :type D: List of texts or dictionaries.
+    @property
+    def cache(self):
+        """If the cache is set, it is returned when calling :py:attr:`BoW.transform`; afterward, it is unset."""
+        try:
+            return self._cache
+        except AttributeError:
+            return None
+        
+    @cache.setter
+    def cache(self, value):
+        self._cache = value
 
-        >>> from microtc.utils import tweet_iterator
-        >>> from EvoMSA.tests.test_base import TWEETS
-        >>> from EvoMSA import BoW
-        >>> bow = BoW(lang='es').fit(list(tweet_iterator(TWEETS)))
-        >>> bow.predict(['Buenos dias']).tolist()
-        ['P']                
-        """
-        _ = self.transform(D)
-        return self.estimator_instance.predict(_)
+    @property
+    def label_key(self):
+        """Key where the response is in the dictionary."""
+        return self._label_key
 
-    def decision_function(self, D: List[Union[dict, list]]) -> Union[list, np.ndarray]:
-        """Decision function of the estimate response variable in `D`
+    @label_key.setter
+    def label_key(self, value):
+        self._label_key = value
 
-        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
-        :type D: List of texts or dictionaries.
+    @property
+    def key(self):
+        """Key where the text(s) is(are) in the dictionary."""
+        return self._key
 
-        >>> from microtc.utils import tweet_iterator
-        >>> from EvoMSA.tests.test_base import TWEETS
-        >>> from EvoMSA import BoW
-        >>> bow = BoW(lang='es').fit(list(tweet_iterator(TWEETS)))
-        >>> bow.decision_function(['Buenos dias'])
-        array([[-1.40547754, -1.01340503, -0.57912244,  0.90450322]])      
-        """
+    @key.setter
+    def key(self, value):
+        self._key = value
 
-        _ = self.transform(D)
-        hy = getattr(self.estimator_instance, self.decision_function_name)(_)
-        if hy.ndim == 1:
-            return np.atleast_2d(hy).T
-        return hy
+    @property
+    def decision_function_name(self):
+        """Name of the estimator's decision function"""
+        return self._decision_function
+
+    @decision_function_name.setter
+    def decision_function_name(self, value):
+        self._decision_function = value
+
+    @property
+    def kfold_class(self):
+        """Class to produce the kfolds"""
+        return self._kfold_instance
+
+    @kfold_class.setter
+    def kfold_class(self, value):
+        self._kfold_instance = value
+
+    @property
+    def kfold_kwargs(self):
+        """Keyword arguments of the kfold class"""
+        return self._kfold_kwargs
+
+    @kfold_kwargs.setter
+    def kfold_kwargs(self, value):
+        self._kfold_kwargs = value
+
+    @property
+    def estimator_class(self):
+        """Class of the classifier or regressor"""
+        return self._estimator_class
+
+    @estimator_class.setter
+    def estimator_class(self, value):
+        self._estimator_class = value
+
+    @property
+    def estimator_kwargs(self):
+        """Keyword arguments of the estimator :py:class:`BoW.estimator_class`"""
+        return self._estimator_kwargs
+
+    @estimator_kwargs.setter
+    def estimator_kwargs(self, value):
+        self._estimator_kwargs = value        
+
+    @property
+    def estimator_instance(self):
+        """Estimator - Classifier or Regressor fitted (:py:attr:`BoW.fit`) on the dataset"""
+        return self._m
+
+    @estimator_instance.setter
+    def estimator_instance(self, m):
+        self._m = m
 
 
 class TextRepresentations(BoW):
