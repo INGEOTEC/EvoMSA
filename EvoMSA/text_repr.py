@@ -192,6 +192,7 @@ class BoW(object):
 
     @property
     def decision_function_name(self):
+        """Name of the estimator's decision function"""
         return self._decision_function
 
     @decision_function_name.setter
@@ -200,6 +201,7 @@ class BoW(object):
 
     @property
     def names(self):
+        """Vector space components"""
         _names = [None] * len(self.bow.id2token)
         for k, v in self.bow.id2token.items():
             _names[k] = v
@@ -207,6 +209,7 @@ class BoW(object):
 
     @property
     def weights(self):
+        """Vector space weights"""
         try:
             return self._weights
         except AttributeError:
@@ -218,14 +221,17 @@ class BoW(object):
 
     @property
     def pretrain(self):
+        """Whether the to use pre-trained text representations"""
         return self._pretrain
 
     @property
     def lang(self):
+        """Language of the pre-trained text representations"""
         return self._lang
 
     @property
     def kfold_class(self):
+        """Class to produce the kfolds"""
         return self._kfold_instance
 
     @kfold_class.setter
@@ -234,6 +240,7 @@ class BoW(object):
 
     @property
     def kfold_kwargs(self):
+        """Keyword arguments of the kfold class"""
         return self._kfold_kwargs
 
     @kfold_kwargs.setter
@@ -242,6 +249,7 @@ class BoW(object):
 
     @property
     def bow(self):
+        """Bag of Word text representation"""
         try:
             bow = self._bow
         except AttributeError:
@@ -273,6 +281,7 @@ class BoW(object):
 
     @property
     def estimator_class(self):
+        """Class of the classifier or regressor"""
         return self._estimator_class
 
     @estimator_class.setter
@@ -281,13 +290,28 @@ class BoW(object):
 
     @property
     def estimator_kwargs(self):
+        """Keyword arguments of the estimator :py:class:`BoW.estimator_class`"""
         return self._estimator_kwargs
 
     @estimator_kwargs.setter
     def estimator_kwargs(self, value):
         self._estimator_kwargs = value        
 
-    def b4msa_fit(self, D):
+    def b4msa_fit(self, D: List[Union[List, dict]]):
+        """Estimate the parameters of the BoW (:py:class:`BoW.bow`) in case it is not pretrained (:py:attr:`BoW.pretrain`)
+        
+        :param D: Dataset
+        :type D: List of texts or dictionaries.
+
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW
+        >>> bow = BoW(pretrain=False)
+        >>> bow.b4msa_fit(list(tweet_iterator(TWEETS)))
+        >>> X = bow.transform(['Hola'])
+        >>> X.shape
+        (1, 84802)
+        """
         assert len(D)
         self._b4msa_estimated = True
         if self.key == 'text' or isinstance(D[0], str):
@@ -308,6 +332,8 @@ class BoW(object):
         >>> from EvoMSA import BoW
         >>> X = BoW(lang='en').transform(['Hi', 'Good morning'])
         >>> X = BoW(lang='en').transform([dict(text='Hi'), dict(text='Good morning')])
+        >>> X.shape
+        (2, 131072)
         """
         assert len(D)
         if not self.pretrain:
@@ -328,6 +354,13 @@ class BoW(object):
 
     def dependent_variable(self, D: List[Union[dict, list]], 
                            y: Union[np.ndarray, None]=None) -> np.ndarray:
+        """Obtain the response variable
+
+        :param D: Dataset
+        :type D: List of texts or dictionaries
+        :param y: Response variable
+        :type y: Array or None 
+        """
         assert isinstance(D, list) and len(D)
         label_key = self.label_key
         if y is None:
@@ -337,10 +370,12 @@ class BoW(object):
         return y
 
     def estimator(self):
-        return self._estimator_class(**self._estimator_kwargs)
+        """Create an estimator instance using :py:attr:`BoW.estimator_class` and :py:attr:`BoW.estimator_kwargs`"""
+        return self.estimator_class(**self.estimator_kwargs)
 
     @property
     def estimator_instance(self):
+        """Estimator - Classifier or Regressor fitted (:py:attr:`BoW.fit`) on the dataset"""
         return self._m
 
     @estimator_instance.setter
@@ -349,6 +384,30 @@ class BoW(object):
 
     def train_predict_decision_function(self, D: List[Union[dict, list]], 
                                         y: Union[np.ndarray, None]=None) -> np.ndarray:
+        """
+        Method to compute the kfold predictions on dataset `D` with response `y`
+
+        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries. 
+        :param y: Response variable
+        :type y: Array or None
+
+        For example, the following code computes the accuracy using k-fold cross-validation on the dataset found on `TWEETS` 
+
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW
+        >>> import numpy as np
+        >>> D = list(tweet_iterator(TWEETS))
+        >>> bow = BoW(lang='es')
+        >>> df = bow.train_predict_decision_function(D)
+        >>> df.shape
+        (1000, 4)
+        >>> hy = df.argmax(axis=1)
+        >>> y = np.array([x['klass'] for x in D])
+        >>> labels = np.unique(y)
+        >>> accuracy = (y == labels[hy]).mean()
+        """
         def train_predict(tr, vs):
             m = self.estimator().fit(X[tr], y[tr])
             return getattr(m, self.decision_function_name)(X[vs])
@@ -371,6 +430,20 @@ class BoW(object):
 
     def fit(self, D: List[Union[dict, list]], 
             y: Union[np.ndarray, None]=None) -> 'BoW':
+        """Estimate the parameters of the BoW (:py:func:`BoW.b4msa_fit`) and the classifier or regressor using the dataset `D` and `y`
+
+        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries. 
+        :param y: Response variable
+        :type y: Array or None
+
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW
+        >>> import numpy as np
+        >>> D = list(tweet_iterator(TWEETS))
+        >>> bow = BoW(lang='es').fit(D)                
+        """
         if not self.pretrain and not self._b4msa_estimated:
             self.b4msa_fit(D)
         y = self.dependent_variable(D, y=y)
@@ -379,10 +452,35 @@ class BoW(object):
         return self
 
     def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
+        """Predict the response on the dataset `D`
+
+        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries.
+
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW
+        >>> bow = BoW(lang='es').fit(list(tweet_iterator(TWEETS)))
+        >>> bow.predict(['Buenos dias']).tolist()
+        ['P']                
+        """
         _ = self.transform(D)
         return self.estimator_instance.predict(_)
 
     def decision_function(self, D: List[Union[dict, list]]) -> Union[list, np.ndarray]:
+        """Decision function of the estimate response variable in `D`
+
+        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries.
+
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW
+        >>> bow = BoW(lang='es').fit(list(tweet_iterator(TWEETS)))
+        >>> bow.decision_function(['Buenos dias'])
+        array([[-1.40547754, -1.01340503, -0.57912244,  0.90450322]])      
+        """
+
         _ = self.transform(D)
         hy = getattr(self.estimator_instance, self.decision_function_name)(_)
         if hy.ndim == 1:
