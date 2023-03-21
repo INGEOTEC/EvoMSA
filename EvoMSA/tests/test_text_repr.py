@@ -370,7 +370,7 @@ def test_TextRepresentations_keywords_v2():
     assert X.shape[0] == 1 and X.shape[1] == 2022
 
 
-def test_TextRepresentations_text_representations_fromjson(): 
+def test_TextRepresentations_fromjson(): 
     from EvoMSA.text_repr import TextRepresentations
     from EvoMSA.utils import MICROTC
     from EvoMSA import base
@@ -390,7 +390,7 @@ def test_TextRepresentations_text_representations_fromjson():
     text_repr2 = TextRepresentations(lang=lang,
                                      keyword=False,
                                      dataset=False, emoji=False,
-                                     voc_size_exponent=13).text_representations_fromjson(path)
+                                     voc_size_exponent=13).fromjson(path)
     for a, b in zip(text_repr.names, text_repr2.names):
         assert a == b
     text = ['hola']
@@ -401,3 +401,22 @@ def test_BoW_b4msa_kwargs():
     from EvoMSA.text_repr import BoW
     bow = BoW(b4msa_kwargs=dict(XXX='YYY'))
     assert bow.b4msa_kwargs['XXX'] == 'YYY'
+
+
+def test_TextRepresentations_skip_dataset(): 
+    from EvoMSA.text_repr import TextRepresentations
+    from EvoMSA.utils import MICROTC
+    from EvoMSA import base
+    from os.path import join, dirname, isfile
+
+    lang = 'es'
+    text_repr = TextRepresentations(lang=lang, keyword=False,
+                                    voc_size_exponent=13,
+                                    emoji=False, dataset=True)
+    keys = set(text_repr.names[:3])
+    length = len(text_repr.names)
+    text_repr = TextRepresentations(lang=lang, keyword=False,
+                                    voc_size_exponent=13,
+                                    emoji=False, dataset=True,
+                                    skip_dataset=keys)
+    assert (length - 3) == len(text_repr.names)

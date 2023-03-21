@@ -535,7 +535,7 @@ class TextRepresentations(BoW):
                  unit_vector=True,
                  **kwargs) -> None:
         super(TextRepresentations, self).__init__(estimator_kwargs=estimator_kwargs, **kwargs)
-        self._skip_dataset = skip_dataset
+        self.skip_dataset = skip_dataset
         self._names = []
         self._text_representations = []
         self._unit_vector = unit_vector
@@ -545,6 +545,15 @@ class TextRepresentations(BoW):
             self.load_dataset()
         if keyword:
             self.load_keyword()
+
+    @property
+    def skip_dataset(self):
+        """Datasets discarded from the text representations"""
+        return self._skip_dataset
+    
+    @skip_dataset.setter
+    def skip_dataset(self, value):
+        self._skip_dataset = value
 
     @property
     def weights(self):
@@ -644,8 +653,9 @@ class TextRepresentations(BoW):
             data = load_dataset(lang=self.lang, name='datasets',
                                 d=self.voc_size_exponent, 
                                 func=self.voc_selection)
-            self.text_representations.extend(data)
-            self.names.extend([x.labels[-1] for x in data])
+            _ = [x for x in data if x.labels[-1] not in self.skip_dataset]
+            self.text_representations.extend(_)
+            self.names.extend([x.labels[-1] for x in _])
 
     def transform(self, D: List[Union[List, dict]], y=None) -> np.ndarray:
         if isinstance(self.key, str):
@@ -672,7 +682,7 @@ class TextRepresentations(BoW):
         else:
             return _
         
-    def text_representations_fromjson(self, filename:str) -> 'TextRepresentations':
+    def fromjson(self, filename:str) -> 'TextRepresentations':
         """Load the text representations from a json file
         
         :param filename: Path
