@@ -126,7 +126,7 @@ class BoW(object):
         self.decision_function_name = decision_function_name
         self.estimator_class = estimator_class
         self.estimator_kwargs = estimator_kwargs
-        self._b4msa_kwargs = b4msa_kwargs
+        self.b4msa_kwargs = b4msa_kwargs
         self._pretrain = pretrain
         self.kfold_class = kfold_class
         self.kfold_kwargs = kfold_kwargs
@@ -156,7 +156,7 @@ class BoW(object):
             self.b4msa_fit(D)
         y = self.dependent_variable(D, y=y)
         _ = self.transform(D, y=y)
-        self.estimator_instance = self.estimator().fit(_, y)
+        self.estimator_instance = self.estimator_class(**self.estimator_kwargs).fit(_, y)
         return self
     
     def transform(self, D: List[Union[List, dict]], y=None) -> csr_matrix:
@@ -250,7 +250,7 @@ class BoW(object):
                                     func=self.voc_selection)
                     params = b4msa_params(lang=self.lang,
                                         dim=self._voc_size_exponent)
-                    params.update(self._b4msa_kwargs)
+                    params.update(self.b4msa_kwargs)
                     bow = TextModel(**params)
                     tfidf = TFIDF()
                     tfidf.N = freq.update_calls
@@ -259,7 +259,7 @@ class BoW(object):
                     self._bow = bow
             else:
                 self._bow = TextModel(lang=self.lang,
-                                      **self._b4msa_kwargs)
+                                      **self.b4msa_kwargs)
             bow = self._bow
         return bow
 
@@ -387,7 +387,7 @@ class BoW(object):
         >>> accuracy = (y == labels[hy]).mean()
         """
         def train_predict(tr, vs):
-            m = self.estimator().fit(X[tr], y[tr])
+            m = self.estimator_class(**self.estimator_kwargs).fit(X[tr], y[tr])
             return getattr(m, self.decision_function_name)(X[vs])
 
         y = self.dependent_variable(D, y=y)
@@ -422,10 +422,6 @@ class BoW(object):
             y = np.array([x[label_key] for x in D])
         assert isinstance(y, np.ndarray)
         return y
-
-    def estimator(self):
-        """Create an estimator instance using :py:attr:`BoW.estimator_class` and :py:attr:`BoW.estimator_kwargs`"""
-        return self.estimator_class(**self.estimator_kwargs)
 
     @property
     def cache(self):
@@ -511,6 +507,14 @@ class BoW(object):
     def estimator_instance(self, m):
         self._m = m
 
+    @property
+    def b4msa_kwargs(self):
+        """Keyword arguments of B4MSA"""
+        return self._b4msa_kwargs
+    
+    @b4msa_kwargs.setter
+    def b4msa_kwargs(self, value):
+        self._b4msa_kwargs = value
 
 class TextRepresentations(BoW):
     """
@@ -668,21 +672,16 @@ class TextRepresentations(BoW):
         else:
             return _
         
-    @classmethod
-    def fromjson(cls, filename,
-                 emoji=False,
-                 dataset=False,
-                 keyword=False,
-                 **kwargs):
-        ins = cls(emoji=emoji,
-                  dataset=dataset,
-                  keyword=keyword,
-                  **kwargs)
+    def text_representations_fromjson(self, filename:str) -> 'TextRepresentations':
+        """Load the text representations from a json file
         
+        :param filename: Path
+        :type filename: str
+        """        
         models = [Linear(**kwargs)
                   for kwargs in tweet_iterator(filename)]
-        ins.text_representations_extend(models)
-        return ins
+        self.text_representations_extend(models)
+        return self
         
 
 class StackGeneralization(BoW):

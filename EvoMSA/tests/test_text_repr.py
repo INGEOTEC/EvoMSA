@@ -370,7 +370,7 @@ def test_TextRepresentations_keywords_v2():
     assert X.shape[0] == 1 and X.shape[1] == 2022
 
 
-def test_TextRepresentations_fromjson(): 
+def test_TextRepresentations_text_representations_fromjson(): 
     from EvoMSA.text_repr import TextRepresentations
     from EvoMSA.utils import MICROTC
     from EvoMSA import base
@@ -387,10 +387,17 @@ def test_TextRepresentations_fromjson():
     diroutput = join(dirname(base.__file__), 'models')
     path = join(diroutput, filename)
     assert isfile(path)
-    text_repr2 = TextRepresentations.fromjson(path,
-                                              lang=lang,
-                                              voc_size_exponent=13)
+    text_repr2 = TextRepresentations(lang=lang,
+                                     keyword=False,
+                                     dataset=False, emoji=False,
+                                     voc_size_exponent=13).text_representations_fromjson(path)
     for a, b in zip(text_repr.names, text_repr2.names):
         assert a == b
     text = ['hola']
     assert np.all(text_repr.transform(text) == text_repr2.transform(text))
+
+
+def test_BoW_b4msa_kwargs():
+    from EvoMSA.text_repr import BoW
+    bow = BoW(b4msa_kwargs=dict(XXX='YYY'))
+    assert bow.b4msa_kwargs['XXX'] == 'YYY'
