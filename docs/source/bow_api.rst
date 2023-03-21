@@ -1,7 +1,7 @@
-.. _StackGeneralization:
+.. _bow_api:
 
-:py:class:`StackGeneralization`
-====================================
+:py:class:`BoW` API
+================================
 .. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg
 		:target: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml
 
@@ -26,13 +26,6 @@
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
 		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
 
-:py:class:`StackGeneralization` implements a stack generalization approach to 
-combine the output of text classifiers or regressors. 
 
-API
---------------------------------
-
-.. toctree::
-   :maxdepth: 2
-
-   stack_api
+.. autoclass:: EvoMSA.text_repr.BoW
+   :members:

@@ -139,8 +139,10 @@ with index 9 and its description.
 The value 0.05 indicates that the emoji would be present
 in the sentence *I love this song.*
 
-Documentation
+API
 --------------------------------
 
-.. autoclass:: EvoMSA.text_repr.TextRepresentations
-   :members:
+.. toctree::
+   :maxdepth: 2
+
+   text_repr_api

@@ -175,5 +175,10 @@ as can be seen in the following code.
 >>> bow.decision_function(['buenos días'])
 array([[-1.4054791 , -1.0134042 , -0.57912116,  0.90450178]])
 
-.. autoclass:: EvoMSA.text_repr.BoW
-   :members:
+API
+--------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   bow_api

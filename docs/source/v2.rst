@@ -69,7 +69,7 @@ The stack generalization technique is implemented in
 :ref:`StackGeneralization`.
 
 Citing
-======
+==========
 
 If you find EvoMSA useful for any academic/scientific purpose, we
 would appreciate citations to the following reference:
@@ -91,7 +91,7 @@ would appreciate citations to the following reference:
 
 	
 Installing EvoMSA
-=======================
+====================================
 
 EvoMSA can be easly install using anaconda
 
@@ -108,3 +108,14 @@ scikit-learn and b4msa.
 	  pip install sparsearray
 	  pip install evodag
 	  pip install EvoMSA
+
+
+API
+====================================
+
+.. toctree::
+   :maxdepth: 1
+
+   bow_api
+   text_repr_api
+   stack_api	  
