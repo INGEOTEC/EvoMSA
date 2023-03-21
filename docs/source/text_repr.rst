@@ -143,6 +143,6 @@ API
 --------------------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    text_repr_api
