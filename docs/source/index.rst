@@ -71,7 +71,7 @@ Sadit Tellez, Daniela Moctezuma. Computational Intelligence Magazine, vol 15 no.
 In this document, we try to follow as much as possible the notation used in the CIM paper; we believe
 this can help to grasp as easily as possible EvoMSA's goals. 
 
-:ref:`v2`
+:ref:`EvoMSA 2.0<v2>`
 ==================================
 
 .. toctree::
