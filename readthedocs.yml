@@ -1,8 +1,4 @@
-build:
-  image: latest
-
-python:
-  version: 3.6
+version: 2
 
 conda:
-  file: environment.yml
+  environment: environment.yml

@@ -71,10 +71,13 @@ Sadit Tellez, Daniela Moctezuma. Computational Intelligence Magazine, vol 15 no.
 In this document, we try to follow as much as possible the notation used in the CIM paper; we believe
 this can help to grasp as easily as possible EvoMSA's goals. 
 
-Version 2.0 
+:ref:`EvoMSA 2.0<v2>`
 ==================================
 
-EvoMSA's next version is documented in the following link: :ref:`v2`
+.. toctree::
+   :maxdepth: 2
+
+   v2
 
 Quickstart Guide
 ===================

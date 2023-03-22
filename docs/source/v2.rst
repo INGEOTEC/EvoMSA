@@ -54,15 +54,22 @@ that include the bag-of-words text representations, emoji,
 and keyword models. These models were trained on Twitter data. 
 
 The other enhancement is on the implementation. There are three main 
-classes :ref:`BoW`, :ref:`TextRepresentations`, 
-and :ref:`StackGeneralization`. 
+classes: 
+
+.. toctree::
+   :maxdepth: 1
+
+   bow
+   text_repr
+   stack
+
 :ref:`BoW` and :ref:`TextRepresentations` are text
 classifiers; :ref:`BoW` is the parent of :ref:`TextRepresentations`.
 The stack generalization technique is implemented in 
 :ref:`StackGeneralization`.
 
 Citing
-======
+==========
 
 If you find EvoMSA useful for any academic/scientific purpose, we
 would appreciate citations to the following reference:
@@ -84,7 +91,7 @@ would appreciate citations to the following reference:
 
 	
 Installing EvoMSA
-=======================
+====================================
 
 EvoMSA can be easly install using anaconda
 
@@ -102,291 +109,13 @@ scikit-learn and b4msa.
 	  pip install evodag
 	  pip install EvoMSA
 
-.. _BoW:
 
-:py:class:`BoW`
-================================
+API
+====================================
 
-:py:class:`BoW` is a text classifier :math:`c` with signature 
-:math:`c \equiv g \circ m`, where :math:`m` stands for the 
-bag-or-words representation and :math:`g` is the classifier
-(the default is a linear Support Vector Machine).
+.. toctree::
+   :maxdepth: 1
 
-The classifier :math:`g` is trained on a dataset :math:`\mathcal D`
-of pairs (:math:`x`, :math:`y`), where :math:`x` is a text and
-:math:`y` is the label associated with it. The bag-of-words
-representation :math:`m` is a pre-trained model with 
-term frequency inverse document frequency (TFIDF) as the weighting scheme;
-the parameters of pre-trained :math:`m` were estimated from 524,288 (:math:`2^{19}`)
-tweets randomly selected.
-
-The bag-of-words representation used is described in
-"`A Simple Approach to Multilingual Polarity Classification in Twitter <https://www.sciencedirect.com/science/article/abs/pii/S0167865517301721>`_. 
-Eric S. Tellez, Sabino Miranda-Jiménez, Mario Graff, 
-Daniela Moctezuma, Ranyart R. Suárez, Oscar S. Siordia. 
-Pattern Recognition Letters" and
-"`An Automated Text Categorization Framework based 
-on Hyperparameter Optimization <https://www.sciencedirect.com/science/article/abs/pii/S0950705118301217>`_. Eric S. Tellez, Daniela Moctezuma, 
-Sabino Miranda-Jímenez, Mario Graff. 
-Knowledge-Based Systems Volume 149, 1 June 2018."
-
-Bag-of-Words Representation
---------------------------------
-
-The core idea of a bag of words is that after the text is normalized and tokenized, each 
-token :math:`t` is associated with a vector :math:`\mathbf{v_t} \in \mathbb R^d` 
-where the :math:`i`-th component, i.e., :math:`\mathbf{v_t}_i`, contains the IDF value of 
-the token :math:`t` and :math:`\forall_{j \neq i} \mathbf{v_t}_j=0`. 
-The set of vectors :math:`\mathbf v` corresponds to the vocabulary,
-there are :math:`d` different tokens in the vocabulary, and by definition
-:math:`\forall_{i \neq j} \mathbf{v_i} \cdot \mathbf{v_j} = 0`, where
-:math:`\mathbf{v_i} \in \mathbb R^d`, :math:`\mathbf{v_j} \in \mathbb R^d`,
-and :math:`(\cdot)` is the dot product. It is worth mentioning that any 
-token outside the vocabulary is discarded. The vocabulary size of the 
-pre-trained bag-of-words representations is :math:`d=2^{14}`,
-i.e., there are 16,384 different tokens for each language.
-
-Using this notation, a text :math:`x` is represented by the sequence
-of its tokens, i.e., :math:`(t_1, t_2, \ldots)`; the sequence 
-can have repeated tokens, e.g., :math:`t_j = t_k`. 
-Then each token is associated with its 
-respective vector :math:`\mathbf v` (keeping the repetitions),
-i.e., :math:`(\mathbf{v_{t_1}}, \mathbf{v_{t_2}}, \ldots)`.
-Finally, the text :math:`x` is represented as: 
-
-.. math:: 
-	\mathbf x = \frac{\sum_t \mathbf{v_t}}{\mid\mid \sum_t \mathbf{v_t} \mid\mid},
-
-where the sum goes for all the elements of the sequence,
-:math:`\mathbf x \in \mathbb R^d`, and :math:`\mid\mid \mathbf w \mid\mid` 
-is the Euclidean norm of vector :math:`\mathbf w`. 
-The term frequency is implicitly computed in the sum 
-because the process allows token repetitions.
-
-This process is illustrated by representing the text *good morning*
-in the pre-trained bag-of-words model. The first step is to import 
-and initialize the class :py:class:`BoW` as done in the following 
-instructions.
-
->>> from EvoMSA import BoW
->>> bow = BoW(lang='en')
-
-The method :py:attr:`BoW.transform` receives a list of text to be represented
-in the vector space of the bag of words. It returns a sparse matrix where 
-the number of rows corresponds to the number of texts transformed and the columns
-are the vocabulary. The following instruction processes the text *good morning*
-and stored it in a variable :py:attr:`X`.
-
->>> X = bow.transform(['good morning'])
->>> X
-<1x16384 sparse matrix of type '<class 'numpy.float64'>'
-	with 35 stored elements in Compressed Sparse Row format>
-
-The non-zero components are found in :py:attr:`X.indices`
-
->>> X.indices
-array([   5,   10,   20,   25,   30,   37,   41,   43,   53,   64,  138,
-        148,  166,  175,  217,  220,  272,  394,  438,  461,  484,  524,
-        538,  565,  592,  654,  655,  662,  748, 1198, 1227, 1365, 1594,
-       1636, 1898], dtype=int32)
-
-However, one might wonder which token corresponds to each component; 
-this information is in :py:attr:`BoW.names`. For example, 
-the tokens associated with components 748 and 1898 are: *good*
-and *morning*, as can be seen below. 
-
->>> bow.names[748], bow.names[1898]
-('good', 'morning')
-
-The IDF values associate to each token are in the dictionary 
-:py:attr:`BoW.bow.token_weight`, e.g., the IDF value of text 
-*morning* is 
-
->>> bow.bow.token_weight[1898]
-6.354566724835741
-
-Nonetheless, the value that the component 1898 has in the variable :py:attr:`X` is
-0.2714 because the vector that represents *good morning* has been
-normalized to have a unit length. 
-
-Text Classifier
---------------------------------
-
-Once the texts are in a vector space, then any classifier that works 
-with vectors can be used; the one used by default is a 
-linear Support Vector Machine (SVM).
-
-To illustrate the process of creating a text classifier with :py:class:`BoW`, the 
-following dataset will be used. 
-
->>> from EvoMSA import base
->>> from microtc.utils import tweet_iterator
->>> from os.path import join, dirname
->>> tweets = join(dirname(base.__file__), 'tests', 'tweets.json')
->>> D = list(tweet_iterator(tweets))
-
-The dataset stored in :py:attr:`D` is a toy sentiment analysis dataset,
-in Spanish, with four labels, positive, negative, neutral, and none. 
-It is a list of dictionaries where the dictionary has two keys *text* 
-and *klass*; the former has the text and the latter the label. 
-
-The text classifier is trained with the following instruction. 
-
->>> bow = BoW(lang='es').fit(D)
-
-where the language (:py:attr:`lang`) is set to Spanish (es), and 
-:py:attr:`fit` receives the labeled dataset. 
-
-The method :py:attr:`BoW.predict` is used to predict the label 
-of a list of texts. For example, the label of the text *buenos días* (*good morning*)
-is computed as:
-
->>> bow.predict(['buenos días'])
-array(['P'], dtype='<U4')
-
-where the label 'P' corresponds to the positive class. 
-
-There are scenarios where it is more important to estimate the value(s) 
-used to classify a particular instance; in the case of SVM, 
-this is known as the decision function, and in the case of a 
-Naive Bayes classifier, this is the probability of each class. 
-This information can be found in :py:attr:`BoW.decision_function`
-as can be seen in the following code.
-
->>> bow.decision_function(['buenos días'])
-array([[-1.5749252 , -1.0800899 , -0.21577256,  0.56413664]])
-
-.. _TextRepresentations:
-
-:py:class:`TextRepresentations`
-================================
-
-:py:class:`TextRepresentations` is a text classifier in fact it is 
-a subclass of :py:class:`BoW` being the difference the process
-to represent the text in a vector space. This process is described in
-"`EvoMSA: A Multilingual Evolutionary Approach
-for Sentiment Analysis <https://ieeexplore.ieee.org/document/8956106>`_,
-Mario Graff, Sabino Miranda-Jimenez, Eric Sadit Tellez, Daniela Moctezuma. 
-Computational Intelligence Magazine, vol 15 no. 1, pp. 76-88, Feb. 2020."
-Particularly, in the section where the Emoji Space is described.
-
-Text Representation
---------------------------------
-
-The idea is to represent a text in a vector space where the components 
-have a more complex meaning than the bag-of-words model. 
-In a bag of words, the meaning of each component corresponds to the 
-token associated with it, and the IDF value gives it its importance. 
-
-This complex behavior comes from associating each component to the
-decision value of a text classifier trained on a labeled dataset which
-is different from the one solving, albeit nothing forbids to be related to it. 
-The datasets, from which these decision functions come, can be built either 
-using a semi-supervised approach or by annotating texts.
-
-Without loss of generality, it is assumed that there are :math:`M` 
-labeled datasets each one contains a binary text classification problem;  
-noting that that if a dataset has :math:`K` labels, then this dataset 
-can be represented as :math:`K` binary classification problems following 
-the one versus the rest approach, i.e., it is transformed to :math:`K` datasets.
-
-For each of these :math:`M` binary text classification 
-problems a :py:class:`BoW` model is built 
-using the default parameters (a pre-trained bag-of-words 
-representation and a linear SVM as the classifier). 
-That is, there are :math:`M` binary text classifiers, i.e., 
-:math:`(c_1, c_2, \ldots, c_M)`. Additionally, the decision function of 
-:math:`c_i` is a number where the sign indicates the class. 
-Consequently, the text representation is the vector 
-obtained by concatenating the decision functions 
-of the :math:`M` classifiers and then normalizing the vector 
-to have length 1. 
-
-That is, a text :math:`x` is first represented 
-with vector :math:`\mathbf{x^{'}} \in \mathbb R^M` where the 
-value :math:`\mathbf{x^{'}}_i` corresponds to 
-the decision function of :math:`c_i`. Given that the classifier 
-:math:`c_i` is a linear SVM, the decision function corresponds
-to the dot product between the input vector and  
-the weight vector :math:`\mathbf w_i` plus the bias :math:`\mathbf w_{i_0}`,
-where the weight vector and the bias are the parameters of the 
-classifier. That is, 
-the value :math:`\mathbf{x^{'}}_i` corresponds to
-
-.. math:: 
-	\mathbf{x^{'}}_i = \mathbf w_i \cdot \frac{\sum_t \mathbf{v_t}}{\mid\mid \sum_k \mathbf{v_k} \mid\mid} + \mathbf w_{i_0},
-
-where :math:`\mathbf{v_t}` is the vector associated to the 
-token :math:`t` of the text :math:`x`. In matrix notation, vector :math:`\mathbf{x'}` is
-
-.. math:: 
-	\mathbf{x^{'}} = \mathbf W \cdot \frac{\sum_t \mathbf{v_t}}{\mid\mid \sum_k \mathbf{v_k} \mid\mid} + \mathbf{w_0},
-
-where matrix :math:`\mathbf W \in \mathbb R^{M \times d}` contains the weights, 
-and :math:`\mathbf{w_0} \in \mathbb R^M` is the bias. Another way to see 
-the previous formulation is by defining a 
-vector :math:`\mathbf{u_t} = \frac{1}{\mid\mid \sum_k \mathbf{v_k} \mid\mid} \mathbf W \mathbf{v_t}` 
-Consequently, vector :math:`\mathbf{x'}` is defined as 
-
-.. math:: 
-	\mathbf{x'} = \sum_t \mathbf{u_t} + \mathbf{w_0}.
-
-It can be observed that each token is associated with a vector in the space defined by the 
-classifiers and that :math:`\mathbf{x'}` is the sum of all vectors plus the bias vector (i.e., :math:`\mathbf{w_0}`). 
-Finally, the vector representing the text :math:`x` is the normalized :math:`\mathbf{x^{'}}`, i.e.,
-
-.. math::
-	\mathbf x = \frac{\mathbf{x^{'}}}{\mid\mid \mathbf{x^{'}} \mid\mid}.
-
-
-EvoMSA 2.0 has three sets of text representations, namely :py:attr:`dataset`,
-:py:attr:`emoji`, and :py:attr:`keyword`. The dataset text representations 
-were built on datasets coming from text-categorization competitions, 
-the emoji representations are semi-supervised datasets where
-each task is to predict the presence of the emoji; and the keyword 
-representations are also semi-supervised datasets where the task is to 
-predict the presence of a word; the words selected correspond to the
-words of the vocabulary in the pre-trained bag-of-words model. 
-
-To illustrate the usage of these representations, the text
-*I love this song* is represented on the emoji space. The first step
-is to initialize the model which can be done with the following
-instructions.
-
->>> from EvoMSA import TextRepresentations
->>> emoji = TextRepresentations(emoji=True, keyword=False, dataset=False)
-
-The method :py:attr:`TextRepresentations.transform` receives a list
-of text to be represented on this vector space, the following code
-stores the output matrix in the variable :py:attr:`X`.
-
->>> X = emoji.transform(['I love this song'])
-
-Equivalent, the attribute :py:attr:`TextRepresentations.names`
-contains the description of each component, for example
-the following code shows the value for the component
-with index 9 and its description.
-
->>> X[:, 9], emoji.names[9]
-(array([0.01017417]), '🎶')
-
-The value 0.01 indicates that the emoji would be present
-in the sentence *I love this song.*
-
-.. _StackGeneralization:
-
-:py:class:`StackGeneralization`
-================================
-
-
-Documentation
-================================
-
-.. autoclass:: EvoMSA.evodag.BoW
-   :members:
-
-.. autoclass:: EvoMSA.evodag.TextRepresentations
-   :members:
-
-.. autoclass:: EvoMSA.evodag.StackGeneralization
-   :members:
+   bow_api
+   text_repr_api
+   stack_api	  
