@@ -653,14 +653,22 @@ class TextRepresentations(BoW):
                y: Union[np.ndarray, None]=None,
                feature_selection: Callable=KruskalFS,
                feature_selection_kwargs: dict=dict()) -> 'TextRepresentations':
-        """Procedure to perform feature selection. 
+        """Procedure to perform feature selection or indices of the features to be selected.
 
-        :param subset: Representations selected.
+        :param subset: Representations to be selected.
         :type subset: List of indices.
-        :param D: Texts; in the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :param D: Texts; in the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`. default=None
         :type D: List of texts or dictionaries. 
-        :param y: Response variable. The response variable can also be in `D` on the key :py:attr:`BoW.label_key`.
-        :type y: Array or None        
+        :param y: Response variable. The response variable can also be in `D` on the key :py:attr:`BoW.label_key`. default=None
+        :type y: Array or None
+
+        >>> from EvoMSA import TextRepresentations
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> T = list(tweet_iterator(TWEETS))
+        >>> text_repr =  TextRepresentations(lang='es').select(D=T)
+        >>> text_repr.weights.shape
+        (2672, 131072)        
         """
         assert subset is not None or D is not None
         if subset is not None:
