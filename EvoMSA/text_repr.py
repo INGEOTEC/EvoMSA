@@ -518,6 +518,26 @@ class BoW(object):
 
 class TextRepresentations(BoW):
     """
+    TextRepresentations is a text classifier in fact it is 
+    a subclass of :py:class:`BoW` being the difference the process
+    to represent the text in a vector space. This process is described in
+    "`EvoMSA: A Multilingual Evolutionary Approach
+    for Sentiment Analysis <https://ieeexplore.ieee.org/document/8956106>`_,
+    Mario Graff, Sabino Miranda-Jimenez, Eric Sadit Tellez, Daniela Moctezuma. 
+    Computational Intelligence Magazine, vol 15 no. 1, pp. 76-88, Feb. 2020."
+    Particularly, in the section where the Emoji Space is described.
+
+    :param emoji: Whether to use emoji text representations. default=True.
+    :type emoji: bool
+    :param dataset: Whether to use labeled dataset text representations (only available in 'ar', 'en', 'es', and 'zh'). default=True
+    :type dataset: bool
+    :param keyword: Whether to use keyword text representations. default=True.
+    :type keyword: bool
+    :param skip_dataset: Set of discarded dataset.
+    :type skip_dataset: set
+    :param unit_vector: Normalize to vectors of lenght 1.
+    :type unit_vector: bool 
+
     >>> from EvoMSA import TextRepresentations
     >>> from microtc.utils import tweet_iterator
     >>> from EvoMSA.tests.test_base import TWEETS    
@@ -546,17 +566,62 @@ class TextRepresentations(BoW):
         if keyword:
             self.load_keyword()
 
+    def transform(self, D: List[Union[List, dict]], y=None) -> np.ndarray:
+        """Represent the texts in `D` in the vector space.
+
+        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries. 
+
+        >>> from EvoMSA import TextRepresentations
+        >>> X = TextRepresentations(lang='en').transform([dict(text='Hi'),
+                                                          dict(text='Good morning')])
+        >>> X.shape
+        (2, 1287)
+        """                
+        if isinstance(self.key, str):
+            X = super(TextRepresentations, self).transform(D, y=y)
+            models = Parallel(n_jobs=self._n_jobs)(delayed(m.decision_function)(X)
+                                                   for m in self.text_representations)
+            _ = np.array(models).T
+            if self._unit_vector:
+                return _ / np.atleast_2d(np.linalg.norm(_, axis=1)).T
+            else:
+                return _
+        assert len(D) and isinstance(D[0], dict)
+        Xs = [super(TextRepresentations, self).transform([x[key] for x in D], y=y)
+              for key in self.key]
+        with Parallel(n_jobs=self._n_jobs) as parallel:
+            models = []
+            for X in Xs:
+                _ = parallel(delayed(m.decision_function)(X)
+                             for m in self.text_representations)
+                models.append(np.array(_).T)
+        _ = self._mixer_func(models)
+        if self._unit_vector:
+            return _ / np.atleast_2d(np.linalg.norm(_, axis=1)).T
+        else:
+            return _            
+
     @property
-    def skip_dataset(self):
-        """Datasets discarded from the text representations"""
-        return self._skip_dataset
-    
-    @skip_dataset.setter
-    def skip_dataset(self, value):
-        self._skip_dataset = value
+    def names(self):
+        return self._names
+
+    @names.setter
+    def names(self, value):
+        self._names = value            
 
     @property
     def weights(self):
+        """Weights of the vector space. 
+        It is matrix, i.e., :math:`\mathbf W \in \mathbb R^{M \\times d}`, where 
+        :math:`M` is the dimension of the vector space (see :py:attr:`TextRepresentations.names`)
+        and :math:`d` is the vocabulary size.
+
+        >>> from EvoMSA import TextRepresentations
+        >>> text_repr = TextRepresentations(lang='es')
+        >>> text_repr.weights.shape
+        (2672, 131072)        
+        """
         try:
             return self._weights
         except AttributeError:
@@ -566,35 +631,37 @@ class TextRepresentations(BoW):
 
     @property
     def bias(self):
+        """Bias."""
         try:
             return self._bias
         except AttributeError:
             w = np.array([x._intercept for x in self.text_representations])
             self._bias = w
-            return self._bias       
+            return self._bias
 
     @property
     def text_representations(self):
+        """Classifiers that define the text representation."""
         return self._text_representations
 
     @text_representations.setter
     def text_representations(self, value):
-        self._text_representations = value
-
-    def text_representations_extend(self, value):
-        names = set(self.names)
-        for x in value:
-            label = x.labels[-1]
-            if label not in names:
-                self.text_representations.append(x)
-                self.names.append(label)
-                names.add(label)
+        self._text_representations = value        
 
     def select(self, subset: Union[list, None]=None,
                D: List[Union[dict, list, None]]=None, 
                y: Union[np.ndarray, None]=None,
                feature_selection: Callable=KruskalFS,
                feature_selection_kwargs: dict=dict()) -> 'TextRepresentations':
+        """Procedure to perform feature selection. 
+
+        :param subset: Representations selected.
+        :type subset: List of indices.
+        :param D: Texts; in the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries. 
+        :param y: Response variable. The response variable can also be in `D` on the key :py:attr:`BoW.label_key`.
+        :type y: Array or None        
+        """
         assert subset is not None or D is not None
         if subset is not None:
             tr = self.text_representations
@@ -606,15 +673,36 @@ class TextRepresentations(BoW):
         X = self.transform(D)
         feature_selection = feature_selection(**feature_selection_kwargs).fit(X, y=y)
         index = feature_selection.get_support(indices=True)
-        return self.select(subset=index)
+        return self.select(subset=index)        
+
+    def fromjson(self, filename:str) -> 'TextRepresentations':
+        """Load the text representations from a json file
+        
+        :param filename: Path
+        :type filename: str
+        """        
+        models = [Linear(**kwargs)
+                  for kwargs in tweet_iterator(filename)]
+        self.text_representations_extend(models)
+        return self
+    
+    def text_representations_extend(self, value):
+        names = set(self.names)
+        for x in value:
+            label = x.labels[-1]
+            if label not in names:
+                self.text_representations.append(x)
+                self.names.append(label)
+                names.add(label)    
 
     @property
-    def names(self):
-        return self._names
-
-    @names.setter
-    def names(self, value):
-        self._names = value
+    def skip_dataset(self):
+        """Datasets discarded from the text representations"""
+        return self._skip_dataset
+    
+    @skip_dataset.setter
+    def skip_dataset(self, value):
+        self._skip_dataset = value
 
     def load_emoji(self) -> None:
         if self.v1:
@@ -656,43 +744,6 @@ class TextRepresentations(BoW):
             _ = [x for x in data if x.labels[-1] not in self.skip_dataset]
             self.text_representations.extend(_)
             self.names.extend([x.labels[-1] for x in _])
-
-    def transform(self, D: List[Union[List, dict]], y=None) -> np.ndarray:
-        if isinstance(self.key, str):
-            X = super(TextRepresentations, self).transform(D, y=y)
-            models = Parallel(n_jobs=self._n_jobs)(delayed(m.decision_function)(X)
-                                                   for m in self.text_representations)
-            _ = np.array(models).T
-            if self._unit_vector:
-                return _ / np.atleast_2d(np.linalg.norm(_, axis=1)).T
-            else:
-                return _
-        assert len(D) and isinstance(D[0], dict)
-        Xs = [super(TextRepresentations, self).transform([x[key] for x in D], y=y)
-              for key in self.key]
-        with Parallel(n_jobs=self._n_jobs) as parallel:
-            models = []
-            for X in Xs:
-                _ = parallel(delayed(m.decision_function)(X)
-                             for m in self.text_representations)
-                models.append(np.array(_).T)
-        _ = self._mixer_func(models)
-        if self._unit_vector:
-            return _ / np.atleast_2d(np.linalg.norm(_, axis=1)).T
-        else:
-            return _
-        
-    def fromjson(self, filename:str) -> 'TextRepresentations':
-        """Load the text representations from a json file
-        
-        :param filename: Path
-        :type filename: str
-        """        
-        models = [Linear(**kwargs)
-                  for kwargs in tweet_iterator(filename)]
-        self.text_representations_extend(models)
-        return self
-        
 
 class StackGeneralization(BoW):
     """
