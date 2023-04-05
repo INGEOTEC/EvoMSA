@@ -78,7 +78,7 @@ Finally, the text :math:`x` is represented as:
 
 where the sum goes for all the elements of the sequence,
 :math:`\mathbf x \in \mathbb R^d`, and :math:`\mid\mid \mathbf w \mid\mid` 
-is the Euclidean norm of vector :math:`\mathbf w`. 
+is the Euclidean norm of vector :math:`\mathbf w.` 
 The term frequency is implicitly computed in the sum 
 because the process allows token repetitions.
 
@@ -104,27 +104,28 @@ and stored it in a variable :py:attr:`X`.
 The non-zero components are found in :py:attr:`X.indices`
 
 >>> X.indices
-array([   7,    9,   21,   24,   31,   34,   37,   40,   44,   61,  150,
-        178,  202,  217,  229,  277,  309,  528,  573,  601,  663,  717,
-        776,  780,  789,  825,  890,  937,  976, 1099, 1908, 2125, 2624,
-       3225, 3315, 3677, 4177, 6558, 9443], dtype=int32)
+array([29931, 30034, 46695, 66802, 67000, 67005, 71620, 71654, 71655,
+       71945, 74474, 74550, 74574, 79178, 79237, 79242, 80546, 80663,
+       80747, 80800, 80803, 82262, 82326, 82341, 83160, 83167, 83183,
+       83401, 83500, 83503, 86856, 86878, 86882, 98306, 98372, 98383,
+       99004, 99091, 99104], dtype=int32)
 
 However, one might wonder which token corresponds to each component; 
 this information is in :py:attr:`BoW.names`. For example, 
 the tokens associated with components 1099 and 4177 are: *good*
 and *morning*, as can be seen below. 
 
->>> bow.names[1099], bow.names[4177]
+>>> bow.names[29931], bow.names[46695]
 ('good', 'morning')
 
 The IDF values associate to each token are in the dictionary 
 :py:attr:`BoW.bow.token_weight`, e.g., the IDF value of text 
 *morning* is 
 
->>> bow.bow.token_weight[4177]
+>>> bow.bow.token_weight[46695]
 7.079042426281991
 
-Nonetheless, the value that the component 4177 has in the variable :py:attr:`X` is
+Nonetheless, the value that the component 46695 has in the variable :py:attr:`X` is
 0.2523 because the vector that represents *good morning* has been
 normalized to have a unit length. 
 
@@ -140,9 +141,8 @@ following dataset will be used.
 
 >>> from EvoMSA import base
 >>> from microtc.utils import tweet_iterator
->>> from os.path import join, dirname
->>> tweets = join(dirname(base.__file__), 'tests', 'tweets.json')
->>> D = list(tweet_iterator(tweets))
+>>> from EvoMSA.tests.test_base import TWEETS
+>>> D = list(tweet_iterator(TWEETS))
 
 The dataset stored in :py:attr:`D` is a toy sentiment analysis dataset,
 in Spanish, with four labels, positive, negative, neutral, and none. 
@@ -173,7 +173,7 @@ This information can be found in :py:attr:`BoW.decision_function`
 as can be seen in the following code.
 
 >>> bow.decision_function(['buenos días'])
-array([[-1.4054791 , -1.0134042 , -0.57912116,  0.90450178]])
+array([[-1.40547862, -1.01339793, -0.57912008,  0.90450319]])
 
 API
 --------------------------------
