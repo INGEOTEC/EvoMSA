@@ -66,26 +66,32 @@ class BoW(object):
 
     :param lang: Language. (ar | ca | de | en | es | fr | hi | in | it | ja | ko | nl | pl | pt | ru | tl | tr | zh), default='es'.
     :type lang: str
-    :param pretrain: Whether to use a pre-trained representation. default=True.
-    :type pretrain: bool
-    :param b4msa_kwargs: :py:class:`b4msa.textmodel.TextModel` keyword arguments used to train a bag-of-words representation. default=dict().
-    :type b4msa_kwargs: dict
+    :param voc_size_exponent: Vocabulary size. default=17, i.e., :math:`2^{17}`
+    :type voc_size_exponent: int
+    :param voc_selection: Vocabulary (most_common_by_type | most_common). default=most_common_by_type
+    :type voc_selection: str
+    :param key: Key where the text is in the dictionary. (default='text')
+    :type key: Union[str, List[str]]
+    :param label_key: Key where the response is in the dictionary. (default='klass')
+    :type label_key: str
+    :param mixer_func: Function to combine the output in case of multiple texts
+    :type mixer_func: Callable[[List], csr_matrix]
+    :param decision_function_name: Name of the decision function (detaulf='decision_function')
+    :type decision_function_name: str
     :param estimator_class: Classifier or Regressor
     :type estimator_class: class
     :param estimator_kwargs: Keyword parameters for the estimator
     :type estimator_kwargs: dict
-    :param key: Key where the text is in the dictionary (default='text')
-    :type key: Union[str, List[str]]
-    :param label_key: Key where the response is in the dictionary (default='klass')
-    :type label_key: str
-    :param mixer_func: Function to combine the output in case of multiple texts
-    :type mixer_func: Callable[[List], csr_matrix]
-    :param decision_function: Name of the decision function (detaulf='decision_function')
-    :type decision_function: str
+    :param pretrain: Whether to use a pre-trained representation. default=True.
+    :type pretrain: bool
+    :param b4msa_kwargs: :py:class:`b4msa.textmodel.TextModel` keyword arguments used to train a bag-of-words representation. default=dict().
+    :type b4msa_kwargs: dict
     :param kfold_class: Class of the KFold procedure (default=StratifiedKFold)
     :type kfold_class: class
     :param kfold_kwargs: Keyword parameters for the KFold class
     :type kfold_kwargs: dict
+    :param v1: Whether to use version 1 or pretrained representations. default=False
+    :type v1: bool
     :param n_jobs: Number of jobs. default=1
     :type n_jobs: int
 
@@ -535,7 +541,7 @@ class TextRepresentations(BoW):
     :type keyword: bool
     :param skip_dataset: Set of discarded dataset.
     :type skip_dataset: set
-    :param unit_vector: Normalize to vectors of lenght 1.
+    :param unit_vector: Normalize vectors to have length 1. default=True
     :type unit_vector: bool 
 
     >>> from EvoMSA import TextRepresentations
