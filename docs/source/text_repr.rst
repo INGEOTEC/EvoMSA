@@ -60,6 +60,8 @@ It can be observed that each token is associated with a vector in the space defi
 .. math::
 	\mathbf x = \frac{\mathbf{x^{'}}}{\lVert \mathbf{x^{'}} \rVert}.
 
+Parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :ref:`v2` has three sets of text representations, namely :py:attr:`dataset`, :py:attr:`emoji`, and :py:attr:`keyword`. The dataset text representations were built on datasets coming from text-categorization competitions, the emoji representations are self-supervised datasets where each task is to predict the presence of the emoji; and the keyword representations are also self-supervised datasets where the task is to predict the presence of a word; the words selected correspond to the words of the vocabulary in the pre-trained bag-of-words model. 
 

@@ -28,14 +28,14 @@
 
 :ref:`BoW` is a text classifier :math:`c` with signature :math:`c \equiv g \circ m`, where :math:`m` stands for the bag-or-words representation and :math:`g` is the classifier (the default is a linear Support Vector Machine).
 
-The classifier :math:`g` is trained on a dataset :math:`\mathcal D` of pairs (:math:`x`, :math:`y`), where :math:`x` is a text and :math:`y` is the label associated with it. The bag-of-words representation :math:`m` is a pre-trained model with term frequency inverse document frequency (TFIDF) as the weighting scheme; the parameters of pre-trained :math:`m` were estimated from 4,194,304 (:math:`2^{22}`) tweets randomly selected.
+The classifier :math:`g` is trained on a dataset :math:`\mathcal D` of pairs (:math:`x`, :math:`y`), where :math:`x` is a text and :math:`y` is the label associated with it. The bag-of-words representation :math:`m` is either a pre-trained model or a model trained on :math:`\mathcal D`, both used as the Term Frequency Inverse Document Frequency (TFIDF) as a weighting scheme. The pre-trained :math:`m` parameters were estimated from 4,194,304 (:math:`2^{22}`) tweets randomly selected.
 
 The bag-of-words representation used is described in "`A Simple Approach to Multilingual Polarity Classification in Twitter <https://www.sciencedirect.com/science/article/abs/pii/S0167865517301721>`_. Eric S. Tellez, Sabino Miranda-Jiménez, Mario Graff, Daniela Moctezuma, Ranyart R. Suárez, Oscar S. Siordia. Pattern Recognition Letters" and "`An Automated Text Categorization Framework based on Hyperparameter Optimization <https://www.sciencedirect.com/science/article/abs/pii/S0950705118301217>`_. Eric S. Tellez, Daniela Moctezuma, Sabino Miranda-Jímenez, Mario Graff. Knowledge-Based Systems Volume 149, 1 June 2018."
 
 Bag-of-Words Representation
 --------------------------------
 
-The core idea of a bag of words is that after the text is normalized and tokenized, each token :math:`t` is associated with a vector :math:`\mathbf{v_t} \in \mathbb R^d` where the :math:`i`-th component, i.e., :math:`\mathbf{v_t}_i`, contains the IDF value of the token :math:`t` and :math:`\forall_{j \neq i} \mathbf{v_t}_j=0`. The set of vectors :math:`\mathbf v` corresponds to the vocabulary, there are :math:`d` different tokens in the vocabulary, and by definition :math:`\forall_{i \neq j} \mathbf{v_i} \cdot \mathbf{v_j} = 0`, where :math:`\mathbf{v_i} \in \mathbb R^d`, :math:`\mathbf{v_j} \in \mathbb R^d`, and :math:`(\cdot)` is the dot product. It is worth mentioning that any token outside the vocabulary is discarded. The vocabulary size of the pre-trained bag-of-words representations is :math:`d=2^{14}`, i.e., there are 16,384 different tokens for each language.
+The core idea of a bag of words is that after the text is normalized and tokenized, each token :math:`t` is associated with a vector :math:`\mathbf{v_t} \in \mathbb R^d` where the :math:`i`-th component, i.e., :math:`\mathbf{v_t}_i`, contains the IDF value of the token :math:`t` and :math:`\forall_{j \neq i} \mathbf{v_t}_j=0`. The set of vectors :math:`\mathbf v` corresponds to the vocabulary, there are :math:`d` different tokens in the vocabulary, and by definition :math:`\forall_{i \neq j} \mathbf{v_i} \cdot \mathbf{v_j} = 0`, where :math:`\mathbf{v_i} \in \mathbb R^d`, :math:`\mathbf{v_j} \in \mathbb R^d`, and :math:`(\cdot)` is the dot product. It is worth mentioning that any token outside the vocabulary is discarded.
 
 Using this notation, a text :math:`x` is represented by the sequence of its tokens, i.e., :math:`(t_1, t_2, \ldots)`; the sequence can have repeated tokens, e.g., :math:`t_j = t_k`. Then each token is associated with its respective vector :math:`\mathbf v` (keeping the repetitions), i.e., :math:`(\mathbf{v_{t_1}}, \mathbf{v_{t_2}}, \ldots)`. Finally, the text :math:`x` is represented as: 
 
@@ -43,6 +43,13 @@ Using this notation, a text :math:`x` is represented by the sequence of its toke
 	\mathbf x = \frac{\sum_t \mathbf{v_t}}{\lVert \sum_t \mathbf{v_t} \rVert},
 
 where the sum goes for all the elements of the sequence, :math:`\mathbf x \in \mathbb R^d`, and :math:`\lVert \mathbf w \rVert` is the Euclidean norm of vector :math:`\mathbf w.` The term frequency is implicitly computed in the sum because the process allows token repetitions.
+
+Parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The BoW representation has different parameters; the parameter :py:attr:`pretrain` indicates whether a pre-trained model is used or will be estimated using a dataset; the default is pre-trained. The pre-trained models have other parameters; :py:attr:`lang` sets the language. :py:attr:`voc_size_exponent` defines the vocabulary size where the valid values are :math:`13, 14, \ldots, 17`, that represents a vocabulary size of :math:`2^{13}, 2^{14}, \ldots, 2^{17}`, respectively. 
+
+There are two mechanisms to select the pre-trained models' vocabulary (parameter :py:attr:`voc_selection`), namely :py:attr:`most_common_by_type` and :py:attr:`most_common`. The former value (i.e., :py:attr:`most_common_by_type`) chooses the vocabulary by normalizing the frequency of the q-grams of characters and the n-grams of words. Once this normalization is done, the tokens with the highest frequency are selected. The latter value (i.e., :py:attr:`most_common`) selects the tokens with the highest frequency without considering their type. The difference is that the former value has more tokens corresponding to words and bigrams than the later configuration. 
 
 Example
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
