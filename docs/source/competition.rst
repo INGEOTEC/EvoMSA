@@ -36,4 +36,84 @@ The text classifier's performance depends on the representation quality and the 
 The text classifiers presented have been tested in many text classifier competitions without modifications. The aim is to offer a better understanding of how these algorithms perform in a new situation and what would be the difference in performance with an algorithm tailored to the new problem. We test 13 different algorithms for each task of each competition. The configuration having the best performance was submitted to the contest. The best performance was computed using either a k-fold cross-validation or a validation set, depending on the information provided by the challenge.
 
 
+Systems
+=================================================
 
+.. code-block:: python
+
+	from EvoMSA import BoW, TextRepresentations, StackGeneralization
+	from sklearn.model_selection import StratifiedKFold
+
+
+:ref:`BoW` default parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+	def bow(lang, tr, vs, **kwargs):
+		bow = BoW(lang=lang).fit(tr)
+		hy = bow.predict(vs)
+		return hy
+
+
+:ref:`BoW` using :py:attr:`voc_selection` 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+	def bow_voc_selection(lang, tr, vs, **kwargs):
+		bow = BoW(lang=lang, voc_selection='most_common').fit(tr)
+		hy = bow.predict(vs)
+		return hy
+
+:ref:`BoW` trained on the training set 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+	def bow3(lang, tr, vs, **kwargs):
+		params = b4msa_params(lang=lang)
+		del params['token_max_filter']
+		del params['max_dimension']
+		bow_no_pre = BoW(lang=lang, pretrain=False, b4msa_kwargs=params).fit(tr)
+		return bow_no_pre.predict(vs)
+
+
+:ref:`StackGeneralization` with :ref:`BoW` and :ref:`TextRepresentations` 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+	def bow_keywords_emojis(lang, tr, vs, **kwargs):
+		bow = BoW(lang=lang)
+		keywords = TextRepresentations(lang=lang, 
+                                       emoji=False, 
+                                       dataset=False).select(D=tr)
+		emojis = TextRepresentations(lang=lang, 
+                                     keyword=False, 
+                                     dataset=False).select(D=tr)
+		stack = StackGeneralization(decision_function_models=[bow, keywords, emojis]).fit(tr)
+		X = bow.transform(vs)
+		for x in [bow, keywords, emojis]:
+			x.cache = X    
+		return stack.predict(vs)
+
+
+:ref:`StackGeneralization` with :ref:`BoW` and :ref:`TextRepresentations` using :py:attr:`voc_selection` 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+	def bow_keywords_emojis_voc_selection(lang, tr, vs, **kwargs):
+		bow = BoW(lang=lang, voc_selection='most_common')
+		keywords = TextRepresentations(lang=lang, voc_selection='most_common',
+                                       emoji=False, 
+                                       dataset=False).select(D=tr)
+		emojis = TextRepresentations(lang=lang, voc_selection='most_common',
+                                     keyword=False, 
+                                     dataset=False).select(D=tr)
+		stack = StackGeneralization(decision_function_models=[bow, keywords, emojis]).fit(tr)
+		X = bow.transform(vs)
+		for x in [bow, keywords, emojis]:
+			x.cache = X    
+		return stack.predict(vs)		
