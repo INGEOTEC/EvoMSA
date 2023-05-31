@@ -522,9 +522,9 @@ class BoW(object):
     def b4msa_kwargs(self, value):
         self._b4msa_kwargs = value
 
-class TextRepresentations(BoW):
+class DenseBoW(BoW):
     """
-    TextRepresentations is a text classifier in fact it is 
+    DenseBoW is a text classifier in fact it is 
     a subclass of :py:class:`BoW` being the difference the process
     to represent the text in a vector space. This process is described in
     "`EvoMSA: A Multilingual Evolutionary Approach
@@ -544,10 +544,10 @@ class TextRepresentations(BoW):
     :param unit_vector: Normalize vectors to have length 1. default=True
     :type unit_vector: bool 
 
-    >>> from EvoMSA import TextRepresentations
+    >>> from EvoMSA import DenseBoW
     >>> from microtc.utils import tweet_iterator
     >>> from EvoMSA.tests.test_base import TWEETS    
-    >>> text_repr =  TextRepresentations(lang='es')
+    >>> text_repr =  DenseBoW(lang='es')
     >>> text_repr.fit(list(tweet_iterator(TWEETS)))
     >>> text_repr.predict(['Buenos dias']).tolist()
     ['P']    
@@ -560,7 +560,7 @@ class TextRepresentations(BoW):
                  estimator_kwargs=dict(dual=False),
                  unit_vector=True,
                  **kwargs) -> None:
-        super(TextRepresentations, self).__init__(estimator_kwargs=estimator_kwargs, **kwargs)
+        super(DenseBoW, self).__init__(estimator_kwargs=estimator_kwargs, **kwargs)
         self.skip_dataset = skip_dataset
         self._names = []
         self._text_representations = []
@@ -578,14 +578,14 @@ class TextRepresentations(BoW):
         :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
         :type D: List of texts or dictionaries. 
 
-        >>> from EvoMSA import TextRepresentations
-        >>> X = TextRepresentations(lang='en').transform([dict(text='Hi'),
+        >>> from EvoMSA import DenseBoW
+        >>> X = DenseBoW(lang='en').transform([dict(text='Hi'),
                                                           dict(text='Good morning')])
         >>> X.shape
         (2, 1287)
         """                
         if isinstance(self.key, str):
-            X = super(TextRepresentations, self).transform(D, y=y)
+            X = super(DenseBoW, self).transform(D, y=y)
             models = Parallel(n_jobs=self._n_jobs)(delayed(m.decision_function)(X)
                                                    for m in self.text_representations)
             _ = np.array(models).T
@@ -594,7 +594,7 @@ class TextRepresentations(BoW):
             else:
                 return _
         assert len(D) and isinstance(D[0], dict)
-        Xs = [super(TextRepresentations, self).transform([x[key] for x in D], y=y)
+        Xs = [super(DenseBoW, self).transform([x[key] for x in D], y=y)
               for key in self.key]
         with Parallel(n_jobs=self._n_jobs) as parallel:
             models = []
@@ -620,11 +620,11 @@ class TextRepresentations(BoW):
     def weights(self):
         """Weights of the vector space. 
         It is matrix, i.e., :math:`\mathbf W \in \mathbb R^{M \\times d}`, where 
-        :math:`M` is the dimension of the vector space (see :py:attr:`TextRepresentations.names`)
+        :math:`M` is the dimension of the vector space (see :py:attr:`DenseBoW.names`)
         and :math:`d` is the vocabulary size.
 
-        >>> from EvoMSA import TextRepresentations
-        >>> text_repr = TextRepresentations(lang='es')
+        >>> from EvoMSA import DenseBoW
+        >>> text_repr = DenseBoW(lang='es')
         >>> text_repr.weights.shape
         (2672, 131072)        
         """
@@ -658,7 +658,7 @@ class TextRepresentations(BoW):
                D: List[Union[dict, list, None]]=None, 
                y: Union[np.ndarray, None]=None,
                feature_selection: Callable=KruskalFS,
-               feature_selection_kwargs: dict=dict()) -> 'TextRepresentations':
+               feature_selection_kwargs: dict=dict()) -> 'DenseBoW':
         """Procedure to perform feature selection or indices of the features to be selected.
 
         :param subset: Representations to be selected.
@@ -668,11 +668,11 @@ class TextRepresentations(BoW):
         :param y: Response variable. The response variable can also be in `D` on the key :py:attr:`BoW.label_key`. default=None
         :type y: Array or None
 
-        >>> from EvoMSA import TextRepresentations
+        >>> from EvoMSA import DenseBoW
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
         >>> T = list(tweet_iterator(TWEETS))
-        >>> text_repr =  TextRepresentations(lang='es').select(D=T)
+        >>> text_repr =  DenseBoW(lang='es').select(D=T)
         >>> text_repr.weights.shape
         (2672, 131072)        
         """
@@ -689,7 +689,7 @@ class TextRepresentations(BoW):
         index = feature_selection.get_support(indices=True)
         return self.select(subset=index)        
 
-    def fromjson(self, filename:str) -> 'TextRepresentations':
+    def fromjson(self, filename:str) -> 'DenseBoW':
         """Load the text representations from a json file
         
         :param filename: Path
@@ -759,13 +759,15 @@ class TextRepresentations(BoW):
             self.text_representations.extend(_)
             self.names.extend([x.labels[-1] for x in _])
 
+TextRepresentations = DenseBoW
+
 class StackGeneralization(BoW):
     """
-    >>> from EvoMSA import TextRepresentations, BoW, StackGeneralization
+    >>> from EvoMSA import DenseBoW, BoW, StackGeneralization
     >>> from microtc.utils import tweet_iterator
     >>> from EvoMSA.tests.test_base import TWEETS    
-    >>> emoji =  TextRepresentations(lang='es', dataset=False)
-    >>> dataset = TextRepresentations(lang='es', emoji=False)
+    >>> emoji =  DenseBoW(lang='es', dataset=False)
+    >>> dataset = DenseBoW(lang='es', emoji=False)
     >>> bow = BoW(lang='es')
     >>> stacking = StackGeneralization(decision_function_models=[bow],
                                        transform_models=[dataset, emoji])

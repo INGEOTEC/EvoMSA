@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-__version__ = '1.9.3'
+__version__ = '1.9.4'
 
 try:
-    from EvoMSA.text_repr import BoW, TextRepresentations, StackGeneralization
+    from EvoMSA.text_repr import BoW, TextRepresentations, StackGeneralization, DenseBoW
 except ModuleNotFoundError:
     pass

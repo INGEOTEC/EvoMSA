@@ -62,10 +62,10 @@ def test_BoW_key():
     assert abs(bow.transform(X) - O * 2).sum() == 0
 
 
-def test_TextRepresentations_transform():
+def test_DenseBoW_transform():
     from EvoMSA.text_repr import TextRepresentations
     D = list(tweet_iterator(TWEETS))
-    text_repr = TextRepresentations(lang='es', 
+    text_repr = DenseBoW(lang='es', 
                                     voc_size_exponent=13,
                                     keyword=False, 
                                     emoji=False)
@@ -74,35 +74,35 @@ def test_TextRepresentations_transform():
     assert len(text_repr.text_representations) == X.shape[1]
 
 
-def test_TextRepresentations_fit():
-    from EvoMSA.text_repr import TextRepresentations
+def test_DenseBoW_fit():
+    from EvoMSA.text_repr import DenseBoW
     D = list(tweet_iterator(TWEETS))
-    text_repr = TextRepresentations(lang='es', 
+    text_repr = DenseBoW(lang='es', 
                                     voc_size_exponent=13,
                                     keyword=False, 
                                     emoji=False).fit(D)
     text_repr.predict(['Buen dia'])
 
 
-def test_TextRepresentations_key():
-    from EvoMSA.text_repr import TextRepresentations
+def test_DenseBoW_key():
+    from EvoMSA.text_repr import DenseBoW
     D = list(tweet_iterator(TWEETS))
-    O = TextRepresentations(lang='es', unit_vector=False,
+    O = DenseBoW(lang='es', unit_vector=False,
                             voc_size_exponent=13,
                             keyword=False, emoji=False).transform(D)    
     X = [dict(klass=x['klass'], premise=x['text'], conclusion=x['text']) for x in D]
-    bow = TextRepresentations(lang='es', unit_vector=False,
+    bow = DenseBoW(lang='es', unit_vector=False,
                               voc_size_exponent=13,
                               keyword=False, emoji=False, key=['premise', 'conclusion'])
     assert abs(bow.transform(X) - O * 2).sum() == 0    
 
 
 def test_StackGeneralization():
-    from EvoMSA.text_repr import StackGeneralization, BoW, TextRepresentations
+    from EvoMSA.text_repr import StackGeneralization, BoW, DenseBoW
     D = list(tweet_iterator(TWEETS))
     text_repr = StackGeneralization(lang='es',
                                     decision_function_models=[BoW(lang='es')],
-                                    transform_models=[TextRepresentations(lang='es', 
+                                    transform_models=[DenseBoW(lang='es', 
                                                                           voc_size_exponent=13,
                                                                           keyword=False, 
                                                                           emoji=False)]).fit(D)
@@ -110,11 +110,11 @@ def test_StackGeneralization():
 
 
 def test_StackGeneralization_train_predict_decision_function():
-    from EvoMSA.text_repr import StackGeneralization, BoW, TextRepresentations
+    from EvoMSA.text_repr import StackGeneralization, BoW, DenseBoW
     D = list(tweet_iterator(TWEETS))
     text_repr = StackGeneralization(lang='es',
                                     decision_function_models=[BoW(lang='es')],
-                                    transform_models=[TextRepresentations(lang='es', 
+                                    transform_models=[DenseBoW(lang='es', 
                                                                           keyword=False, 
                                                                           voc_size_exponent=13,
                                                                           emoji=False)])
@@ -125,10 +125,10 @@ def test_StackGeneralization_train_predict_decision_function():
     assert hy.shape[1] == 2
 
 
-def test_TextRepresentations_tr_setter():
-    from EvoMSA.text_repr import TextRepresentations
+def test_DenseBoW_tr_setter():
+    from EvoMSA.text_repr import DenseBoW
     D = list(tweet_iterator(TWEETS))
-    text_repr = TextRepresentations(lang='es', 
+    text_repr = DenseBoW(lang='es', 
                                     keyword=False, 
                                     voc_size_exponent=13,
                                     emoji=False)
@@ -144,8 +144,8 @@ def test_BoW_setter():
     assert bow._bow
 
 
-def test_TextRepresentations_names():
-    from EvoMSA.text_repr import TextRepresentations
+def test_DenseBoW_names():
+    from EvoMSA.text_repr import DenseBoW
     text_repr = TextRepresentations(lang='es', 
                                     voc_size_exponent=13,
                                     keyword=False, 
@@ -154,9 +154,9 @@ def test_TextRepresentations_names():
     assert X.shape[1] == len(text_repr.names)
 
 
-def test_TextRepresentations_select():
-    from EvoMSA.text_repr import TextRepresentations
-    text_repr = TextRepresentations(lang='es', 
+def test_DenseBoW_select():
+    from EvoMSA.text_repr import DenseBoW
+    text_repr = DenseBoW(lang='es', 
                                     voc_size_exponent=13,
                                     keyword=False, 
                                     emoji=False)
@@ -188,9 +188,9 @@ def test_BoW_pretrain_False():
     assert X.shape[1] == 2**10
 
 
-def test_TextRepresentations_keyword():
-    from EvoMSA.text_repr import TextRepresentations
-    text_repr = TextRepresentations(lang='es', keyword=True,
+def test_DenseBoW_keyword():
+    from EvoMSA.text_repr import DenseBoW
+    text_repr = DenseBoW(lang='es', keyword=True,
                                     v1=True,
                                     emoji=False, dataset=False)
     X = text_repr.transform(['hola'])
@@ -208,10 +208,10 @@ def test_BoW_label_key():
     assert bow.predict(['buenos días'])[0] == 'P'
 
 
-def test_TextRepresentations_select2():
-    from EvoMSA.text_repr import TextRepresentations
+def test_DenseBoW_select2():
+    from EvoMSA.text_repr import DenseBoW
     D = list(tweet_iterator(TWEETS))    
-    text_repr = TextRepresentations(lang='es', 
+    text_repr = DenseBoW(lang='es', 
                                     emoji=False,
                                     keyword=False,
                                     voc_size_exponent=13,
@@ -219,12 +219,12 @@ def test_TextRepresentations_select2():
     n_names = len(text_repr.names)
     text_repr.select(D=D)
     assert len(text_repr.names) < n_names
-    text_repr = TextRepresentations(lang='es', 
+    text_repr = DenseBoW(lang='es', 
                                     emoji=False,
                                     keyword=False,
                                     voc_size_exponent=13,
                                     n_jobs=1).select(D=D)
-    assert isinstance(text_repr, TextRepresentations)
+    assert isinstance(text_repr, DenseBoW)
 
 
 def test_BoW_names():
@@ -234,10 +234,10 @@ def test_BoW_names():
     assert len(bow.names) == X.shape[1]
 
 
-def test_TextRepresentations_unit():
-    from EvoMSA.text_repr import TextRepresentations
+def test_DenseBoW_unit():
+    from EvoMSA.text_repr import DenseBoW
     D = list(tweet_iterator(TWEETS))    
-    text_repr = TextRepresentations(lang='es', 
+    text_repr = DenseBoW(lang='es', 
                                     emoji=False,
                                     keyword=False,
                                     n_jobs=1,
@@ -247,7 +247,7 @@ def test_TextRepresentations_unit():
     
     _ = np.sqrt((X ** 2).sum(axis=1))
     np.testing.assert_almost_equal(_, np.array([1, 1]))
-    text_repr = TextRepresentations(lang='es', 
+    text_repr = DenseBoW(lang='es', 
                                     emoji=False,
                                     keyword=False,
                                     n_jobs=1,
@@ -286,16 +286,16 @@ def test_config_regressor():
     assert np.unique(hy).shape[0] > len(labels)
 
 
-def test_TextRepresentations_extend():
-    from EvoMSA.text_repr import TextRepresentations
+def test_DenseBoW_extend():
+    from EvoMSA.text_repr import DenseBoW
     from EvoMSA.utils import MICROTC, Linear
     from EvoMSA import base
     from microtc.utils import tweet_iterator
     from os.path import isfile, dirname, join
     lang = 'es'
-    text_repr = TextRepresentations(lang=lang, keyword=True, v1=True,
+    text_repr = DenseBoW(lang=lang, keyword=True, v1=True,
                                     emoji=False, dataset=False)
-    text_repr = TextRepresentations(lang=lang, keyword=False, v1=True,
+    text_repr = DenseBoW(lang=lang, keyword=False, v1=True,
                                     emoji=False, dataset=False)                                    
     diroutput = join(dirname(base.__file__), 'models')
     name = 'keywords'
@@ -306,10 +306,10 @@ def test_TextRepresentations_extend():
     assert 2113 == X.shape[1]
 
 
-def test_TextRepresentations_emojis_v2():
-    from EvoMSA.text_repr import TextRepresentations
+def test_DenseBoW_emojis_v2():
+    from EvoMSA.text_repr import DenseBoW
     lang = 'ca'
-    text_repr = TextRepresentations(lang=lang, keyword=False,
+    text_repr = DenseBoW(lang=lang, keyword=False,
                                     voc_size_exponent=13,
                                     emoji=True, dataset=False)
     X = text_repr.transform(['xxx'])
@@ -329,11 +329,11 @@ def test_BoW_cache():
     assert abs(X1 - X2).sum() == 0
 
 
-def test_TextRepresentations_cache():
-    from EvoMSA.text_repr import BoW, TextRepresentations
+def test_DenseBoW_cache():
+    from EvoMSA.text_repr import BoW, DenseBoW
     # D = list(tweet_iterator(TWEETS))
     bow = BoW(lang='es', voc_size_exponent=13)
-    tr = TextRepresentations(keyword=False,
+    tr = DenseBoW(keyword=False,
                              dataset=False,
                              voc_size_exponent=13,
                              lang='es')
@@ -350,9 +350,9 @@ def test_BoW_weights():
     assert len(bow.names) == len(bow.weights)
 
 
-def test_TextRepresentations_weights():
-    from EvoMSA.text_repr import TextRepresentations
-    bow = TextRepresentations(lang='es',
+def test_DenseBoW_weights():
+    from EvoMSA.text_repr import DenseBoW
+    bow = DenseBoW(lang='es',
                               keyword=False,
                               dataset=False,                              
                               voc_size_exponent=13)
@@ -360,24 +360,24 @@ def test_TextRepresentations_weights():
     assert len(bow.names) == bow.bias.shape[0]
 
 
-def test_TextRepresentations_keywords_v2():
-    from EvoMSA.text_repr import TextRepresentations
+def test_DenseBoW_keywords_v2():
+    from EvoMSA.text_repr import DenseBoW
     lang = 'ca'
-    text_repr = TextRepresentations(lang=lang, keyword=True,
+    text_repr = DenseBoW(lang=lang, keyword=True,
                                     voc_size_exponent=13,
                                     emoji=False, dataset=False)
     X = text_repr.transform(['xxx'])        
     assert X.shape[0] == 1 and X.shape[1] == 2022
 
 
-def test_TextRepresentations_fromjson(): 
-    from EvoMSA.text_repr import TextRepresentations
+def test_DenseBoW_fromjson(): 
+    from EvoMSA.text_repr import DenseBoW
     from EvoMSA.utils import MICROTC
     from EvoMSA import base
     from os.path import join, dirname, isfile
 
     lang = 'ca'
-    text_repr = TextRepresentations(lang=lang, keyword=True,
+    text_repr = DenseBoW(lang=lang, keyword=True,
                                     voc_size_exponent=13,
                                     emoji=False, dataset=False)
     func = 'most_common_by_type'
@@ -387,7 +387,7 @@ def test_TextRepresentations_fromjson():
     diroutput = join(dirname(base.__file__), 'models')
     path = join(diroutput, filename)
     assert isfile(path)
-    text_repr2 = TextRepresentations(lang=lang,
+    text_repr2 = DenseBoW(lang=lang,
                                      keyword=False,
                                      dataset=False, emoji=False,
                                      voc_size_exponent=13).fromjson(path)
@@ -403,19 +403,19 @@ def test_BoW_b4msa_kwargs():
     assert bow.b4msa_kwargs['XXX'] == 'YYY'
 
 
-def test_TextRepresentations_skip_dataset(): 
-    from EvoMSA.text_repr import TextRepresentations
+def test_DenseBoW_skip_dataset(): 
+    from EvoMSA.text_repr import DenseBoW
     from EvoMSA.utils import MICROTC
     from EvoMSA import base
     from os.path import join, dirname, isfile
 
     lang = 'es'
-    text_repr = TextRepresentations(lang=lang, keyword=False,
+    text_repr = DenseBoW(lang=lang, keyword=False,
                                     voc_size_exponent=13,
                                     emoji=False, dataset=True)
     keys = set(text_repr.names[:3])
     length = len(text_repr.names)
-    text_repr = TextRepresentations(lang=lang, keyword=False,
+    text_repr = DenseBoW(lang=lang, keyword=False,
                                     voc_size_exponent=13,
                                     emoji=False, dataset=True,
                                     skip_dataset=keys)

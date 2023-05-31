@@ -19,9 +19,9 @@ from microtc.utils import tweet_iterator
 
 def test_EvoDAG_decision_function():
     from EvoMSA.evodag import EvoDAG
-    from EvoMSA.text_repr import TextRepresentations
+    from EvoMSA.text_repr import DenseBoW
     D = list(tweet_iterator(TWEETS))
-    class _EvoDAG(TextRepresentations):
+    class _EvoDAG(DenseBoW):
         def estimator(self):
             return EvoDAG(n_estimators=2, 
                           max_training_size=100)    
@@ -34,9 +34,9 @@ def test_EvoDAG_decision_function():
 
 def test_EvoDAG_predict():
     from EvoMSA.evodag import EvoDAG
-    from EvoMSA.text_repr import TextRepresentations
+    from EvoMSA.text_repr import DenseBoW
     D = list(tweet_iterator(TWEETS))
-    class _EvoDAG(TextRepresentations):
+    class _EvoDAG(DenseBoW):
         def estimator(self):
             return EvoDAG(n_estimators=2, 
                           max_training_size=100)    
