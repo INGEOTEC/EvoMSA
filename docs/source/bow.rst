@@ -27,9 +27,9 @@
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
 		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
 
-:ref:`BoW` is a text classifier :math:`c` with signature :math:`c \equiv g \circ m`, where :math:`m` stands for the bag-or-words representation and :math:`g` is the classifier (the default is a linear Support Vector Machine).
+:ref:`BoW` is a text classifier :math:`c` with signature :math:`c \equiv g \circ m`, where :math:`m` stands for the bag-of-words representation and :math:`g` is the classifier (the default is a linear Support Vector Machine).
 
-The classifier :math:`g` is trained on a dataset :math:`\mathcal D` of pairs (:math:`x`, :math:`y`), where :math:`x` is a text and :math:`y` is the label associated with it. The bag-of-words representation :math:`m` is either a pre-trained model or a model trained on :math:`\mathcal D`, both used as the Term Frequency Inverse Document Frequency (TFIDF) as a weighting scheme. The pre-trained :math:`m` parameters were estimated from 4,194,304 (:math:`2^{22}`) tweets randomly selected.
+The classifier :math:`g` is trained on a dataset :math:`\mathcal D` of pairs (:math:`x`, :math:`y`), where :math:`x` is a text and :math:`y` is the label associated with it. The bag-of-words representation :math:`m` is either a pre-trained model or a model trained on :math:`\mathcal D`, both used the Term Frequency Inverse Document Frequency (TFIDF) as a weighting scheme. The pre-trained :math:`m` parameters were estimated from 4,194,304 (:math:`2^{22}`) tweets randomly selected.
 
 The bag-of-words representation used is described in "`A Simple Approach to Multilingual Polarity Classification in Twitter <https://www.sciencedirect.com/science/article/abs/pii/S0167865517301721>`_. Eric S. Tellez, Sabino Miranda-Jiménez, Mario Graff, Daniela Moctezuma, Ranyart R. Suárez, Oscar S. Siordia. Pattern Recognition Letters" and "`An Automated Text Categorization Framework based on Hyperparameter Optimization <https://www.sciencedirect.com/science/article/abs/pii/S0950705118301217>`_. Eric S. Tellez, Daniela Moctezuma, Sabino Miranda-Jímenez, Mario Graff. Knowledge-Based Systems Volume 149, 1 June 2018."
 

@@ -1,7 +1,7 @@
 .. _text_repr_api:
 
 ==============================================
-:py:class:`TextRepresentations` API
+:py:class:`DenseBoW` API
 ==============================================
 .. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg
 		:target: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml
@@ -28,5 +28,5 @@
 		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
 
 
-.. autoclass:: EvoMSA.text_repr.TextRepresentations
+.. autoclass:: EvoMSA.text_repr.DenseBoW
    :members:
