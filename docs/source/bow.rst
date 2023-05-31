@@ -1,5 +1,6 @@
 .. _BoW:
 
+====================================
 :py:class:`BoW`
 ====================================
 .. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg

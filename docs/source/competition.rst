@@ -1,5 +1,6 @@
 .. _competition:
 
+====================================
 Text Classifier Competitions
 ====================================
 .. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg
@@ -42,7 +43,9 @@ Systems
 .. code-block:: python
 
 	from EvoMSA import BoW, TextRepresentations, StackGeneralization
+	from EvoMSA.utils import Linear, b4msa_params
 	from sklearn.model_selection import StratifiedKFold
+	import numpy as np
 
 
 :ref:`BoW` default parameters
@@ -71,7 +74,7 @@ Systems
 
 .. code-block:: python
 
-	def bow3(lang, tr, vs, **kwargs):
+	def bow_training_set(lang, tr, vs, **kwargs):
 		params = b4msa_params(lang=lang)
 		del params['token_max_filter']
 		del params['max_dimension']
@@ -84,7 +87,7 @@ Systems
 
 .. code-block:: python
 
-	def bow_keywords_emojis(lang, tr, vs, **kwargs):
+	def stack_bow_keywords_emojis(lang, tr, vs, **kwargs):
 		bow = BoW(lang=lang)
 		keywords = TextRepresentations(lang=lang, 
                                        emoji=False, 
@@ -104,7 +107,7 @@ Systems
 
 .. code-block:: python
 
-	def bow_keywords_emojis_voc_selection(lang, tr, vs, **kwargs):
+	def stack_bow_keywords_emojis_voc_selection(lang, tr, vs, **kwargs):
 		bow = BoW(lang=lang, voc_selection='most_common')
 		keywords = TextRepresentations(lang=lang, voc_selection='most_common',
                                        emoji=False, 
@@ -116,4 +119,202 @@ Systems
 		X = bow.transform(vs)
 		for x in [bow, keywords, emojis]:
 			x.cache = X    
-		return stack.predict(vs)		
+		return stack.predict(vs)
+
+
+:ref:`StackGeneralization` with two :ref:`BoW` models 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+	def stack_bows(lang, tr, vs, **kwargs):
+		bow = BoW(lang=lang)
+		bow2 = BoW(lang=lang, voc_selection='most_common')
+		stack = StackGeneralization(decision_function_models=[bow, bow2]).fit(tr)
+		return stack.predict(vs)
+
+
+:ref:`StackGeneralization` using :ref:`BoW` and :ref:`TextRepresentations` with and without :py:attr:`voc_selection` 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^		
+
+.. code-block:: python
+
+	def stack_2_bow_keywords(lang, tr, vs, **kwargs):
+		bow = BoW(lang=lang)      
+		keywords = TextRepresentations(lang=lang, dataset=False).select(D=tr)
+		bow2 = BoW(lang=lang, voc_selection='most_common')
+		keywords2 = TextRepresentations(lang=lang, voc_selection='most_common',
+										dataset=False).select(D=tr)
+		stack = StackGeneralization(decision_function_models=[bow, bow2,
+		                                                      keywords,
+															  keywords2]).fit(tr)
+		X = bow.transform(vs)
+		for x in [bow, keywords]:
+			x.cache = X
+		X = bow2.transform(vs)
+		for x in [bow2, keywords2]:
+			x.cache = X
+		return stack.predict(vs)
+
+
+:ref:`StackGeneralization` using :ref:`BoW` and tailored :ref:`TextRepresentations` with and without :py:attr:`voc_selection` 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+	def stack_2_bow_tailored_keywords(lang, tr, vs, keywords=None, **kwargs):
+		models = [Linear(**kwargs)
+				for kwargs in tweet_iterator(keywords)]    
+		bow = BoW(lang=lang)      
+		keywords = TextRepresentations(lang=lang, dataset=False)
+		keywords.text_representations_extend(models)
+		keywords.select(D=tr)
+		bow2 = BoW(lang=lang, voc_selection='most_common')
+		keywords2 = TextRepresentations(lang=lang, voc_selection='most_common',
+										dataset=False).select(D=tr)
+		stack = StackGeneralization(decision_function_models=[bow, bow2,
+		                                                      keywords,
+															  keywords2]).fit(tr)
+		X = bow.transform(vs)
+		for x in [bow, keywords]:
+			x.cache = X
+		X = bow2.transform(vs)
+		for x in [bow2, keywords2]:
+			x.cache = X
+		return stack.predict(vs)
+
+
+:ref:`StackGeneralization` using :ref:`BoW` and all :ref:`TextRepresentations` with and without :py:attr:`voc_selection` 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+	def stack_2_bow_all_keywords(lang, tr, vs, **kwargs):
+		bow = BoW(lang=lang)      
+		keywords = TextRepresentations(lang=lang)
+		sel = [k for k, v in enumerate(keywords.names) if v not in ['davincis2022_1'] or 'semeval2023' not in v]
+		keywords.select(sel).select(D=tr)
+		bow2 = BoW(lang=lang, voc_selection='most_common')
+		keywords2 = TextRepresentations(lang=lang,
+										voc_selection='most_common').select(sel).select(D=tr)
+		stack = StackGeneralization(decision_function_models=[bow, bow2, keywords, keywords2]).fit(tr)
+		X = bow.transform(vs)
+		for x in [bow, keywords]:
+			x.cache = X
+		X = bow2.transform(vs)
+		for x in [bow2, keywords2]:
+			x.cache = X
+		return stack.predict(vs)
+
+
+:ref:`StackGeneralization` using :ref:`BoW` tailored and datasets :ref:`TextRepresentations` with and without :py:attr:`voc_selection` 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+	def stack_2_bow_tailored_all_keywords(lang, tr, vs, keywords=None, **kwargs):
+		models = [Linear(**kwargs)
+				for kwargs in tweet_iterator(keywords)]    
+		bow = BoW(lang=lang)      
+		keywords = TextRepresentations(lang=lang)
+		sel = [k for k, v in enumerate(keywords.names)
+			if v not in ['davincis2022_1'] or 'semeval2023' not in v]
+		keywords.select(sel)
+		keywords.text_representations_extend(models)
+		keywords.select(D=tr)
+		bow2 = BoW(lang=lang, voc_selection='most_common')
+		keywords2 = TextRepresentations(lang=lang,
+										voc_selection='most_common').select(sel).select(D=tr)
+		stack = StackGeneralization(decision_function_models=[bow, bow2, keywords, keywords2]).fit(tr)
+		X = bow.transform(vs)
+		for x in [bow, keywords]:
+			x.cache = X
+		X = bow2.transform(vs)
+		for x in [bow2, keywords2]:
+			x.cache = X
+		return stack.predict(vs)
+
+
+:ref:`StackGeneralization` with three :ref:`BoW` models 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^	
+
+.. code-block:: python
+
+	def stack_3_bows(lang, tr, vs, **kwargs):
+		params = b4msa_params(lang=lang)
+		del params['token_max_filter']
+		del params['max_dimension']
+		bow_no_pre = BoW(lang=lang, pretrain=False, b4msa_kwargs=params)
+		bow = BoW(lang=lang)
+		bow2 = BoW(lang=lang, voc_selection='most_common')
+		stack = StackGeneralization(decision_function_models=[bow_no_pre, bow, bow2]).fit(tr)
+		return stack.predict(vs)
+
+
+:ref:`StackGeneralization` using :ref:`BoW` and all :ref:`TextRepresentations` with and without :py:attr:`voc_selection` plus :ref:`BoW` trained on the training set
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+	def stack_3_bows_all_keywords(lang, tr, vs, keywords=None, **kwargs):
+		models = [Linear(**kwargs)
+				for kwargs in tweet_iterator(keywords)]
+		params = b4msa_params(lang=lang)
+		del params['token_max_filter']
+		del params['max_dimension']
+		bow_no_pre = BoW(lang=lang, pretrain=False, b4msa_kwargs=params)
+
+		bow = BoW(lang=lang)      
+		keywords = TextRepresentations(lang=lang, dataset=False)
+		keywords.text_representations_extend(models)
+		keywords.select(D=tr)
+		bow2 = BoW(lang=lang, voc_selection='most_common')
+		keywords2 = TextRepresentations(lang=lang, voc_selection='most_common',
+										dataset=False).select(D=tr)
+		stack = StackGeneralization(decision_function_models=[bow_no_pre, bow, bow2, 
+															keywords, keywords2]).fit(tr)
+		X = bow.transform(vs)
+		for x in [bow, keywords]:
+			x.cache = X
+		X = bow2.transform(vs)
+		for x in [bow2, keywords2]:
+			x.cache = X
+		return stack.predict(vs)
+
+
+:ref:`StackGeneralization` using :ref:`BoW` and all :ref:`TextRepresentations` with and without :py:attr:`voc_selection` plus :ref:`BoW` trained on the training set
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+	def stack_3_bow_tailored_all_keywords(lang, tr, vs, keywords=None, **kwargs):
+		params = b4msa_params(lang=lang)
+		del params['token_max_filter']
+		del params['max_dimension']
+		bow_no_pre = BoW(lang=lang, pretrain=False, b4msa_kwargs=params)
+		models = [Linear(**kwargs)
+				for kwargs in tweet_iterator(keywords)]    
+		bow = BoW(lang=lang)      
+		keywords = TextRepresentations(lang=lang)
+		sel = [k for k, v in enumerate(keywords.names)
+			if v not in ['davincis2022_1'] or 'semeval2023' not in v]
+		keywords.select(sel)
+		keywords.text_representations_extend(models)
+		keywords.select(D=tr)
+		bow2 = BoW(lang=lang, voc_selection='most_common')
+		keywords2 = TextRepresentations(lang=lang,
+										voc_selection='most_common').select(sel).select(D=tr)
+		stack = StackGeneralization(decision_function_models=[bow_no_pre, bow, bow2,
+															keywords, keywords2]).fit(tr)
+		X = bow.transform(vs)
+		for x in [bow, keywords]:
+			x.cache = X
+		X = bow2.transform(vs)
+		for x in [bow2, keywords2]:
+			x.cache = X
+		return stack.predict(vs)
+
+
+Predictions
+=================================================
+

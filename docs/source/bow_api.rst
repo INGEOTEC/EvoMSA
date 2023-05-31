@@ -1,5 +1,6 @@
 .. _bow_api:
 
+================================
 :py:class:`BoW` API
 ================================
 .. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg

@@ -1,5 +1,6 @@
 .. _TextRepresentations:
 
+====================================
 :py:class:`TextRepresentations`
 ====================================
 .. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg

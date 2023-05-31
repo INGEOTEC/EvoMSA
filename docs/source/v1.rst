@@ -1,5 +1,6 @@
 .. _v1:
 
+==================================
 EvoMSA first version
 ==================================
 .. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg

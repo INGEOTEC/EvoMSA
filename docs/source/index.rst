@@ -1,5 +1,6 @@
 .. _v2:
 
+====================================
 EvoMSA 2.0
 ====================================
 .. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg
@@ -91,8 +92,8 @@ or can be install using pip, it depends on numpy, scipy, scikit-learn and b4msa.
 	  pip install EvoMSA
 
 
-:ref:`competition`
-====================================
+:ref:`Text Classifier Competitions <competition>`
+=====================================================
 
 :ref:`v2` has been tested in many text classifier competitions without modifications. The aim is to offer a better understanding of how these algorithms perform in a new situation and what would be the difference in performance with an algorithm tailored to the new problem. In the following link, we will describe the specifics of each configuration.
 
@@ -111,7 +112,7 @@ API
    text_repr_api
    stack_api
 
-:ref:`v1`
+:ref:`EvoMSA first version <v1>`
 ====================================
 
 The documentation of EvoMSA first version can be found in the following sections. 

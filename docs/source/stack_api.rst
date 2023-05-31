@@ -1,5 +1,6 @@
 .. _stack_api:
 
+============================================
 :py:class:`StackGeneralization` API
 ============================================
 .. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg

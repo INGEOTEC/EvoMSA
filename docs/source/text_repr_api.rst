@@ -1,5 +1,6 @@
 .. _text_repr_api:
 
+==============================================
 :py:class:`TextRepresentations` API
 ==============================================
 .. image:: https://github.com/INGEOTEC/EvoMSA/actions/workflows/test.yaml/badge.svg
