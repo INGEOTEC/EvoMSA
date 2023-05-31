@@ -65,7 +65,7 @@ def test_BoW_key():
 def test_DenseBoW_transform():
     from EvoMSA.text_repr import TextRepresentations
     D = list(tweet_iterator(TWEETS))
-    text_repr = DenseBoW(lang='es', 
+    text_repr = TextRepresentations(lang='es', 
                                     voc_size_exponent=13,
                                     keyword=False, 
                                     emoji=False)
@@ -146,7 +146,7 @@ def test_BoW_setter():
 
 def test_DenseBoW_names():
     from EvoMSA.text_repr import DenseBoW
-    text_repr = TextRepresentations(lang='es', 
+    text_repr = DenseBoW(lang='es', 
                                     voc_size_exponent=13,
                                     keyword=False, 
                                     emoji=False)
