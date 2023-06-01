@@ -36,9 +36,114 @@ The text classifier's performance depends on the representation quality and the 
 
 The text classifiers presented have been tested in many text classifier competitions without modifications. The aim is to offer a better understanding of how these algorithms perform in a new situation and what would be the difference in performance with an algorithm tailored to the new problem. We test 13 different algorithms for each task of each competition. The configuration having the best performance was submitted to the contest. The best performance was computed using either a k-fold cross-validation or a validation set, depending on the information provided by the challenge.
 
+Results
+------------------------------
+
+.. list-table:: Competitions 
+    :header-rows: 1
+
+    * - Competitions 
+      - Winner 
+      - :ref:`v2` 
+      - Difference
+    * - HaSpeeDe
+      -
+      - 
+      -
+    * - HODI 
+      - 0.81079 
+      - 0.71527
+      - 13.4%
+    * - ACTI
+      - 0.85712
+      - 0.78207
+      - 9.6%
+    * - PoliticIT (Global)
+      - 0.824057
+      - 0.762001
+      - 8.1%
+    * - PoliticIT (Gender)
+      - 0.824287
+      - 0.732259
+      - 12.6%
+    * - PoliticIT (Ideology Binary)
+      - 0.928223
+      - 0.848525
+      - 9.4%
+    * - PoliticIT (Ideology Multiclass)
+      - 0.751477
+      - 0.705220 
+      - 6.6%
+    * - PoliticEs (Global)
+      - 0.811319
+      - 0.777584
+      - 4.3%
+    * - PoliticEs (Gender)
+      - 0.829633
+      - 0.711549
+      - 16.6%
+    * - PoliticEs (Profession)
+      - 0.860824
+      - 0.837945 
+      - 2.7%
+    * - PoliticEs (Ideology Binary)
+      - 0.896715
+      - 0.891394
+      - 0.6%
+    * - PoliticEs (Ideology Multiclass) 
+      - 0.691334
+      - 0.669448
+      - 3.3%
+    * - DAVINCIS 
+      - 0.9264
+      - 0.8903
+      - 4.1%
+    * - REST-MEX (Global)
+      - 0.7790190145
+      - 0.7375714730
+      - 5.6%
+    * - REST-MEX (Polarity)
+      - 0.621691991
+      - 0.554880778
+      - 12.0%
+    * - REST-MEX (Type)
+      - 0.99032231
+      - 0.980539122
+      - 1.0%
+    * - REST-MEX (Country)
+      - 0.942028113
+      - 0.927052594
+      - 1.6%    
+    * - HOMO-MEX
+      - 0.8847
+      - 0.8050
+      - 9.9%
+    * - HOPE (ES)
+      - 0.9161
+      - 0.4198
+      - 118.2%
+    * - HOPE (EN)
+      - 0.5012
+      - 0.4429
+      - 13.2%
+    * - DIPROMATS (ES)
+      - 0.8089
+      - 0.7485
+      - 8.1%
+    * - DIPROMATS (EN)
+      - 0.8090
+      - 0.7255
+      - 11.5%
+    * - HUHU
+      - 0.820
+      - 0.775
+      - 5.8%
+
 
 Systems
 -----------------------------------------------
+
+We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. These models include the use of the two procedures to select the vocabulary (parameter voc_selection), the use of pre-trained :ref:`BoW`, and the creation of the :ref:`BoW` representation with the given training set. Additionally, we create text representations tailored to the problem at hand. That is the words with more discriminant power in a :ref:`BoW` classifier, trained on the training set, are selected as the labels in self-supervised problems. 
 
 .. code-block:: python
 
@@ -316,5 +421,7 @@ Systems
 
 
 Predictions
-=================================================
+------------------------------
 
+Competitions
+------------------------------
