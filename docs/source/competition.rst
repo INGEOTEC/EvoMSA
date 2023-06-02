@@ -122,7 +122,7 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
     * - :ref:`REST-MEX (Polarity) <rest-mex>`
       - 2023
       - 0.621691991
-      - 0.554880778 (:ref:`stack_bows <func_stack_bows>`)
+      - 0.554880778 (:ref:`Conf. <func_stack_bows>`)
       - 12.0%
     * - :ref:`REST-MEX (Type) <rest-mex>`
       - 2023
