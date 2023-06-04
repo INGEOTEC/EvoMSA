@@ -114,6 +114,11 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
       - 0.9264
       - 0.8903 (:ref:`Conf. <func_stack_2_bow_tailored_all_keywords>`)
       - 4.1%
+    * - :ref:`DAVINCIS <davincis-2022>`
+      - 2022
+      - 0.7817
+      - 0.7510 (:ref:`Conf. <func_stack_2_bow_all_keywords>`)
+      - 4.1%
     * - :ref:`REST-MEX (Global) <rest-mex>`
       - 2023
       - 0.7790190145
@@ -615,6 +620,57 @@ Competitions
       - 0.0000
     * - :ref:`stack_bow_keywords_emojis_voc_selection <func_stack_bow_keywords_emojis_voc_selection>`
       - 0.8859
+      - 0.0000
+
+.. _davincis-2022:
+
+`Detection of Aggressive and Violent Incidents from Social Media in Spanish (DAVINCIS 2022) <https://sites.google.com/view/davincis-iberlef/home>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table:: Performance in Cross-validation
+    :header-rows: 1
+
+    * - Configuration
+      - Performance
+      - p-value
+    * - :ref:`stack_2_bow_all_keywords <func_stack_2_bow_all_keywords>`
+      - 0.8447
+      - 1.0000
+    * - :ref:`stack_2_bow_tailored_all_keywords <func_stack_2_bow_tailored_all_keywords>`
+      - 0.8361
+      - 0.0000
+    * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
+      - 0.8219
+      - 0.0000
+    * - :ref:`stack_bow_keywords_emojis <func_stack_bow_keywords_emojis>`
+      - 0.7595
+      - 0.0000
+    * - :ref:`stack_bow_keywords_emojis_voc_selection <func_stack_bow_keywords_emojis_voc_selection>`
+      - 0.7588
+      - 0.0000
+    * - :ref:`stack_2_bow_tailored_keywords <func_stack_2_bow_tailored_keywords>`
+      - 0.7572
+      - 0.0000
+    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+      - 0.7555
+      - 0.0000
+    * - :ref:`stack_2_bow_keywords <func_stack_2_bow_keywords>`
+      - 0.7525
+      - 0.0000
+    * - :ref:`bow_voc_selection <func_bow_voc_selection>`
+      - 0.7342
+      - 0.0000
+    * - :ref:`bow_training_set <func_bow_training_set>`
+      - 0.7337
+      - 0.0000
+    * - :ref:`stack_bows <func_stack_bows>`
+      - 0.7329
+      - 0.0000
+    * - :ref:`stack_3_bows <func_stack_3_bows>`
+      - 0.7329
+      - 0.0000
+    * - :ref:`bow <func_bow>`
+      - 0.7324
       - 0.0000
 
 
