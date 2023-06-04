@@ -57,12 +57,12 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
     * - :ref:`HODI <hodi>` 
       - 2023
       - 0.81079 
-      - 0.71527 (:ref:`Conf. <func_stack_3_bows_all_keywords>`)
+      - 0.71527 (:ref:`Conf. <func_stack_3_bows_tailored_keywords>`)
       - 13.4%
     * - :ref:`ACTI <acti>`
       - 2023
       - 0.85712
-      - 0.78207 (:ref:`Conf. <func_stack_3_bows_all_keywords>`)
+      - 0.78207 (:ref:`Conf. <func_stack_3_bows_tailored_keywords>`)
       - 9.6%
     * - :ref:`PoliticIT (Global) <politicit>`
       - 2023
@@ -184,7 +184,7 @@ Competitions
     * - Configuration
       - Performance
       - p-value
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.7883
       - 1.0000
     * - :ref:`stack_bows <func_stack_bows>`
@@ -226,7 +226,7 @@ Competitions
     * - Configuration
       - Performance
       - p-value
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.7914
       - 1.0000
     * - :ref:`stack_2_bow_tailored_keywords <func_stack_2_bow_tailored_keywords>`
@@ -275,7 +275,7 @@ Competitions
     * - :ref:`stack_bows <func_stack_bows>`
       - 0.9583
       - 0.2120
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.9583
       - 0.2340
     * - :ref:`bow_training_set <func_bow_training_set>`
@@ -313,7 +313,7 @@ Competitions
     * - :ref:`stack_3_bows <func_stack_3_bows>`
       - 0.9714
       - 0.1580
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.9714
       - 0.1580
     * - :ref:`stack_bows <func_stack_bows>`
@@ -348,7 +348,7 @@ Competitions
     * - :ref:`stack_3_bows <func_stack_3_bows>`
       - 0.9834
       - 1.0000
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.9834
       - 1.0000
     * - :ref:`bow_training_set <func_bow_training_set>`
@@ -394,7 +394,7 @@ Competitions
     * - :ref:`stack_3_bows <func_stack_3_bows>`
       - 0.9764
       - 0.1080
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.9643
       - 0.0660
     * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
@@ -442,7 +442,7 @@ Competitions
     * - :ref:`bow_training_set <func_bow_training_set>`
       - 1.0000
       - 1.0000
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 1.0000
       - 1.0000
     * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
@@ -489,7 +489,7 @@ Competitions
     * - :ref:`bow_training_set <func_bow_training_set>`
       - 1.0000
       - 1.0000
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 1.0000
       - 1.0000
     * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
@@ -536,7 +536,7 @@ Competitions
     * - :ref:`bow_training_set <func_bow_training_set>`
       - 1.0000
       - 1.0000
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.9889
       - 0.1780
     * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
@@ -585,7 +585,7 @@ Competitions
     * - :ref:`stack_2_bow_tailored_all_keywords <func_stack_2_bow_tailored_all_keywords>`
       - 0.8984
       - 1.0000
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.8971
       - 0.2260
     * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
@@ -651,7 +651,7 @@ Competitions
     * - :ref:`stack_2_bow_tailored_keywords <func_stack_2_bow_tailored_keywords>`
       - 0.7572
       - 0.0000
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.7555
       - 0.0000
     * - :ref:`stack_2_bow_keywords <func_stack_2_bow_keywords>`
@@ -691,7 +691,7 @@ Competitions
     * - :ref:`stack_3_bows <func_stack_3_bows>`
       - 0.5603
       - 0.4140
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.5472
       - 0.0000
     * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
@@ -746,7 +746,7 @@ Competitions
     * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
       - 0.9783
       - 0.0000
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.9783
       - 0.0000
     * - :ref:`stack_bows <func_stack_bows>`
@@ -796,7 +796,7 @@ Competitions
     * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
       - 0.9166
       - 0.0000
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.9164
       - 0.0000
     * - :ref:`stack_2_bow_tailored_all_keywords <func_stack_2_bow_tailored_all_keywords>`
@@ -845,7 +845,7 @@ Competitions
     * - :ref:`stack_2_bow_all_keywords <func_stack_2_bow_all_keywords>`
       - 0.7903
       - 0.2700
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.7901
       - 0.0740
     * - :ref:`stack_bow_keywords_emojis_voc_selection <func_stack_bow_keywords_emojis_voc_selection>`
@@ -888,7 +888,7 @@ Competitions
     * - :ref:`stack_bow_keywords_emojis <func_stack_bow_keywords_emojis>`
       - 0.8217
       - 0.3580
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.8192
       - 0.3680
     * - :ref:`stack_2_bow_all_keywords <func_stack_2_bow_all_keywords>`
@@ -953,7 +953,7 @@ Competitions
     * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
       - 0.7661
       - 0.0200
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.7640
       - 0.0120
     * - :ref:`stack_3_bows <func_stack_3_bows>`
@@ -987,7 +987,7 @@ Competitions
     * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
       - 0.6544
       - 0.4180
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.6515
       - 0.2200
     * - :ref:`stack_2_bow_tailored_all_keywords <func_stack_2_bow_tailored_all_keywords>`
@@ -1031,7 +1031,7 @@ Competitions
     * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
       - 0.6498
       - 1.0000
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.6489
       - 0.2260
     * - :ref:`stack_2_bow_tailored_keywords <func_stack_2_bow_tailored_keywords>`
@@ -1093,7 +1093,7 @@ Competitions
     * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
       - 0.7377
       - 0.1340
-    * - :ref:`stack_3_bows_all_keywords <func_stack_3_bows_all_keywords>`
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
       - 0.7358
       - 0.1000
     * - :ref:`stack_2_bow_keywords <func_stack_2_bow_keywords>`
@@ -1366,14 +1366,14 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
                                                               bow2]).fit(tr)
         return stack.predict(vs)
 
-.. _func_stack_3_bows_all_keywords:
+.. _func_stack_3_bows_tailored_keywords:
 
 :ref:`StackGeneralization` using :ref:`BoW` and all :ref:`DenseBoW` with and without :py:attr:`voc_selection` plus :ref:`BoW` trained on the training set
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
-    def stack_3_bows_all_keywords(lang, tr, vs, keywords=None, **kwargs):
+    def stack_3_bows_tailored_keywords(lang, tr, vs, keywords=None, **kwargs):
         models = [Linear(**kwargs)
                   for kwargs in tweet_iterator(keywords)]
         params = b4msa_params(lang=lang)
