@@ -169,6 +169,21 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
       - 0.820
       - 0.775 (:ref:`Conf. <func_stack_2_bow_all_keywords>`)
       - 5.8%
+    * - :ref:`EDOS (A) <edos>`
+      - 2023
+      - 0.8746
+      - 0.7890 (:ref:`Conf. <func_stack_2_bow_keywords>`)
+      - 10.8%
+    * - :ref:`EDOS (B) <edos>`
+      - 2023
+      - 0.7326
+      - 0.5413 (:ref:`Conf. <func_stack_bow_keywords_emojis>`)
+      - 35.3%
+    * - :ref:`EDOS (C) <edos>`
+      - 2023
+      - 0.5606
+      - 0.3500 (:ref:`Conf. <func_stack_2_bow_all_keywords>`)
+      - 60.2%
 
 Competitions
 ------------------------------
@@ -1121,7 +1136,148 @@ Competitions
       - 0.6833
       - 0.0000
 
+.. _edos:
 
+`Explainable Detection of Online Sexism (EDOS) <https://arxiv.org/pdf/2303.04222.pdf>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table:: Performance in Cross-validation (A)
+    :header-rows: 1
+
+    * - Configuration
+      - Performance
+      - p-value
+    * - :ref:`stack_2_bow_keywords <func_stack_2_bow_keywords>`
+      - 0.7622
+      - 1.0000
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
+      - 0.7580
+      - 0.2220
+    * - :ref:`stack_2_bow_tailored_keywords <func_stack_2_bow_tailored_keywords>`
+      - 0.7567
+      - 0.0960
+    * - :ref:`stack_2_bow_tailored_all_keywords <func_stack_2_bow_tailored_all_keywords>`
+      - 0.7532
+      - 0.1100
+    * - :ref:`stack_3_bows <func_stack_3_bows>`
+      - 0.7517
+      - 0.0720
+    * - :ref:`stack_2_bow_all_keywords <func_stack_2_bow_all_keywords>`
+      - 0.7503
+      - 0.0600
+    * - :ref:`stack_bow_keywords_emojis <func_stack_bow_keywords_emojis>`
+      - 0.7502
+      - 0.0280
+    * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
+      - 0.7487
+      - 0.0300
+    * - :ref:`stack_bows <func_stack_bows>`
+      - 0.7486
+      - 0.0540
+    * - :ref:`stack_bow_keywords_emojis_voc_selection <func_stack_bow_keywords_emojis_voc_selection>`
+      - 0.7478
+      - 0.0100
+    * - :ref:`bow <func_bow>`
+      - 0.7398
+      - 0.0060
+    * - :ref:`bow_training_set <func_bow_training_set>`
+      - 0.7354
+      - 0.0020
+    * - :ref:`bow_voc_selection <func_bow_voc_selection>`
+      - 0.7350
+      - 0.0000
+
+.. list-table:: Performance in Cross-validation (B)
+    :header-rows: 1
+
+    * - Configuration
+      - Performance
+      - p-value
+    * - :ref:`stack_bow_keywords_emojis <func_stack_bow_keywords_emojis>`
+      - 0.5247
+      - 1.0000
+    * - :ref:`stack_2_bow_keywords <func_stack_2_bow_keywords>`
+      - 0.5123
+      - 0.1580
+    * - :ref:`stack_bow_keywords_emojis_voc_selection <func_stack_bow_keywords_emojis_voc_selection>`
+      - 0.5088
+      - 0.1540
+    * - :ref:`stack_2_bow_tailored_keywords <func_stack_2_bow_tailored_keywords>`
+      - 0.5064
+      - 0.1040
+    * - :ref:`stack_2_bow_all_keywords <func_stack_2_bow_all_keywords>`
+      - 0.5002
+      - 0.1440
+    * - :ref:`stack_2_bow_tailored_all_keywords <func_stack_2_bow_tailored_all_keywords>`
+      - 0.4969
+      - 0.1000
+    * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
+      - 0.4950
+      - 0.0960
+    * - :ref:`stack_3_bows <func_stack_3_bows>`
+      - 0.4929
+      - 0.0760
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
+      - 0.4924
+      - 0.0080
+    * - :ref:`stack_bows <func_stack_bows>`
+      - 0.4909
+      - 0.1000
+    * - :ref:`bow <func_bow>`
+      - 0.4597
+      - 0.0340
+    * - :ref:`bow_training_set <func_bow_training_set>`
+      - 0.4450
+      - 0.0140
+    * - :ref:`bow_voc_selection <func_bow_voc_selection>`
+      - 0.4427
+      - 0.0140
+
+.. list-table:: Performance in Cross-validation (C)
+    :header-rows: 1
+
+    * - Configuration
+      - Performance
+      - p-value
+    * - :ref:`stack_2_bow_all_keywords <func_stack_2_bow_all_keywords>`
+      - 0.3236
+      - 1.0000
+    * - :ref:`stack_2_bow_tailored_all_keywords <func_stack_2_bow_tailored_all_keywords>`
+      - 0.3145
+      - 0.0980
+    * - :ref:`stack_bow_keywords_emojis <func_stack_bow_keywords_emojis>`
+      - 0.3123
+      - 0.2760
+    * - :ref:`stack_2_bow_tailored_keywords <func_stack_2_bow_tailored_keywords>`
+      - 0.3069
+      - 0.1460
+    * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
+      - 0.3035
+      - 0.0020
+    * - :ref:`stack_bow_keywords_emojis_voc_selection <func_stack_bow_keywords_emojis_voc_selection>`
+      - 0.2943
+      - 0.0580
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
+      - 0.2924
+      - 0.0240
+    * - :ref:`stack_2_bow_keywords <func_stack_2_bow_keywords>`
+      - 0.2870
+      - 0.0120
+    * - :ref:`bow_voc_selection <func_bow_voc_selection>`
+      - 0.2700
+      - 0.0140
+    * - :ref:`bow <func_bow>`
+      - 0.2685
+      - 0.0140
+    * - :ref:`stack_3_bows <func_stack_3_bows>`
+      - 0.2556
+      - 0.0000
+    * - :ref:`bow_training_set <func_bow_training_set>`
+      - 0.2530
+      - 0.0080
+    * - :ref:`stack_bows <func_stack_bows>`
+      - 0.2486
+      - 0.0000
 
 
 Systems
