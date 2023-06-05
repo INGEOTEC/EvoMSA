@@ -35,6 +35,7 @@ MICROTC = '2.4.9'
 MODEL_LANG = ['ar', 'ca', 'de', 'en', 'es', 'fr',
               'hi', 'in', 'it', 'ja', 'ko', 'nl',
               'pl', 'pt', 'ru', 'tl', 'tr', 'zh']
+BASEURL = 'https://github.com/INGEOTEC/text_models/releases/download/models'
 
 
 class LabelEncoderWrapper(object):
@@ -345,14 +346,14 @@ def load_bow(lang='es', d=17, func='most_common_by_type', v1=False):
         os.mkdir(diroutput)
     if v1:
         filename = f'{lang}_2.4.2.microtc'
-        url = f'https://github.com/INGEOTEC/text_models/releases/download/models/{filename}'
+        url = f'{BASEURL}/{filename}'
         output = join(diroutput, filename)
         if not isfile(output):
             Download(url, output)
         return load_model(output)
 
     filename = f'{lang}_{MICROTC}_bow_{func}_{d}.json.gz'        
-    url = f'https://github.com/INGEOTEC/text_models/releases/download/models/{filename}'
+    url = f'{BASEURL}/{filename}'
     output = join(diroutput, filename)
     if not isfile(output):
         Download(url, output)
@@ -423,7 +424,7 @@ def _load_text_repr(lang='es', name='emojis',
         filename = f'{lang}_{name}_muTC2.4.2.json.gz'
     else:
         filename = f'{lang}_{MICROTC}_{name}_{func}_{d}.json.gz'
-    url = f'https://github.com/INGEOTEC/text_models/releases/download/models/{filename}'
+    url = f'{BASEURL}/{filename}'
     output = join(diroutput, filename)
     if not isfile(output):
         Download(url, output)
@@ -479,7 +480,7 @@ def emoji_information(lang='es'):
     for ext in ['info', 'perf']:
         fname = join(diroutput, f'{lang}_emo.{ext}')
         if not isfile(fname):
-            path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{lang}_emo.{ext}'
+            path = f'{BASEURL}/{lang}_emo.{ext}'
             try:
                 request.urlretrieve(path, fname)
             except HTTPError:
@@ -536,7 +537,7 @@ def dataset_information(lang='es'):
     ext = 'info'
     fname = join(diroutput, f'{lang}_dataset.{ext}')
     if not isfile(fname):
-        path = f'https://github.com/INGEOTEC/text_models/releases/download/models/{lang}_dataset.{ext}'
+        path = f'{BASEURL}/{lang}_dataset.{ext}'
         try:
             request.urlretrieve(path, fname)
         except HTTPError:
