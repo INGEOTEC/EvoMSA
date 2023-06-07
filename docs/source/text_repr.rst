@@ -37,7 +37,7 @@ The idea is to represent a text in a vector space where the components have a mo
 
 The complex behavior comes from associating each component to the decision value of a text classifier (e.g., :ref:`BoW`) trained on a labeled dataset which is different from the task at hand, albeit nothing forbids to be related to it. The datasets from which these decision functions come can be built using a self-supervised approach or annotating texts.
 
-Without loss of generality, it is assumed that there are :math:`M` labeled datasets each one contains a binary text classification problem; noting that that if a dataset has :math:`K` labels, then this dataset can be represented as :math:`K` binary classification problems following the one versus the rest approach, i.e., it is transformed to :math:`K` datasets.
+Without loss of generality, it is assumed that there are :math:`M` labeled datasets each one contains a binary text classification problem; noting that if a dataset has :math:`K` labels, then this dataset can be represented as :math:`K` binary classification problems following the one versus the rest approach, i.e., it is transformed to :math:`K` datasets.
 
 For each of these :math:`M` binary text classification problems a :ref:`BoW` classifier is built using the default parameters (a pre-trained bag-of-words representation and a linear SVM as the classifier). Consequently, there are :math:`M` binary text classifiers, i.e., :math:`(c_1, c_2, \ldots, c_M)`. Additionally, the decision function of :math:`c_i` is a value where the sign indicates the class. The text representation is the vector obtained by concatenating the decision functions of the :math:`M` classifiers and then normalizing the vector to have length 1. 
 
