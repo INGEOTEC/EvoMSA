@@ -403,18 +403,24 @@ class Linear(object):
             return self._labels[np.where(hy > 0, 1, 0)]
         return np.where(hy > 0, 1, -1)
 
-    
-def _load_text_repr(lang='es', name='emojis', 
-                    k=None,  d=17, func='most_common_by_type',
-                    v1=False):
-    import os
-    from os.path import isdir, join, isfile, dirname
-    from urllib.error import HTTPError
+def load_url(url):
     def load(filename):
         try:
             return [Linear(**x) for x in tweet_iterator(filename)]
         except Exception:
             os.unlink(filename)
+
+    diroutput = join(dirname(__file__), 'models')
+    output = join(diroutput, url)    
+    url = f'{BASEURL}/{url}'
+    if not isfile(output):
+        Download(url, output)
+    models = load(output)
+    return models
+
+def _load_text_repr(lang='es', name='emojis', 
+                    k=None, d=17, func='most_common_by_type',
+                    v1=False):
     lang = lang.lower().strip()
     assert lang in MODEL_LANG
     diroutput = join(dirname(__file__), 'models')
@@ -424,11 +430,7 @@ def _load_text_repr(lang='es', name='emojis',
         filename = f'{lang}_{name}_muTC2.4.2.json.gz'
     else:
         filename = f'{lang}_{MICROTC}_{name}_{func}_{d}.json.gz'
-    url = f'{BASEURL}/{filename}'
-    output = join(diroutput, filename)
-    if not isfile(output):
-        Download(url, output)
-    models = load(output)
+    models = load_url(filename)
     if k is None:
         return models
     return models[k]
