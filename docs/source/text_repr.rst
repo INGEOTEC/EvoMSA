@@ -120,6 +120,79 @@ There are scenarios where it is more important to estimate the value(s) used to 
 >>> text_repr.decision_function(['buenos días'])
 array([[-2.13432793, -1.21754724, -0.7034401 ,  1.46593854]])
 
+.. _labeled_dataset:
+
+Labeled Dataset
+--------------------------------
+
+.. _human-annotated:
+
+Human Annotated Datasets
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Self-supervised Datasets
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table:: Number of Self-supervised Components
+    :header-rows: 1
+
+    * - Language
+      - Emojis
+      - Keywords
+    * - ar
+      - 465
+      - 2048
+    * - ca
+      - 136
+      - 2022
+    * - de
+      - 199
+      - 2048
+    * - en
+      - 594
+      - 2048
+    * - es
+      - 567
+      - 2048
+    * - fr
+      - 549
+      - 2048
+    * - hi
+      - 176
+      - 2048
+    * - in
+      - 366
+      - 2048
+    * - it
+      - 260
+      - 2048
+    * - ja
+      - 450
+      - 1989
+    * - ko
+      - 99
+      - 526
+    * - nl
+      - 157
+      - 2040
+    * - pl
+      - 166
+      - 2040
+    * - pt
+      - 471
+      - 2048
+    * - ru
+      - 383
+      - 2048
+    * - tl
+      - 242
+      - 2048
+    * - tr
+      - 380
+      - 2048
+    * - zh
+      - 152
+      - 1953
 
 API
 --------------------------------

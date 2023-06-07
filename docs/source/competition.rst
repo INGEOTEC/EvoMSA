@@ -1355,6 +1355,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 :ref:`BoW` default parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Pre-trained :ref:`BoW` where the tokens are selected based on a normalized frequency w.r.t. its type, i.e., bigrams, words, and q-grams of characters.
+
 .. code-block:: python
 
     def bow(lang, tr, vs, **kwargs):
@@ -1367,6 +1369,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 :ref:`BoW` using :py:attr:`voc_selection` 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Pre-trained :ref:`BoW` where the tokens correspond to the most frequent ones.
+
 .. code-block:: python
 
     def bow_voc_selection(lang, tr, vs, **kwargs):
@@ -1378,6 +1382,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 
 :ref:`BoW` trained on the training set 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:ref:`BoW` trained with the training set; the number of tokens corresponds to all the tokens in the set. 
 
 .. code-block:: python
 
@@ -1392,6 +1398,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 
 :ref:`StackGeneralization` with :ref:`BoW` and :ref:`DenseBoW` 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Stack generalization approach where the base classifiers are the :ref:`BoW`, the emojis, and the keywords dense BoW (i.e., :ref:`densebow`).
 
 .. code-block:: python
 
@@ -1416,6 +1424,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 :ref:`StackGeneralization` with :ref:`BoW` and :ref:`DenseBoW` using :py:attr:`voc_selection` 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Stack generalization approach where the base classifiers are the :ref:`BoW`,  the emojis, and the keywords dense BoW (i.e., :ref:`densebow`). The tokens in these models were selected based on a normalized frequency w.r.t. its type, i.e., bigrams, words, and q-grams of characters.
+
 .. code-block:: python
 
     def stack_bow_keywords_emojis_voc_selection(lang, tr, vs, **kwargs):
@@ -1439,6 +1449,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 :ref:`StackGeneralization` with two :ref:`BoW` models 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Stack generalization approach where the base classifiers are BoW with the two token selection procedures described previously (i.e., :ref:`func_bow` and :ref:`func_bow_voc_selection`).
+
 .. code-block:: python
 
     def stack_bows(lang, tr, vs, **kwargs):
@@ -1451,6 +1463,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 
 :ref:`StackGeneralization` using :ref:`BoW` and :ref:`DenseBoW` with and without :py:attr:`voc_selection` 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^		
+
+Stack generalization approach where with four base classifiers. These correspond to two :ref:`BoW` and two :ref:`dense BoW <densebow>` (emojis and keywords), where the difference in each is the procedure used to select the tokens, i.e., the most frequent or normalized frequency. 
 
 .. code-block:: python
 
@@ -1476,6 +1490,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 
 :ref:`StackGeneralization` using :ref:`BoW` and tailored :ref:`DenseBoW` with and without :py:attr:`voc_selection` 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Stack generalization approach where with four base classifiers. These correspond to two :ref:`BoW` and two :ref:`dense BoW <densebow>` (emojis and keywords), where the difference in each is the procedure used to select the tokens, i.e., the most frequent or normalized frequency.  The second difference is that the dense representation with normalized frequency also includes models for the most discriminant words selected by a :ref:`BoW` classifier in the training set. We refer to these latter representations as :ref:`tailored keywords <tailored-keywords>`.
 
 .. code-block:: python
 
@@ -1506,6 +1522,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 :ref:`StackGeneralization` using :ref:`BoW` and all :ref:`DenseBoW` with and without :py:attr:`voc_selection` 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Stack generalization approach where with four base classifiers equivalently to :ref:`func_stack_2_bow_keywords` where the difference is that the dense representations include the models created with the :ref:`human-annotated datasets <human-annotated>`.
+
 .. code-block:: python
 
     def stack_2_bow_all_keywords(lang, tr, vs, **kwargs):
@@ -1533,6 +1551,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 
 :ref:`StackGeneralization` using :ref:`BoW` tailored and datasets :ref:`DenseBoW` with and without :py:attr:`voc_selection` 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is a stack generalization approach with four base classifiers equivalent to :ref:`func_stack_2_bow_all_keywords`, where the difference is that the dense representation with normalized frequency also includes the tailored keywords.
 
 .. code-block:: python
 
@@ -1566,6 +1586,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 :ref:`StackGeneralization` with three :ref:`BoW` models 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^	
 
+Stack generalization approach with three base classifiers. All of them are :ref:`BoW`; the first two correspond pre-trained BoW with the two token selection procedures described previously (i.e., :ref:`func_bow` and :ref:`func_bow_voc_selection`), and the latest is a :ref:`func_bow_training_set`.
+
 .. code-block:: python
 
     def stack_3_bows(lang, tr, vs, **kwargs):
@@ -1584,6 +1606,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 
 :ref:`StackGeneralization` using :ref:`BoW` and all :ref:`DenseBoW` with and without :py:attr:`voc_selection` plus :ref:`BoW` trained on the training set
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Stack generalization approach with five base classifiers. The first corresponds to a :ref:`func_bow_training_set`, and the rest are used in :ref:`func_stack_2_bow_tailored_keywords`.
 
 .. code-block:: python
 
@@ -1619,6 +1643,8 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 
 :ref:`StackGeneralization` using :ref:`BoW` and all :ref:`DenseBoW` with and without :py:attr:`voc_selection` plus :ref:`BoW` trained on the training set
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Stack generalization approach with five base classifiers. It is comparable to :ref:`func_stack_3_bows_tailored_keywords` being the difference in the use of the :ref:`tailored keywords <tailored-keywords>`.
 
 .. code-block:: python
 
