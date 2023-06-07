@@ -169,6 +169,11 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
       - 0.820
       - 0.775 (:ref:`Conf. <func_stack_2_bow_all_keywords>`)
       - 5.8%
+    * - :ref:`TASS <tass>`
+      - 2017
+      - 0.577  
+      - 0.525 (:ref:`Conf. <func_stack_2_bow_tailored_all_keywords>`)
+      - 9.9%
     * - :ref:`EDOS (A) <edos>`
       - 2023
       - 0.8746
@@ -1136,6 +1141,58 @@ Competitions
       - 0.6833
       - 0.0000
 
+.. _tass:
+
+`Workshop on Sentiment Analysis at SEPLN (TASS) <https://ceur-ws.org/Vol-1896/p0_overview_tass2017.pdf>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table:: Performance in Cross-validation (A)
+    :header-rows: 1
+
+    * - Configuration
+      - Performance
+      - p-value
+    * - :ref:`stack_2_bow_tailored_all_keywords <func_stack_2_bow_tailored_all_keywords>`
+      - 0.5461
+      - 1.0000
+    * - :ref:`stack_2_bow_tailored_keywords <func_stack_2_bow_tailored_keywords>`
+      - 0.5452
+      - 0.2640
+    * - :ref:`stack_bow_keywords_emojis <func_stack_bow_keywords_emojis>`
+      - 0.5431
+      - 0.2280
+    * - :ref:`stack_3_bows_tailored_keywords <func_stack_3_bows_tailored_keywords>`
+      - 0.5428
+      - 0.0720
+    * - :ref:`stack_3_bow_tailored_all_keywords <func_stack_3_bow_tailored_all_keywords>`
+      - 0.5418
+      - 0.0200
+    * - :ref:`stack_2_bow_all_keywords <func_stack_2_bow_all_keywords>`
+      - 0.5417
+      - 0.0220
+    * - :ref:`stack_2_bow_keywords <func_stack_2_bow_keywords>`
+      - 0.5405
+      - 0.0080
+    * - :ref:`stack_bow_keywords_emojis_voc_selection <func_stack_bow_keywords_emojis_voc_selection>`
+      - 0.5386
+      - 0.0140
+    * - :ref:`stack_3_bows <func_stack_3_bows>`
+      - 0.5186
+      - 0.0000
+    * - :ref:`stack_bows <func_stack_bows>`
+      - 0.5078
+      - 0.0000
+    * - :ref:`bow_voc_selection <func_bow_voc_selection>`
+      - 0.4950
+      - 0.0000
+    * - :ref:`bow <func_bow>`
+      - 0.4933
+      - 0.0000
+    * - :ref:`bow_training_set <func_bow_training_set>`
+      - 0.4919
+      - 0.0000
+
+
 .. _edos:
 
 `Explainable Detection of Online Sexism (EDOS) <https://arxiv.org/pdf/2303.04222.pdf>`_
@@ -1289,6 +1346,7 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
 
     from EvoMSA import BoW, DenseBoW, StackGeneralization
     from EvoMSA.utils import Linear, b4msa_params
+    from text_models.dataset import SelfSupervisedDataset    
     from sklearn.model_selection import StratifiedKFold
     import numpy as np
 
@@ -1594,6 +1652,23 @@ We test 13 different combinations of :ref:`BoW` and :ref:`DenseBoW` models. Thes
             x.cache = X
         return stack.predict(vs)
 
+.. _tailored-keywords:
+
+Tailored Keywords
+-----------------------------
+
+.. code-block:: python
+
+    bow = BoW(lang=LANG, pretrain=False).fit(D)
+    keywords = DenseBoW(lang=LANG, emoji=False, dataset=False).names
+    tokens = [(name, np.median(np.fabs(w * v)))
+              for name, w, v in zip(bow.names, bow.weights, bow.estimator_instance.coef_.T) 
+              if name[:2] != 'q:' and '~' not in name and name not in keywords]
+    tokens.sort(key=lambda x: x[1], reverse=True)
+    semi = SelfSupervisedDataset([k for k, _ in tokens[:2048]],
+                                 tempfile=f'{MODEL}.gz',
+                                 bow=BoW(lang=LANG), capacity=1, n_jobs=63)
+    semi.process(PATH_DATASET, output=MODEL)
 
 Predictions
 ------------------------------
