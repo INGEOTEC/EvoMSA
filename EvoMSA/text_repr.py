@@ -701,6 +701,10 @@ class DenseBoW(BoW):
         return self
     
     def text_representations_extend(self, value):
+        """Add dense BoW representations."""
+        from EvoMSA.utils import load_url
+        if isinstance(value, str):
+            value = load_url(value)
         names = set(self.names)
         for x in value:
             label = x.labels[-1]

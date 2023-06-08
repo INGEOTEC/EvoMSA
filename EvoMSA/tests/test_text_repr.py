@@ -420,3 +420,25 @@ def test_DenseBoW_skip_dataset():
                                     emoji=False, dataset=True,
                                     skip_dataset=keys)
     assert (length - 3) == len(text_repr.names)
+
+
+def test_DenseBoW_extend2():
+    from EvoMSA.text_repr import DenseBoW
+    from EvoMSA.utils import MICROTC
+
+    lang = 'es'
+    name = 'emojis'
+    func = 'most_common_by_type'
+    d = 13
+    text_repr = DenseBoW(lang=lang, 
+                         keyword=False,
+                         voc_size_exponent=13,
+                         emoji=True, dataset=False)
+    url = f'{lang}_{MICROTC}_{name}_{func}_{d}.json.gz'
+    text_repr2 = DenseBoW(lang=lang, 
+                          keyword=False,
+                          voc_size_exponent=13,
+                          emoji=False, dataset=False)
+    text_repr2.text_representations_extend(url)
+    for a, b in zip(text_repr.names, text_repr2.names):
+        assert a == b
