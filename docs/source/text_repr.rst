@@ -54,9 +54,9 @@ where :math:`\mathbf{v_t}` is the vector associated to the token :math:`t` of th
 where matrix :math:`\mathbf W \in \mathbb R^{M \times d}` contains the weights, and :math:`\mathbf{w_0} \in \mathbb R^M` is the bias. Another way to see the previous formulation is by defining a vector :math:`\mathbf{u_t} = \frac{1}{\lVert \sum_k \mathbf{v_k} \rVert} \mathbf W \mathbf{v_t}`. Consequently, vector :math:`\mathbf{x'}` is defined as 
 
 .. math:: 
-	\mathbf{x'} = \sum_t \mathbf{u_t} + \mathbf{w_0}.
+	\mathbf{x'} = \sum_t \mathbf{u_t} + \mathbf{w_0},
 
-It can be observed that each token is associated with a vector in the space defined by the classifiers and that :math:`\mathbf{x'}` is the sum of all vectors plus the bias vector (i.e., :math:`\mathbf{w_0}`). Finally, the vector representing the text :math:`x` is the normalized :math:`\mathbf{x^{'}}`, i.e.,
+vectors :math:`\mathbf{u} \in \mathbb R^M` correspond to the tokens; this is the reason we refer to this model as a dense BoW. Finally, the vector representing the text :math:`x` is the normalized :math:`\mathbf{x^{'}}`, i.e.,
 
 .. math::
 	\mathbf x = \frac{\mathbf{x^{'}}}{\lVert \mathbf{x^{'}} \rVert}.
@@ -64,7 +64,9 @@ It can be observed that each token is associated with a vector in the space defi
 Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:ref:`v2` has three sets of text representations, namely :py:attr:`dataset`, :py:attr:`emoji`, and :py:attr:`keyword`. The dataset text representations were built on datasets coming from text-categorization competitions, the emoji representations are self-supervised datasets where each task is to predict the presence of the emoji; and the keyword representations are also self-supervised datasets where the task is to predict the presence of a word; the words selected correspond to the words of the vocabulary in the pre-trained bag-of-words model. 
+The dense representations start by defining the labeled datasets used to create them. These datasets are organized in three groups. The first one is composed of human-annotated datasets; we refer to them as :py:attr:`dataset`. The second groups contain a set of self-supervised dataset where the objective is to predict the presence of an emoji as expected; these models are referred as :py:attr:`emoji`. The final group is also a set of self-supervised datasets where the task is to predict the presence of a particular word, namely :py:attr:`keyword`.
+
+Following an equivalent approach used in the development of the pre-trained BoW, different dense representations were created; these correspond to varying the size of the vocabulary and the two procedures used to select the tokens.
 
 .. _text_repr_vector_space:
 
@@ -125,74 +127,105 @@ array([[-2.13432793, -1.21754724, -0.7034401 ,  1.46593854]])
 Labeled Dataset
 --------------------------------
 
-.. _human-annotated:
-
-Human Annotated Datasets
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Self-supervised Datasets
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. list-table:: Number of Self-supervised Components
+.. list-table:: Description of the labeled dataset. For each language, it presents the number of human-annotated datasets, emojis, keywords, and the number of tweets(in millions) used to create the self-supervised datasets.
     :header-rows: 1
 
     * - Language
+      - H.A. Datasets
       - Emojis
       - Keywords
-    * - ar
+      - Number of Tweets
+    * - Arabic (ar)
+      - 30
       - 465
       - 2048
-    * - ca
+      - 100.0
+    * - Catalan (ca)
+      - na
       - 136
       - 2022
-    * - de
+      - 5.6
+    * - German (de)
+      - na
       - 199
       - 2048
-    * - en
+      - 13.6
+    * - English (en)
+      - 181
       - 594
       - 2048
-    * - es
+      - 100.0
+    * - Spanish (es)
+      - 57
       - 567
       - 2048
-    * - fr
+      - 100.0
+    * - French (fr)
+      - na
       - 549
       - 2048
-    * - hi
+      - 81.1
+    * - Hindi (hi)
+      - na
       - 176
       - 2048
-    * - in
+      - 9.5
+    * - Indonesian (in)
+      - na
       - 366
       - 2048
-    * - it
+      - 40.4
+    * - Italian (it)
+      - na
       - 260
       - 2048
-    * - ja
+      - 24.5
+    * - Japanese (ja)
+      - na
       - 450
       - 1989
-    * - ko
+      - 41.6
+    * - Korean (ko)
+      - na
       - 99
       - 526
-    * - nl
+      - 5.0
+    * - Dutch (nl)
+      - na
       - 157
       - 2040
-    * - pl
+      - 10.0
+    * - Polish (pl)
+      - na 
       - 166
       - 2040
-    * - pt
+      - 10.8
+    * - Portuguese (pt)
+      - na
       - 471
       - 2048
-    * - ru
+      - 100.0
+    * - Russian (ru)
+      - na
       - 383
       - 2048
-    * - tl
+      - 100.0
+    * - Tagalog (tl)
+      - na
       - 242
       - 2048
-    * - tr
+      - 19.5
+    * - Turkish (tr)
+      - na
       - 380
       - 2048
-    * - zh
+      - 59.3
+    * - Chinese (zh)
+      - 18
       - 152
       - 1953
+      - 5.6
+
 
 API
 --------------------------------
