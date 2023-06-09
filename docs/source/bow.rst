@@ -24,9 +24,6 @@
 .. image:: https://readthedocs.org/projects/evomsa/badge/?version=docs
 		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
 
-.. image:: https://colab.research.google.com/assets/colab-badge.svg
-		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
-
 :ref:`BoW` is a text classifier :math:`c` with signature :math:`c \equiv g \circ m`, where :math:`m` stands for the BoW representation and :math:`g` is the classifier (the default is a linear Support Vector Machine).
 
 The classifier :math:`g` is trained on a dataset :math:`\mathcal D` of pairs (:math:`x`, :math:`y`), where :math:`x` is a text and :math:`y` is the label associated with it. The BoW representation :math:`m` is either a pre-trained model or a model trained on :math:`\mathcal D`, both used the Term Frequency Inverse Document Frequency (TFIDF) as a weighting scheme. 

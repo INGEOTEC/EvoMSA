@@ -24,10 +24,6 @@
 .. image:: https://readthedocs.org/projects/evomsa/badge/?version=docs
 		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
 
-.. image:: https://colab.research.google.com/assets/colab-badge.svg
-		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
-
-
 :ref:`DenseBoW` is a text classifier in fact it is a subclass of :py:class:`BoW` being the difference the process to represent the text in a vector space. This process is described in "`EvoMSA: A Multilingual Evolutionary Approach for Sentiment Analysis <https://ieeexplore.ieee.org/document/8956106>`_, Mario Graff, Sabino Miranda-Jimenez, Eric Sadit Tellez, Daniela Moctezuma. Computational Intelligence Magazine, vol 15 no. 1, pp. 76-88, Feb. 2020." Particularly, in the section where the Emoji Space is described.
 
 Dense BoW Representation
