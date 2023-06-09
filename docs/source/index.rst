@@ -25,7 +25,7 @@ EvoMSA 2.0
 		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
 
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
-		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
+		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/docs/docs/EvoMSA2.ipynb	   
 
 
 
