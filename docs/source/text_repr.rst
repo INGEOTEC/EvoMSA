@@ -61,6 +61,8 @@ vectors :math:`\mathbf{u} \in \mathbb R^M` correspond to the tokens; this is the
 .. math::
 	\mathbf x = \frac{\mathbf{x^{'}}}{\lVert \mathbf{x^{'}} \rVert}.
 
+.. _dense_parameters:
+
 Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -68,64 +70,7 @@ The dense representations start by defining the labeled datasets used to create 
 
 Following an equivalent approach used in the development of the pre-trained BoW, different dense representations were created; these correspond to varying the size of the vocabulary and the two procedures used to select the tokens.
 
-.. _text_repr_vector_space:
-
-Example
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-To illustrate the usage of these representations, the text *I love this song* is represented on the emoji space. The first step is to initialize the model which can be done with the following instructions.
-
->>> from EvoMSA import DenseBoW
->>> emoji = DenseBoW(lang='en', emoji=True, keyword=False, dataset=False)
-
-The method :py:attr:`DenseBoW.transform` receives a list of text to be represented on this vector space, the following code stores the output matrix in the variable :py:attr:`X`.
-
->>> X = emoji.transform(['I love this song'])
-
-Equivalent, the attribute :py:attr:`DenseBoW.names` contains the description of each component, for example the following code shows the value for the component with index 9 and its description.
-
->>> X[:, 59], emoji.names[59]
-(array([0.05337313]), '🎶')
-
-The value 0.05 indicates that the emoji would be present in the sentence *I love this song.*
-
-.. _text_repr_tc:
-
-Text Classifier
---------------------------------
-
-As mentioned previously, :ref:`DenseBoW` is a subclass of :ref:`BoW`; consequently, once the text is in a vector space, the next step to create a text classifier is to train an estimator. In this case, it is a Linear Support Vector Machine. 
-
-To illustrate this process, we used a labeled dataset found in the EvoMSA; this set can be obtained with the following instructions. 
-
->>> from microtc.utils import tweet_iterator
->>> from EvoMSA.tests.test_base import TWEETS
->>> D = list(tweet_iterator(TWEETS))
-
-The dataset stored in :py:attr:`D` is a toy sentiment analysis dataset, in Spanish, with four labels, positive, negative, neutral, and none. It is a list of dictionaries where the dictionary has two keys *text* and *klass*; the former has the text and the latter the label. 
-
-The text classifier is trained with the following instruction. 
-
->>> text_repr = DenseBoW(lang='es').fit(D)
-
-where the language (:py:attr:`lang`) is set to Spanish (es), and :py:attr:`fit` receives the labeled dataset. 
-
-The method :py:attr:`DenseBoW.predict` is used to predict the label of a list of texts. For example, the label of the text *buenos días* (*good morning*) is computed as:
-
->>> text_repr.predict(['buenos días'])
-array(['P'], dtype='<U4')
-
-where the label 'P' corresponds to the positive class. 
-
-There are scenarios where it is more important to estimate the value(s) used to classify a particular instance; in the case of SVM, this is known as the decision function, and in the case of a Naive Bayes classifier, this is the probability of each class. This information can be found in :py:attr:`DenseBoW.decision_function` as can be seen in the following code.
-
->>> text_repr.decision_function(['buenos días'])
-array([[-2.13432793, -1.21754724, -0.7034401 ,  1.46593854]])
-
-.. _labeled_dataset:
-
-Labeled Dataset
---------------------------------
+Below is a table displaying the number of components for each dense representation group. It is worth noting that the dataset group is solely accessible for Arabic, English, Spanish, and Chinese. Additionally, the table indicates the number of tweets utilized in producing the self-supervised datasets, with a maximum of 100 million.
 
 .. list-table:: Description of the labeled dataset. For each language, it presents the number of human-annotated datasets, emojis, keywords, and the number of tweets(in millions) used to create the self-supervised datasets.
     :header-rows: 1
@@ -226,6 +171,91 @@ Labeled Dataset
       - 1953
       - 5.6
 
+The name of each component can be obtained from the attribute :py:attr:`DenseBoW.names`; for example, the following instructions retrieve the human-annotated datasets in Spanish. 
+
+.. code-block:: python
+
+  >>> from EvoMSA import DenseBoW
+  >>> DenseBoW(lang='es', dataset=True,
+               emoji=False, keyword=False).names
+  ['HA(negative)', 'HA(neutral)', 'HA(positive)',
+   'INEGI(1)', 'INEGI(2)', 'INEGI(3)', 'INEGI(4)',
+   'meoffendes2021_task1(NO)', 'meoffendes2021_task1(NOM)',
+   'meoffendes2021_task1(OFG)', 'meoffendes2021_task1(OFP)',
+   'haha2018', 'tass2018_s1_l2', 'mexa3t2018_aggress',
+   'tass2016(N)', 'tass2016(NEU)', 'tass2016(NONE)', 'tass2016(P)',
+   'misogyny_centrogeo', 'meoffendes2021_task3',
+   'detests2022_task1',
+   'MeTwo(DOUBTFUL)', 'MeTwo(NON_SEXIST)', 'MeTwo(SEXIST)',
+   'exist2021_task1', 'davincis2022_1', 'misoginia',
+   'tass2018_s1_l1', 'delitos_ingeotec',
+   'semeval2018_valence(-3)', 'semeval2018_valence(-2)',
+   'semeval2018_valence(-1)', 'semeval2018_valence(0)',
+   'semeval2018_valence(1)', 'semeval2018_valence(2)',
+   'semeval2018_valence(3)', 'semeval2018_fear(0)',
+   'semeval2018_fear(1)', 'semeval2018_fear(2)', 'semeval2018_fear(3)',
+   'semeval2018_anger(0)', 'semeval2018_anger(1)', 'semeval2018_anger(2)',
+   'semeval2018_anger(3)', 'semeval2018_sadness(0)', 'semeval2018_sadness(1)',
+   'semeval2018_sadness(2)', 'semeval2018_sadness(3)', 'semeval2018_joy(0)',
+   'semeval2018_joy(1)', 'semeval2018_joy(2)', 'semeval2018_joy(3)',
+   'tass2017(N)', 'tass2017(NEU)', 'tass2017(NONE)', 'tass2017(P)',
+   'tass2018_s2']  
+
+The notation includes the label between parentheses in case the dataset contains multiple classes. For binary classification, it only includes the dataset name, and the predicted label is the positive class.
+
+.. _text_repr_vector_space:
+
+Example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To illustrate the usage of these representations, the text *I love this song* is represented on the emoji space. The first step is to initialize the model which can be done with the following instructions.
+
+>>> from EvoMSA import DenseBoW
+>>> emoji = DenseBoW(lang='en', emoji=True, keyword=False, dataset=False)
+
+The method :py:attr:`DenseBoW.transform` receives a list of text to be represented on this vector space, the following code stores the output matrix in the variable :py:attr:`X`.
+
+>>> X = emoji.transform(['I love this song'])
+
+Equivalent, the attribute :py:attr:`DenseBoW.names` contains the description of each component, for example the following code shows the value for the component with index 9 and its description.
+
+>>> X[:, 59], emoji.names[59]
+(array([0.05337313]), '🎶')
+
+The value 0.05 indicates that the emoji would be present in the sentence *I love this song.*
+
+.. _text_repr_tc:
+
+Text Classifier
+--------------------------------
+
+As mentioned previously, :ref:`DenseBoW` is a subclass of :ref:`BoW`; consequently, once the text is in a vector space, the next step to create a text classifier is to train an estimator. In this case, it is a Linear Support Vector Machine. 
+
+To illustrate this process, we used a labeled dataset found in the EvoMSA; this set can be obtained with the following instructions. 
+
+>>> from microtc.utils import tweet_iterator
+>>> from EvoMSA.tests.test_base import TWEETS
+>>> D = list(tweet_iterator(TWEETS))
+
+The dataset stored in :py:attr:`D` is a toy sentiment analysis dataset, in Spanish, with four labels, positive, negative, neutral, and none. It is a list of dictionaries where the dictionary has two keys *text* and *klass*; the former has the text and the latter the label. 
+
+The text classifier is trained with the following instruction. 
+
+>>> text_repr = DenseBoW(lang='es').fit(D)
+
+where the language (:py:attr:`lang`) is set to Spanish (es), and :py:attr:`fit` receives the labeled dataset. 
+
+The method :py:attr:`DenseBoW.predict` is used to predict the label of a list of texts. For example, the label of the text *buenos días* (*good morning*) is computed as:
+
+>>> text_repr.predict(['buenos días'])
+array(['P'], dtype='<U4')
+
+where the label 'P' corresponds to the positive class. 
+
+There are scenarios where it is more important to estimate the value(s) used to classify a particular instance; in the case of SVM, this is known as the decision function, and in the case of a Naive Bayes classifier, this is the probability of each class. This information can be found in :py:attr:`DenseBoW.decision_function` as can be seen in the following code.
+
+>>> text_repr.decision_function(['buenos días'])
+array([[-2.13432793, -1.21754724, -0.7034401 ,  1.46593854]])
 
 API
 --------------------------------

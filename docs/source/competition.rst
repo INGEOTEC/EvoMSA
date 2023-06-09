@@ -1522,7 +1522,7 @@ Stack generalization approach where with four base classifiers. These correspond
 :ref:`StackGeneralization` using :ref:`BoW` and all :ref:`DenseBoW` with and without :py:attr:`voc_selection` 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Stack generalization approach where with four base classifiers equivalently to :ref:`func_stack_2_bow_keywords` where the difference is that the dense representations include the models created with the :ref:`human-annotated datasets <labeled_dataset>`.
+Stack generalization approach where with four base classifiers equivalently to :ref:`func_stack_2_bow_keywords` where the difference is that the dense representations include the models created with the :ref:`human-annotated datasets <dense_parameters>`.
 
 .. code-block:: python
 

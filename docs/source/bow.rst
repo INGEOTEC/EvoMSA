@@ -50,10 +50,33 @@ Parameters
 
 Different BoW representations were created and implemented following the approach mentioned above. The first step was to set all the characters to lowercase and remove diacritics and punctuation symbols. Additionally, the users and the URLs were removed from the text. Once normalized, the text is split into bigrams, words, and q-grams of characters with :math:`q=\{2, 3, 4\}`, except for Japanese and Chinese that do not use neither words or bigrams, and the q-grams are :math:`q=\{1, 2, 3\}`
 
+The pre-trained BoW (i.e., :py:attr:`pretrain` parameter) is estimated from 4,194,304 (:math:`2^{22}`) tweets randomly selected. The IDF values were estimated from the collections, and some tokens were selected from all the available ones found in the collection. Two procedures were used to select the tokens; the first corresponds to selecting the :math:`d` tokens with the highest frequency (parameter :py:attr:`voc_selection` set to :py:attr:`most_common`), and the other to normalize the frequency w.r.t. their type, i.e., bigrams, words, and q-grams of characters (parameter :py:attr:`voc_selection` set to :py:attr:`most_common_by_type` - default). Once the frequency is normalized, one selects the :math:`d` tokens with the highest normalized frequency. The value of :math:`\log_2 d` (parameter :py:attr:`voc_size_exponent`) by default is :math:`17`, representing a vocabulary of :math:`2^{17}` tokens; however, other valid values are :math:`13, 14, \ldots, 17`. It is also possible to train the BoW model using the training set; in this case, we used the default parameters, setting the parameter :py:attr:`pretrain` to false.
 
-The pre-trained BoW (i.e., :py:attr:`pretrain` parameter) is estimated from 4,194,304 (:math:`2^{22}`) tweets randomly selected. The IDF values were estimated from the collections, and some tokens were selected from all the available ones found in the collection. Two procedures were used to select the tokens; the first corresponds to selecting the :math:`d` tokens with the highest frequency (parameter :py:attr:`voc_selection` set to :py:attr:`most_common`), and the other to normalize the frequency w.r.t. their type, i.e., bigrams, words, and q-grams of characters (parameter :py:attr:`voc_selection` set to :py:attr:`most_common_by_type` - default). Once the frequency is normalized, one selects the :math:`d` tokens with the highest normalized frequency. The value of :math:`\log_2 d` (parameter :py:attr:`voc_size_exponent`) by default is :math:`17`, representing a vocabulary of :math:`2^{17}` tokens; however, other valid values are :math:`13, 14, \ldots, 17`. It is also possible to train the BoW model using the training set; in this case, we used the default parameters, setting the parameter py:attr:`pretrain` to false.
+The default parameters for the BoW representation can be obtained using the following code. 
 
-The two procedures used to select the tokens create different vocabularies. The following table presents the Jaccard index between the vocabularies created when the vocabulary size is :math:`\mathbb 2^{13}` and :math:`\mathbb 2^{17}`. Roughly, the index is around 0.60 except for Japanese and Chinese, where the vocabulary is similar in the two procedures; this latter case is the result of the parameters used by the tokenizer.  
+.. code-block:: python
+
+    >>> from EvoMSA.utils import b4msa_params
+    >>> b4msa_params(lang='es')
+    {'num_option': 'none',
+     'usr_option': 'delete',
+     'url_option': 'delete',
+     'emo_option': 'none',
+     'hashtag_option': 'none',
+     'ent_option': 'none',
+     'lc': True,
+     'del_dup': False,
+     'del_punc': True,
+     'del_diac': True,
+     'select_ent': False,
+     'select_suff': False,
+     'select_conn': False,
+     'max_dimension': True,
+     'unit_vector': True,
+     'token_max_filter': 32768,
+     'token_list': [-2, -1, 2, 3, 4]}
+
+The two procedures used to select the tokens create different vocabularies. The following table presents the Jaccard index between the vocabularies created when the vocabulary size is :math:`\mathbb 2^{13}` and :math:`\mathbb 2^{17}`. Roughly, the index is around 0.60 for the vocabulary size of :math:`2^{17}`, except for Japanese and Chinese, where the vocabulary is similar in the two procedures; this latter case results from the tokenizer's parameters.
 
 .. list-table:: Jaccard index between the two token selection mechanisms.
     :header-rows: 1

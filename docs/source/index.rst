@@ -48,6 +48,13 @@ EvoMSA focused on developing diverse text representations (:math:`m`), fixing th
 
 :ref:`BoW` and :ref:`DenseBoW` are text classifiers; :ref:`BoW` is the parent of :ref:`DenseBoW`. The stack generalization technique is implemented in :ref:`StackGeneralization`.
 
+:ref:`v2` has been tested in many text classifier competitions without modifications. The aim is to offer a better understanding of how these algorithms perform in a new situation and what would be the difference in performance with an algorithm tailored to the new problem. In the following link, we will describe the specifics of each configuration.
+
+.. toctree::
+   :maxdepth: 1
+
+   competition
+
 Citing
 ==========
 
@@ -86,17 +93,6 @@ or can be install using pip, it depends on numpy, scipy, scikit-learn and b4msa.
 	  pip install sparsearray
 	  pip install evodag
 	  pip install EvoMSA
-
-
-:ref:`Text Classifier Competitions <competition>`
-=====================================================
-
-:ref:`v2` has been tested in many text classifier competitions without modifications. The aim is to offer a better understanding of how these algorithms perform in a new situation and what would be the difference in performance with an algorithm tailored to the new problem. In the following link, we will describe the specifics of each configuration.
-
-.. toctree::
-   :maxdepth: 1
-
-   competition
 
 API
 ====================================
