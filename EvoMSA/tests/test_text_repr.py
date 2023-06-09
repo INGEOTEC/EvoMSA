@@ -442,3 +442,9 @@ def test_DenseBoW_extend2():
     text_repr2.text_representations_extend(url)
     for a, b in zip(text_repr.names, text_repr2.names):
         assert a == b
+
+
+def test_DenseBoW_dataset():
+    from EvoMSA.text_repr import DenseBoW
+    dense = DenseBoW(lang='it', emoji=False, keyword=False)
+    

@@ -747,6 +747,8 @@ class DenseBoW(BoW):
             self.names.extend([x.labels[-1] for x in data])            
 
     def load_dataset(self) -> None:
+        if self.lang not in ['ar', 'zh', 'en', 'es']:
+            return
         if self.v1:
             names = [name for name in dataset_information(lang=self.lang)
                     if name not in self._skip_dataset]
