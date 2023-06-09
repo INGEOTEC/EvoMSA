@@ -48,11 +48,73 @@ where the sum goes for all the elements of the sequence, :math:`\mathbf x \in \m
 Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Different BoW representations were created and implemented following the approach mentioned above. The first step was to set all the characters to lowercase and remove diacritics and punctuation symbols. Additionally, the users and the URLs were removed from the text. Once normalized, the text is split into bigrams, words, and q-grams of characters with :math:`q=\{2, 3, 4\}`. 
+Different BoW representations were created and implemented following the approach mentioned above. The first step was to set all the characters to lowercase and remove diacritics and punctuation symbols. Additionally, the users and the URLs were removed from the text. Once normalized, the text is split into bigrams, words, and q-grams of characters with :math:`q=\{2, 3, 4\}`, except for Japanese and Chinese that do not use neither words or bigrams, and the q-grams are :math:`q=\{1, 2, 3\}`
 
-The pre-trained BoW (i.e., :py:attr:`pretrain` parameter) is estimated from 4,194,304 (:math:`2^{22}`) tweets randomly selected. The IDF values were estimated from the collections, and some tokens were selected from all the available ones found in the collection. Two procedures were used to select the tokens; the first corresponds to selecting the :math:`d` tokens with the highest frequency (parameter :py:attr:`voc_selection` set to :py:attr:`most_common`), and the other to normalize the frequency w.r.t. their type, i.e., bigrams, words, and q-grams of characters (parameter :py:attr:`voc_selection` set to :py:attr:`most_common_by_type` - default). Once the frequency is normalized, one selects the :math:`d` tokens with the highest normalized frequency. The value of :math:`\log_2 d` (parameter :py:attr:`voc_size_exponent`) by default is :math:`17`, representing a vocabulary of :math:`2^{17}` tokens; however, other valid values are :math:`13, 14, \ldots, 17`. 
 
-It is also possible to train the BoW model using the training set; in this case, we used the default parameters, setting the parameter py:attr:`pretrain` to false.
+The pre-trained BoW (i.e., :py:attr:`pretrain` parameter) is estimated from 4,194,304 (:math:`2^{22}`) tweets randomly selected. The IDF values were estimated from the collections, and some tokens were selected from all the available ones found in the collection. Two procedures were used to select the tokens; the first corresponds to selecting the :math:`d` tokens with the highest frequency (parameter :py:attr:`voc_selection` set to :py:attr:`most_common`), and the other to normalize the frequency w.r.t. their type, i.e., bigrams, words, and q-grams of characters (parameter :py:attr:`voc_selection` set to :py:attr:`most_common_by_type` - default). Once the frequency is normalized, one selects the :math:`d` tokens with the highest normalized frequency. The value of :math:`\log_2 d` (parameter :py:attr:`voc_size_exponent`) by default is :math:`17`, representing a vocabulary of :math:`2^{17}` tokens; however, other valid values are :math:`13, 14, \ldots, 17`. It is also possible to train the BoW model using the training set; in this case, we used the default parameters, setting the parameter py:attr:`pretrain` to false.
+
+The two procedures used to select the tokens create different vocabularies. The following table presents the Jaccard index between the vocabularies created when the vocabulary size is :math:`\mathbb 2^{13}` and :math:`\mathbb 2^{17}`. Roughly, the index is around 0.60 except for Japanese and Chinese, where the vocabulary is similar in the two procedures; this latter case is the result of the parameters used by the tokenizer.  
+
+.. list-table:: Jaccard index between the two token selection mechanisms.
+    :header-rows: 1
+
+    * - Language
+      - Voc. Size :math:`\mathbb 2^{13}`
+      - Voc. Size :math:`\mathbb 2^{17}`
+    * - Arabic (ar)
+      - 0.58
+      - 0.58
+    * - Catalan (ca)
+      - 0.67
+      - 0.57
+    * - German (de)
+      - 0.63
+      - 0.57
+    * - English (en)
+      - 0.64
+      - 0.58
+    * - Spanish (es)
+      - 0.62
+      - 0.61
+    * - French (fr)
+      - 0.61
+      - 0.62
+    * - Hindi (hi)
+      - 0.66
+      - 0.58
+    * - Indonesian (in)
+      - 0.66
+      - 0.56
+    * - Italian (it)
+      - 0.63
+      - 0.61
+    * - Japanese (ja)
+      - 0.93
+      - 0.97
+    * - Korean (ko)
+      - 0.62
+      - 0.52
+    * - Dutch (nl)
+      - 0.62
+      - 0.59
+    * - Polish (pl)
+      - 0.67 
+      - 0.60
+    * - Portuguese (pt)
+      - 0.61
+      - 0.65
+    * - Russian (ru)
+      - 0.67
+      - 0.56
+    * - Tagalog (tl)
+      - 0.64
+      - 0.58
+    * - Turkish (tr)
+      - 0.66
+      - 0.55
+    * - Chinese (zh)
+      - 0.92
+      - 0.97
 
 Example
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -130,3 +192,20 @@ API
    :maxdepth: 3
 
    bow_api
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
