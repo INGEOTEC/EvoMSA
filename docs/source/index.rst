@@ -55,6 +55,119 @@ EvoMSA focused on developing diverse text representations (:math:`m`), fixing th
 
    competition
 
+
+Quickstart Guide
+====================================
+
+This section describes the usage of EvoMSA using a dummy text classification problem; mainly, it is a sentiment analysis dataset, in Spanish, with four labels: positive (P), negative (N), neutral (NEU), and none (NONE). The problem can be found in EvoMSA's tests. 
+
+The guide includes the creation of three text classifiers, one using a BoW model, the other using a dense BoW, and the last classifier combines the previous two models using a stacking mechanism. 
+
+The first step is to install EvoMSA, which is described below.
+
+Installing EvoMSA
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The first step is to install the library, which can be done using the `conda package manager <https://conda-forge.org/>`_ with the following instruction. 
+
+.. code:: bash
+
+	  conda install -c conda-forge EvoMSA
+
+A more general approach to installing EvoMSA is through the use of the command pip, as illustrated in the following instruction. 
+
+.. code:: bash
+
+	  pip install EvoMSA
+
+
+Libraries and Text Classification Problem    
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Once EvoMSA is installed, one must load a few libraries. The first line loads EvoMSA core classes. Line 2 contains the pathname where the text classification problem is. Finally, line 3 is a method to read a file containing a JSON per line.  
+
+.. code-block:: python
+
+    >>> from EvoMSA import BoW, DenseBoW, StackGeneralization
+    >>> from EvoMSA.tests.test_base import TWEETS
+    >>> from microtc.utils import tweet_iterator
+	
+
+The text classification problem can be read using the following instruction. It is stored in a variable D which is a list of dictionaries. The second line shows the content of the first element in D.
+
+.. code-block:: python
+
+    >>> D = list(tweet_iterator(TWEETS))
+    >>> D[0]
+    {'text': '| R #OnPoint | #Summer16 ...... 🚣🏽🌴🌴🌴 @ Ocho Rios, Jamacia https://t.co/8xkfjhk52L',
+     'klass': 'NONE',
+     'q_voc_ratio': 0.4585635359116022}
+
+The field :py:attr:`text` is self-described, and the field :py:attr:`klass`` contains the label associated with that text.
+
+
+:ref:`bow` Classifier
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The first text classifier presented is the pre-trained BoW. The following line initializes the classifier, the first part initializes the class, and the second corresponds to the estimate of the parameters of the linear SVM. 
+
+.. code-block:: python
+
+    >>> bow = BoW(lang='es').fit(D)
+
+After training the text classifier, it can make predictions. For instance, the first line predicts the training set, while the second line predicts the phrase *good morning* in Spanish, *buenos días.*
+
+.. code-block:: python
+
+    >>> hy = bow.predict(D)
+    >>> bow.predict(['buenos días'])	
+    array(['P'], dtype='<U4')
+
+It can be observed that the predicted class for *buenos días* is positive (P).
+
+
+:ref:`densebow` Classifier
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Next, the second method is trained using the dataset following the same steps. The subsequent instruction shows the code to train the text classifier. 
+
+.. code-block:: python
+
+    >>> dense = DenseBoW(lang='es').fit(D)	
+
+The code to predict is equivalent; therefore, the prediction for the phrase *good morning* is only shown.
+
+    >>> dense.predict(['buenos días'])
+    array(['P'], dtype='<U4')
+
+:ref:`Stack Generalization <StackGeneralization>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The final text classifier uses a stack generalization approach. The first step is to create the base text classifiers corresponding to the two previous text classifiers, :ref:`bow`, and :ref:`densebow`.
+
+
+.. code-block:: python
+
+    >>> bow = BoW(lang='es')
+    >>> dense = DenseBoW(lang='es')	
+
+It is worth noting that the base classifiers were not trained; as can be seen, the method fit was not called. These base classifiers will be trained inside the stack generalization algorithm. 
+
+The second step is to initialize and train the stack generalization class, shown in the following instruction. 
+
+.. code-block:: python
+
+    >>> stack = StackGeneralization([bow, dense]).fit(D)
+
+One does not need to specify the language to stack generalization because the base text classifiers give the language. 
+
+The code to predict is kept constant in all the classes; therefore, the following code predicts the class for the phrase *good morning.*
+
+.. code-block:: python
+
+    >>> stack.predict(['buenos días'])
+    array(['P'], dtype='<U4')
+
 Citing
 ==========
 
@@ -76,23 +189,7 @@ If you find EvoMSA useful for any academic/scientific purpose, we would apprecia
 	  }
 
 	
-Installing EvoMSA
-====================================
 
-EvoMSA can be easly install using anaconda
-
-.. code:: bash
-
-	  conda install -c conda-forge EvoMSA
-
-or can be install using pip, it depends on numpy, scipy, scikit-learn and b4msa.
-
-.. code:: bash
-
-	  pip install cython
-	  pip install sparsearray
-	  pip install evodag
-	  pip install EvoMSA
 
 API
 ====================================
