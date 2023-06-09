@@ -29,13 +29,15 @@ EvoMSA 2.0
 
 
 
-EvoMSA is a stack generalization algorithm specialized in text classification problems. A text classifier :math:`c`, can be seen as a composition of two functions, i.e., :math:`c \equiv g \circ m`; where :math:`m` transforms the text into a vector space, i.e., :math:`m: \text{text} \rightarrow \mathbb R^d` and :math:`g` is the classifier (:math:`g: \mathbb R^d \rightarrow \mathbb N`) or regressor (:math:`g: \mathbb R^d \rightarrow \mathbb R`). Stack generalization is a technique to combine classifiers (regressors) to produce another classifier (regressor) responsible for making the prediction. 
+EvoMSA is a stack generalization algorithm specialized in text classification problems. Text classification is a Natural Language Processing task focused on identifying a text’s category. A standard approach to tackle text classification problems is to pose it as a supervised learning problem. In supervised learning, everything starts with a dataset composed of pairs of inputs and outputs; in this case, the inputs are texts, and the outputs correspond to the associated labels or categories. The aim is that the developed algorithm can automatically assign a label to any given text independently, whether it was in the original dataset. The feasible categories are only those found on the original dataset. In some circumstances, the method can also inform the confidence it has in its prediction so the user can decide whether to use or discard it.
 
-:ref:`v2` removes, from :ref:`EvoMSA <v1>`, two text representations, i.e., functions :math:`m`, particularly the sentiment lexicon-based model, and the aggressiveness model. It was decided to remove them because these models are the ones that require more work to be implemented in another language and, on the other hand, are the ones that contribute less to the performance of the algorithm. However, :ref:`v2` increments the number of human-annotated models, the emoji models, and introduces a new model, namely keyword models.
+The key idea of EvoMSA is to combine different text classifiers using a stack generalization approach. A text classifier :math:`c`, can be seen as a composition of two functions, i.e., :math:`c \equiv g \circ m`; where :math:`m` transforms the text into a vector space, i.e., :math:`m: \text{text} \rightarrow \mathbb R^d` and :math:`g` is the classifier (:math:`g: \mathbb R^d \rightarrow \mathbb N`) or regressor (:math:`g: \mathbb R^d \rightarrow \mathbb R`). 
 
-:ref:`v2` supports more languages than the previous version, currently it supports Arabic (ar), Catalan (ca), German (de), English (en), Spanish (es), French (fr), Hindi (hi), Indonesian (in), Italian (it), Japanese (ja), Korean (ko), Dutch (nl), Polish (pl), Portuguese (pt), Russian (ru), Tagalog (tl), Turkish (tr), and Chinese (zh). It also provides pre-trained models that include the bag-of-words text representations, emoji, and keyword models. These models were trained on Twitter data. 
+EvoMSA focused on developing diverse text representations (:math:`m`), fixing the classifier :math:`g` as a linear Support Vector Machine. The text representations (functions :math:`m`) found in EvoMSA can be grouped into two. On the one hand, there is a traditional :ref:`Bag of Words (BoW) <bow>` representation; on the other, there is a dense representation, namely :ref:`dense BoW <densebow>`.
 
-The other enhancement is on the implementation. There are three main classes: 
+:ref:`v2` supports more languages than the previous version, currently it supports Arabic (ar), Catalan (ca), German (de), English (en), Spanish (es), French (fr), Hindi (hi), Indonesian (in), Italian (it), Japanese (ja), Korean (ko), Dutch (nl), Polish (pl), Portuguese (pt), Russian (ru), Tagalog (tl), Turkish (tr), and Chinese (zh).
+
+:ref:`v2` simplifies the previous version (:ref:`EvoMSA <v1>`), and now it has only three main classes.
 
 .. toctree::
    :maxdepth: 1
