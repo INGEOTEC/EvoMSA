@@ -690,7 +690,7 @@ class DenseBoW(BoW):
         return self.select(subset=index)        
 
     def fromjson(self, filename:str) -> 'DenseBoW':
-        """Load the text representations from a json file
+        """Load the text representations from a json file.
         
         :param filename: Path
         :type filename: str
@@ -700,11 +700,15 @@ class DenseBoW(BoW):
         self.text_representations_extend(models)
         return self
     
-    def text_representations_extend(self, value):
-        """Add dense BoW representations."""
+    def text_representations_extend(self, value: Union[List, str]):
+        """Add dense BoW representations.
+
+        :param value: List of models or name
+        :type value: List of models or string
+        """
         from EvoMSA.utils import load_url
         if isinstance(value, str):
-            value = load_url(value)
+            value = load_url(value, n_jobs=self._n_jobs)
         names = set(self.names)
         for x in value:
             label = x.labels[-1]
@@ -724,25 +728,29 @@ class DenseBoW(BoW):
 
     def load_emoji(self) -> None:
         if self.v1:
-            emojis = load_emoji(lang=self.lang, v1=self.v1)
+            emojis = load_emoji(lang=self.lang, v1=self.v1,
+                                n_jobs=self._n_jobs)
             self.text_representations.extend(emojis)
             self.names.extend([x.labels[-1] for x in emojis])
         else:
             data = load_emoji(lang=self.lang,
                               d=self.voc_size_exponent, 
-                              func=self.voc_selection)
+                              func=self.voc_selection,
+                              n_jobs=self._n_jobs)
             self.text_representations.extend(data)
             self.names.extend([x.labels[-1] for x in data])            
 
     def load_keyword(self) -> None:
         if self.v1:
-            _ = load_keyword(lang=self.lang, v1=self.v1)
+            _ = load_keyword(lang=self.lang, v1=self.v1,
+                             n_jobs=self._n_jobs)
             self.text_representations.extend(_)
             self.names.extend([x.labels[-1] for x in _])
         else:       
             data = load_keyword(lang=self.lang,
                                 d=self.voc_size_exponent, 
-                                func=self.voc_selection)
+                                func=self.voc_selection,
+                                n_jobs=self._n_jobs)
             self.text_representations.extend(data)
             self.names.extend([x.labels[-1] for x in data])            
 

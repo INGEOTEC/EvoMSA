@@ -430,15 +430,17 @@ def test_DenseBoW_extend2():
     name = 'emojis'
     func = 'most_common_by_type'
     d = 13
-    text_repr = DenseBoW(lang=lang, 
+    text_repr = DenseBoW(lang=lang,
                          keyword=False,
                          voc_size_exponent=13,
-                         emoji=True, dataset=False)
+                         emoji=True, dataset=False,
+                         n_jobs=-1)
     url = f'{lang}_{MICROTC}_{name}_{func}_{d}.json.gz'
     text_repr2 = DenseBoW(lang=lang, 
                           keyword=False,
                           voc_size_exponent=13,
-                          emoji=False, dataset=False)
+                          emoji=False, dataset=False,
+                          n_jobs=-1)
     text_repr2.text_representations_extend(url)
     for a, b in zip(text_repr.names, text_repr2.names):
         assert a == b

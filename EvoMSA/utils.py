@@ -21,6 +21,7 @@ from scipy.sparse import csr_matrix
 from os.path import join, dirname, isdir, isfile
 from urllib import request
 from urllib.error import HTTPError
+from joblib import Parallel, delayed
 import numpy as np
 import hashlib
 import os
@@ -403,10 +404,11 @@ class Linear(object):
             return self._labels[np.where(hy > 0, 1, 0)]
         return np.where(hy > 0, 1, -1)
 
-def load_url(url):
+def load_url(url, n_jobs=1):
     def load(filename):
         try:
-            return [Linear(**x) for x in tweet_iterator(filename)]
+            return Parallel(n_jobs=n_jobs)(delayed(Linear)(**x)
+                                           for x in tweet_iterator(filename))
         except Exception:
             os.unlink(filename)
 
@@ -418,9 +420,10 @@ def load_url(url):
     models = load(output)
     return models
 
+
 def _load_text_repr(lang='es', name='emojis', 
                     k=None, d=17, func='most_common_by_type',
-                    v1=False):
+                    v1=False, n_jobs=1):
     lang = lang.lower().strip()
     assert lang in MODEL_LANG
     diroutput = join(dirname(__file__), 'models')
@@ -430,7 +433,7 @@ def _load_text_repr(lang='es', name='emojis',
         filename = f'{lang}_{name}_muTC2.4.2.json.gz'
     else:
         filename = f'{lang}_{MICROTC}_{name}_{func}_{d}.json.gz'
-    models = load_url(filename)
+    models = load_url(filename, n_jobs=n_jobs)
     if k is None:
         return models
     return models[k]
@@ -438,24 +441,24 @@ def _load_text_repr(lang='es', name='emojis',
 
 def load_emoji(lang='es', emoji=None,
                d=17, func='most_common_by_type',
-               v1=False):
+               v1=False, n_jobs=1):
 
     lang = lang.lower().strip()
     assert lang in MODEL_LANG
     return _load_text_repr(lang, 'emojis',
                            emoji, d=d, func=func,
-                           v1=v1)
+                           v1=v1, n_jobs=n_jobs)
 
 
 def load_keyword(lang='es', keyword=None,
                  d=17, func='most_common_by_type',
-                 v1=False):
+                 v1=False, n_jobs=1):
 
     lang = lang.lower().strip()
     assert lang in MODEL_LANG
     return _load_text_repr(lang, 'keywords', 
                            keyword, d=d, func=func,
-                           v1=v1)    
+                           v1=v1, n_jobs=n_jobs)    
 
 
 def emoji_information(lang='es'):
