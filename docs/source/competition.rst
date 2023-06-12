@@ -24,10 +24,6 @@ Text Classifier Competitions
 .. image:: https://readthedocs.org/projects/evomsa/badge/?version=docs
 		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
 
-.. image:: https://colab.research.google.com/assets/colab-badge.svg
-		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
-
-
 Text classification (TC) is a Natural Language Processing (NLP) task focused on identifying a text's label. A standard approach to tackle text classification problems is to pose it as a supervised learning problem. In supervised learning, everything starts with a dataset composed of pairs of inputs and outputs; in this case, the inputs are texts, and the outputs correspond to the associated labels. The aim is that the developed algorithm can automatically assign a label to any given text independently, whether it was in the original dataset. The feasible classes are only those found on the original dataset. In some circumstances, the method can also inform the confidence it has in its prediction so the user can decide whether to use or discard it.
 
 Following a supervised learning approach requires that the input is in amenable representation for the learning algorithm; usually, this could be a vector. One of the most common methods to represent a text into a vector is to use a Bag of Word (:ref:`bow`) model, which works by having a fixed vocabulary where each component represents an element in the vocabulary and the presence of it in the text is given by a non-zero value.
@@ -1522,7 +1518,7 @@ Stack generalization approach where with four base classifiers. These correspond
 :ref:`StackGeneralization` using :ref:`BoW` and all :ref:`DenseBoW` with and without :py:attr:`voc_selection` 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Stack generalization approach where with four base classifiers equivalently to :ref:`func_stack_2_bow_keywords` where the difference is that the dense representations include the models created with the :ref:`human-annotated datasets <human-annotated>`.
+Stack generalization approach where with four base classifiers equivalently to :ref:`func_stack_2_bow_keywords` where the difference is that the dense representations include the models created with the :ref:`human-annotated datasets <dense_parameters>`.
 
 .. code-block:: python
 

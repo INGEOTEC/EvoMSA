@@ -24,19 +24,16 @@
 .. image:: https://readthedocs.org/projects/evomsa/badge/?version=docs
 		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
 
-.. image:: https://colab.research.google.com/assets/colab-badge.svg
-		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
+:ref:`BoW` is a text classifier :math:`c` with signature :math:`c \equiv g \circ m`, where :math:`m` stands for the BoW representation and :math:`g` is the classifier (the default is a linear Support Vector Machine).
 
-:ref:`BoW` is a text classifier :math:`c` with signature :math:`c \equiv g \circ m`, where :math:`m` stands for the bag-of-words representation and :math:`g` is the classifier (the default is a linear Support Vector Machine).
+The classifier :math:`g` is trained on a dataset :math:`\mathcal D` of pairs (:math:`x`, :math:`y`), where :math:`x` is a text and :math:`y` is the label associated with it. The BoW representation :math:`m` is either a pre-trained model or a model trained on :math:`\mathcal D`, both used the Term Frequency Inverse Document Frequency (TFIDF) as a weighting scheme. 
 
-The classifier :math:`g` is trained on a dataset :math:`\mathcal D` of pairs (:math:`x`, :math:`y`), where :math:`x` is a text and :math:`y` is the label associated with it. The bag-of-words representation :math:`m` is either a pre-trained model or a model trained on :math:`\mathcal D`, both used the Term Frequency Inverse Document Frequency (TFIDF) as a weighting scheme. The pre-trained :math:`m` parameters were estimated from 4,194,304 (:math:`2^{22}`) tweets randomly selected.
+The BoW representation used is described in "`A Simple Approach to Multilingual Polarity Classification in Twitter <https://www.sciencedirect.com/science/article/abs/pii/S0167865517301721>`_. Eric S. Tellez, Sabino Miranda-Jiménez, Mario Graff, Daniela Moctezuma, Ranyart R. Suárez, Oscar S. Siordia. Pattern Recognition Letters" and "`An Automated Text Categorization Framework based on Hyperparameter Optimization <https://www.sciencedirect.com/science/article/abs/pii/S0950705118301217>`_. Eric S. Tellez, Daniela Moctezuma, Sabino Miranda-Jímenez, Mario Graff. Knowledge-Based Systems Volume 149, 1 June 2018."
 
-The bag-of-words representation used is described in "`A Simple Approach to Multilingual Polarity Classification in Twitter <https://www.sciencedirect.com/science/article/abs/pii/S0167865517301721>`_. Eric S. Tellez, Sabino Miranda-Jiménez, Mario Graff, Daniela Moctezuma, Ranyart R. Suárez, Oscar S. Siordia. Pattern Recognition Letters" and "`An Automated Text Categorization Framework based on Hyperparameter Optimization <https://www.sciencedirect.com/science/article/abs/pii/S0950705118301217>`_. Eric S. Tellez, Daniela Moctezuma, Sabino Miranda-Jímenez, Mario Graff. Knowledge-Based Systems Volume 149, 1 June 2018."
-
-Bag-of-Words Representation
+Bag of Words Representation
 --------------------------------
 
-The core idea of a bag of words is that after the text is normalized and tokenized, each token :math:`t` is associated with a vector :math:`\mathbf{v_t} \in \mathbb R^d` where the :math:`i`-th component, i.e., :math:`\mathbf{v_t}_i`, contains the IDF value of the token :math:`t` and :math:`\forall_{j \neq i} \mathbf{v_t}_j=0`. The set of vectors :math:`\mathbf v` corresponds to the vocabulary, there are :math:`d` different tokens in the vocabulary, and by definition :math:`\forall_{i \neq j} \mathbf{v_i} \cdot \mathbf{v_j} = 0`, where :math:`\mathbf{v_i} \in \mathbb R^d`, :math:`\mathbf{v_j} \in \mathbb R^d`, and :math:`(\cdot)` is the dot product. It is worth mentioning that any token outside the vocabulary is discarded.
+The core idea of a BoW model is that after the text is normalized and tokenized, each token :math:`t` is associated with a vector :math:`\mathbf{v_t} \in \mathbb R^d` where the :math:`i`-th component, i.e., :math:`\mathbf{v_t}_i`, contains the IDF value of the token :math:`t` and :math:`\forall_{j \neq i} \mathbf{v_t}_j=0`. The set of vectors :math:`\mathbf v` corresponds to the vocabulary, there are :math:`d` different tokens in the vocabulary, and by definition :math:`\forall_{i \neq j} \mathbf{v_i} \cdot \mathbf{v_j} = 0`, where :math:`\mathbf{v_i} \in \mathbb R^d`, :math:`\mathbf{v_j} \in \mathbb R^d`, and :math:`(\cdot)` is the dot product. It is worth mentioning that any token outside the vocabulary is discarded.
 
 Using this notation, a text :math:`x` is represented by the sequence of its tokens, i.e., :math:`(t_1, t_2, \ldots)`; the sequence can have repeated tokens, e.g., :math:`t_j = t_k`. Then each token is associated with its respective vector :math:`\mathbf v` (keeping the repetitions), i.e., :math:`(\mathbf{v_{t_1}}, \mathbf{v_{t_2}}, \ldots)`. Finally, the text :math:`x` is represented as: 
 
@@ -48,9 +45,96 @@ where the sum goes for all the elements of the sequence, :math:`\mathbf x \in \m
 Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The BoW representation has different parameters; the parameter :py:attr:`pretrain` indicates whether a pre-trained model is used or will be estimated using a dataset; the default is pre-trained. The pre-trained models have other parameters; :py:attr:`lang` sets the language. :py:attr:`voc_size_exponent` defines the vocabulary size where the valid values are :math:`13, 14, \ldots, 17`, that represents a vocabulary size of :math:`2^{13}, 2^{14}, \ldots, 2^{17}`, respectively. 
+Different BoW representations were created and implemented following the approach mentioned above. The first step was to set all the characters to lowercase and remove diacritics and punctuation symbols. Additionally, the users and the URLs were removed from the text. Once normalized, the text is split into bigrams, words, and q-grams of characters with :math:`q=\{2, 3, 4\}`, except for Japanese and Chinese that do not use neither words or bigrams, and the q-grams are :math:`q=\{1, 2, 3\}`
 
-There are two mechanisms to select the pre-trained models' vocabulary (parameter :py:attr:`voc_selection`), namely :py:attr:`most_common_by_type` and :py:attr:`most_common`. The former value (i.e., :py:attr:`most_common_by_type`) chooses the vocabulary by normalizing the frequency of the q-grams of characters and the n-grams of words. Once this normalization is done, the tokens with the highest frequency are selected. The latter value (i.e., :py:attr:`most_common`) selects the tokens with the highest frequency without considering their type. The difference is that the former value has more tokens corresponding to words and bigrams than the later configuration. 
+The pre-trained BoW (i.e., :py:attr:`pretrain` parameter) is estimated from 4,194,304 (:math:`2^{22}`) tweets randomly selected. The IDF values were estimated from the collections, and some tokens were selected from all the available ones found in the collection. Two procedures were used to select the tokens; the first corresponds to selecting the :math:`d` tokens with the highest frequency (parameter :py:attr:`voc_selection` set to :py:attr:`most_common`), and the other to normalize the frequency w.r.t. their type, i.e., bigrams, words, and q-grams of characters (parameter :py:attr:`voc_selection` set to :py:attr:`most_common_by_type` - default). Once the frequency is normalized, one selects the :math:`d` tokens with the highest normalized frequency. The value of :math:`\log_2 d` (parameter :py:attr:`voc_size_exponent`) by default is :math:`17`, representing a vocabulary of :math:`2^{17}` tokens; however, other valid values are :math:`13, 14, \ldots, 17`. It is also possible to train the BoW model using the training set; in this case, we used the default parameters, setting the parameter :py:attr:`pretrain` to false.
+
+The default parameters for the BoW representation can be obtained using the following code. 
+
+.. code-block:: python
+
+    >>> from EvoMSA.utils import b4msa_params
+    >>> b4msa_params(lang='es')
+    {'num_option': 'none',
+     'usr_option': 'delete',
+     'url_option': 'delete',
+     'emo_option': 'none',
+     'hashtag_option': 'none',
+     'ent_option': 'none',
+     'lc': True,
+     'del_dup': False,
+     'del_punc': True,
+     'del_diac': True,
+     'select_ent': False,
+     'select_suff': False,
+     'select_conn': False,
+     'max_dimension': True,
+     'unit_vector': True,
+     'token_max_filter': 32768,
+     'token_list': [-2, -1, 2, 3, 4]}
+
+The two procedures used to select the tokens create different vocabularies. The following table presents the Jaccard index between the vocabularies created when the vocabulary size is :math:`\mathbb 2^{13}` and :math:`\mathbb 2^{17}`. Roughly, the index is around 0.60 for the vocabulary size of :math:`2^{17}`, except for Japanese and Chinese, where the vocabulary is similar in the two procedures; this latter case results from the tokenizer's parameters.
+
+.. list-table:: Jaccard index between the two token selection mechanisms.
+    :header-rows: 1
+
+    * - Language
+      - Voc. Size :math:`\mathbb 2^{13}`
+      - Voc. Size :math:`\mathbb 2^{17}`
+    * - Arabic (ar)
+      - 0.58
+      - 0.58
+    * - Catalan (ca)
+      - 0.67
+      - 0.57
+    * - German (de)
+      - 0.63
+      - 0.57
+    * - English (en)
+      - 0.64
+      - 0.58
+    * - Spanish (es)
+      - 0.62
+      - 0.61
+    * - French (fr)
+      - 0.61
+      - 0.62
+    * - Hindi (hi)
+      - 0.66
+      - 0.58
+    * - Indonesian (in)
+      - 0.66
+      - 0.56
+    * - Italian (it)
+      - 0.63
+      - 0.61
+    * - Japanese (ja)
+      - 0.93
+      - 0.97
+    * - Korean (ko)
+      - 0.62
+      - 0.52
+    * - Dutch (nl)
+      - 0.62
+      - 0.59
+    * - Polish (pl)
+      - 0.67 
+      - 0.60
+    * - Portuguese (pt)
+      - 0.61
+      - 0.65
+    * - Russian (ru)
+      - 0.67
+      - 0.56
+    * - Tagalog (tl)
+      - 0.64
+      - 0.58
+    * - Turkish (tr)
+      - 0.66
+      - 0.55
+    * - Chinese (zh)
+      - 0.92
+      - 0.97
 
 Example
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -128,3 +212,20 @@ API
    :maxdepth: 3
 
    bow_api
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

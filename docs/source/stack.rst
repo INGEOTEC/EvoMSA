@@ -24,10 +24,6 @@
 .. image:: https://readthedocs.org/projects/evomsa/badge/?version=docs
 		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
 
-.. image:: https://colab.research.google.com/assets/colab-badge.svg
-		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
-
-
 Different text classifiers have been implemented in :ref:`v2`, namely :ref:`BoW`, and :ref:`DenseBoW`; the next step is to use an algorithm to combine the outputs of these classifiers. We combined the classifier's outputs using a stack generalization approach (implemented in :py:class:`StackGeneralization`).
 
 The idea behind stack generalization is to train an estimator on the predictions made by the base classifiers or regressors. The estimator trained is the one that will make the final prediction. In order to train it, one needs a different dataset than the one used on the base algorithms. However, it is also feasible to emulate this new dataset using k-fold cross-validation. That is, the first step is to train and predict all the elements of the training set using the base learning algorithms. Then, the predictions obtained are the inputs of the estimator using the corresponding outputs. 

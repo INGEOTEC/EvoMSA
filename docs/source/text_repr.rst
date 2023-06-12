@@ -24,10 +24,6 @@
 .. image:: https://readthedocs.org/projects/evomsa/badge/?version=docs
 		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
 
-.. image:: https://colab.research.google.com/assets/colab-badge.svg
-		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
-
-
 :ref:`DenseBoW` is a text classifier in fact it is a subclass of :py:class:`BoW` being the difference the process to represent the text in a vector space. This process is described in "`EvoMSA: A Multilingual Evolutionary Approach for Sentiment Analysis <https://ieeexplore.ieee.org/document/8956106>`_, Mario Graff, Sabino Miranda-Jimenez, Eric Sadit Tellez, Daniela Moctezuma. Computational Intelligence Magazine, vol 15 no. 1, pp. 76-88, Feb. 2020." Particularly, in the section where the Emoji Space is described.
 
 Dense BoW Representation
@@ -54,17 +50,154 @@ where :math:`\mathbf{v_t}` is the vector associated to the token :math:`t` of th
 where matrix :math:`\mathbf W \in \mathbb R^{M \times d}` contains the weights, and :math:`\mathbf{w_0} \in \mathbb R^M` is the bias. Another way to see the previous formulation is by defining a vector :math:`\mathbf{u_t} = \frac{1}{\lVert \sum_k \mathbf{v_k} \rVert} \mathbf W \mathbf{v_t}`. Consequently, vector :math:`\mathbf{x'}` is defined as 
 
 .. math:: 
-	\mathbf{x'} = \sum_t \mathbf{u_t} + \mathbf{w_0}.
+	\mathbf{x'} = \sum_t \mathbf{u_t} + \mathbf{w_0},
 
-It can be observed that each token is associated with a vector in the space defined by the classifiers and that :math:`\mathbf{x'}` is the sum of all vectors plus the bias vector (i.e., :math:`\mathbf{w_0}`). Finally, the vector representing the text :math:`x` is the normalized :math:`\mathbf{x^{'}}`, i.e.,
+vectors :math:`\mathbf{u} \in \mathbb R^M` correspond to the tokens; this is the reason we refer to this model as a dense BoW. Finally, the vector representing the text :math:`x` is the normalized :math:`\mathbf{x^{'}}`, i.e.,
 
 .. math::
 	\mathbf x = \frac{\mathbf{x^{'}}}{\lVert \mathbf{x^{'}} \rVert}.
 
+.. _dense_parameters:
+
 Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:ref:`v2` has three sets of text representations, namely :py:attr:`dataset`, :py:attr:`emoji`, and :py:attr:`keyword`. The dataset text representations were built on datasets coming from text-categorization competitions, the emoji representations are self-supervised datasets where each task is to predict the presence of the emoji; and the keyword representations are also self-supervised datasets where the task is to predict the presence of a word; the words selected correspond to the words of the vocabulary in the pre-trained bag-of-words model. 
+The dense representations start by defining the labeled datasets used to create them. These datasets are organized in three groups. The first one is composed of human-annotated datasets; we refer to them as :py:attr:`dataset`. The second groups contain a set of self-supervised dataset where the objective is to predict the presence of an emoji as expected; these models are referred as :py:attr:`emoji`. The final group is also a set of self-supervised datasets where the task is to predict the presence of a particular word, namely :py:attr:`keyword`.
+
+Following an equivalent approach used in the development of the pre-trained BoW, different dense representations were created; these correspond to varying the size of the vocabulary and the two procedures used to select the tokens.
+
+Below is a table displaying the number of components for each dense representation group. It is worth noting that the dataset group is solely accessible for Arabic, English, Spanish, and Chinese. Additionally, the table indicates the number of tweets utilized in producing the self-supervised datasets, with a maximum of 100 million.
+
+.. list-table:: Description of the labeled dataset. For each language, it presents the number of human-annotated datasets, emojis, keywords, and the number of tweets(in millions) used to create the self-supervised datasets.
+    :header-rows: 1
+
+    * - Language
+      - H.A. Datasets
+      - Emojis
+      - Keywords
+      - Number of Tweets
+    * - Arabic (ar)
+      - 30
+      - 465
+      - 2048
+      - 100.0
+    * - Catalan (ca)
+      - na
+      - 136
+      - 2022
+      - 5.6
+    * - German (de)
+      - na
+      - 199
+      - 2048
+      - 13.6
+    * - English (en)
+      - 181
+      - 594
+      - 2048
+      - 100.0
+    * - Spanish (es)
+      - 57
+      - 567
+      - 2048
+      - 100.0
+    * - French (fr)
+      - na
+      - 549
+      - 2048
+      - 81.1
+    * - Hindi (hi)
+      - na
+      - 176
+      - 2048
+      - 9.5
+    * - Indonesian (in)
+      - na
+      - 366
+      - 2048
+      - 40.4
+    * - Italian (it)
+      - na
+      - 260
+      - 2048
+      - 24.5
+    * - Japanese (ja)
+      - na
+      - 450
+      - 1989
+      - 41.6
+    * - Korean (ko)
+      - na
+      - 99
+      - 526
+      - 5.0
+    * - Dutch (nl)
+      - na
+      - 157
+      - 2040
+      - 10.0
+    * - Polish (pl)
+      - na 
+      - 166
+      - 2040
+      - 10.8
+    * - Portuguese (pt)
+      - na
+      - 471
+      - 2048
+      - 100.0
+    * - Russian (ru)
+      - na
+      - 383
+      - 2048
+      - 100.0
+    * - Tagalog (tl)
+      - na
+      - 242
+      - 2048
+      - 19.5
+    * - Turkish (tr)
+      - na
+      - 380
+      - 2048
+      - 59.3
+    * - Chinese (zh)
+      - 18
+      - 152
+      - 1953
+      - 5.6
+
+The name of each component can be obtained from the attribute :py:attr:`DenseBoW.names`; for example, the following instructions retrieve the human-annotated datasets in Spanish. 
+
+.. code-block:: python
+
+  >>> from EvoMSA import DenseBoW
+  >>> DenseBoW(lang='es', dataset=True,
+               emoji=False, keyword=False).names
+  ['HA(negative)', 'HA(neutral)', 'HA(positive)',
+   'INEGI(1)', 'INEGI(2)', 'INEGI(3)', 'INEGI(4)',
+   'meoffendes2021_task1(NO)', 'meoffendes2021_task1(NOM)',
+   'meoffendes2021_task1(OFG)', 'meoffendes2021_task1(OFP)',
+   'haha2018', 'tass2018_s1_l2', 'mexa3t2018_aggress',
+   'tass2016(N)', 'tass2016(NEU)', 'tass2016(NONE)', 'tass2016(P)',
+   'misogyny_centrogeo', 'meoffendes2021_task3',
+   'detests2022_task1',
+   'MeTwo(DOUBTFUL)', 'MeTwo(NON_SEXIST)', 'MeTwo(SEXIST)',
+   'exist2021_task1', 'davincis2022_1', 'misoginia',
+   'tass2018_s1_l1', 'delitos_ingeotec',
+   'semeval2018_valence(-3)', 'semeval2018_valence(-2)',
+   'semeval2018_valence(-1)', 'semeval2018_valence(0)',
+   'semeval2018_valence(1)', 'semeval2018_valence(2)',
+   'semeval2018_valence(3)', 'semeval2018_fear(0)',
+   'semeval2018_fear(1)', 'semeval2018_fear(2)', 'semeval2018_fear(3)',
+   'semeval2018_anger(0)', 'semeval2018_anger(1)', 'semeval2018_anger(2)',
+   'semeval2018_anger(3)', 'semeval2018_sadness(0)', 'semeval2018_sadness(1)',
+   'semeval2018_sadness(2)', 'semeval2018_sadness(3)', 'semeval2018_joy(0)',
+   'semeval2018_joy(1)', 'semeval2018_joy(2)', 'semeval2018_joy(3)',
+   'tass2017(N)', 'tass2017(NEU)', 'tass2017(NONE)', 'tass2017(P)',
+   'tass2018_s2']  
+
+The notation includes the label between parentheses in case the dataset contains multiple classes. For binary classification, it only includes the dataset name, and the predicted label is the positive class.
 
 .. _text_repr_vector_space:
 
@@ -119,80 +252,6 @@ There are scenarios where it is more important to estimate the value(s) used to 
 
 >>> text_repr.decision_function(['buenos días'])
 array([[-2.13432793, -1.21754724, -0.7034401 ,  1.46593854]])
-
-.. _labeled_dataset:
-
-Labeled Dataset
---------------------------------
-
-.. _human-annotated:
-
-Human Annotated Datasets
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Self-supervised Datasets
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. list-table:: Number of Self-supervised Components
-    :header-rows: 1
-
-    * - Language
-      - Emojis
-      - Keywords
-    * - ar
-      - 465
-      - 2048
-    * - ca
-      - 136
-      - 2022
-    * - de
-      - 199
-      - 2048
-    * - en
-      - 594
-      - 2048
-    * - es
-      - 567
-      - 2048
-    * - fr
-      - 549
-      - 2048
-    * - hi
-      - 176
-      - 2048
-    * - in
-      - 366
-      - 2048
-    * - it
-      - 260
-      - 2048
-    * - ja
-      - 450
-      - 1989
-    * - ko
-      - 99
-      - 526
-    * - nl
-      - 157
-      - 2040
-    * - pl
-      - 166
-      - 2040
-    * - pt
-      - 471
-      - 2048
-    * - ru
-      - 383
-      - 2048
-    * - tl
-      - 242
-      - 2048
-    * - tr
-      - 380
-      - 2048
-    * - zh
-      - 152
-      - 1953
 
 API
 --------------------------------
