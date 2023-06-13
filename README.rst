@@ -22,7 +22,7 @@ EvoMSA
 		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
     
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
-		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/master/docs/Quickstart.ipynb	   
+		:target: https://colab.research.google.com/github/INGEOTEC/EvoMSA/blob/docs/docs/EvoMSA2.ipynb   
 
 EvoMSA is a Sentiment Analysis System based on
 `B4MSA <https://github.com/ingeotec/b4msa>`_  and
