@@ -405,10 +405,17 @@ class Linear(object):
         return np.where(hy > 0, 1, -1)
 
 def load_url(url, n_jobs=1):
+    def linear(data):
+        import json
+        _ = json.loads(data)
+        return Linear(**_)
+    
     def load(filename):
+        import gzip
         try:
-            return Parallel(n_jobs=n_jobs)(delayed(Linear)(**x)
-                                           for x in tweet_iterator(filename))
+            with gzip.open(filename) as fpt:
+                return Parallel(n_jobs=n_jobs)(delayed(linear)(x)
+                                               for x in fpt)
         except Exception:
             os.unlink(filename)
 
