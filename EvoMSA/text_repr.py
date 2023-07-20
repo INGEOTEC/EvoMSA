@@ -68,7 +68,7 @@ class BoW(object):
     :type lang: str
     :param voc_size_exponent: Vocabulary size. default=17, i.e., :math:`2^{17}`
     :type voc_size_exponent: int
-    :param voc_selection: Vocabulary (most_common_by_type | most_common). default=most_common_by_type
+    :param voc_selection: Vocabulary (most_common_by_type | most_common). default=most_common_by_type
     :type voc_selection: str
     :param key: Key where the text is in the dictionary. (default='text')
     :type key: Union[str, List[str]]
@@ -110,7 +110,7 @@ class BoW(object):
                  mixer_func: Callable[[List], csr_matrix]=sum,
                  decision_function_name: str='decision_function',
                  estimator_class=LinearSVC,
-                 estimator_kwargs=dict(),
+                 estimator_kwargs=dict(dual=True),
                  pretrain=True,
                  b4msa_kwargs=dict(),
                  kfold_class=StratifiedKFold,
