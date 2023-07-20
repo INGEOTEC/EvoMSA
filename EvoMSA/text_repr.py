@@ -793,6 +793,7 @@ class StackGeneralization(BoW):
                  transform_models: list=[],
                  decision_function_name: str='predict_proba',
                  estimator_class=GaussianNB,
+                 estimator_kwargs=dict(),
                  n_jobs: int=1,
                  **kwargs) -> None:
         assert len(decision_function_models) or len(transform_models)
@@ -800,6 +801,7 @@ class StackGeneralization(BoW):
         super(StackGeneralization, self).__init__(n_jobs=n_jobs,
                                                   decision_function_name=decision_function_name,
                                                   estimator_class=estimator_class,
+                                                  estimator_kwargs=estimator_kwargs,
                                                   **kwargs)
         self._decision_function_models = decision_function_models
         self._transform_models = transform_models
