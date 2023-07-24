@@ -678,6 +678,8 @@ class DenseBoW(BoW):
         """
         assert subset is not None or D is not None
         if subset is not None:
+            if len(subset) == 0:
+                return self
             tr = self.text_representations
             self.text_representations = [tr[i] for i in subset]
             names = self.names
