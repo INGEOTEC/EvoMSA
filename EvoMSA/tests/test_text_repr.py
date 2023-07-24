@@ -449,4 +449,22 @@ def test_DenseBoW_extend2():
 def test_DenseBoW_dataset():
     from EvoMSA.text_repr import DenseBoW
     dense = DenseBoW(lang='it', emoji=False, keyword=False)
-    
+
+
+
+def test_DenseBoW_select_bug():
+    from EvoMSA.text_repr import DenseBoW
+    from EvoMSA.utils import MICROTC
+    D = list(tweet_iterator(TWEETS))
+    pos = [x for x in D if x['klass'] == 'P']
+    neg = [x for x in D if x['klass'] == 'N']
+    lang = 'es'
+    name = 'emojis'
+    func = 'most_common_by_type'
+    d = 13
+    text_repr = DenseBoW(lang=lang,
+                         keyword=False,
+                         voc_size_exponent=13,
+                         emoji=True, dataset=False,
+                         n_jobs=-1)
+    text_repr.select(D=pos + neg[:1]).fit(D)
