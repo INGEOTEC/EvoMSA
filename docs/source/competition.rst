@@ -48,12 +48,12 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
     * - :ref:`HaSpeeDe3 (textual) <haspeede>`
       - 2023 
       - 0.9128
-      - 0.8845
+      - 0.8845 (:ref:`Conf. <func_stack_2_bow_tailored_keywords>`)
       - 3.2%
     * - :ref:`HaSpeeDe3 (XReligiousHate) <haspeede>`
       - 2023 
       - 0.6525
-      - 0.5522
+      - 0.5522 (:ref:`Conf. <func_stack_2_bow_tailored_keywords>`)
       - 18.2% 
     * - :ref:`HODI <hodi>` 
       - 2023
