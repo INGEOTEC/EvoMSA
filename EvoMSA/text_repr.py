@@ -21,6 +21,7 @@ from microtc.weighting import TFIDF
 from microtc.utils import tweet_iterator
 from joblib import Parallel, delayed
 from typing import Union, List, Set, Callable
+from sklearn.base import BaseEstimator
 from sklearn.svm import LinearSVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import StratifiedKFold
@@ -39,7 +40,7 @@ def config_regressor(instance):
     return instance
 
 
-class BoW(object):
+class BoW(BaseEstimator):
     """
     BoW is a bag-of-words text classifier. It is described in 
     "A Simple Approach to Multilingual Polarity Classification in Twitter. 
@@ -124,11 +125,11 @@ class BoW(object):
             assert voc_selection in ['most_common_by_type', 'most_common']
         self.voc_size_exponent = voc_size_exponent
         self.voc_selection = voc_selection
-        self._n_jobs = n_jobs
+        self.n_jobs = n_jobs
         self._lang = lang
         self.key = key
         self.label_key = label_key
-        self._mixer_func = mixer_func
+        self.mixer_func = mixer_func
         self.decision_function_name = decision_function_name
         self.estimator_class = estimator_class
         self.estimator_kwargs = estimator_kwargs
@@ -192,7 +193,7 @@ class BoW(object):
             return self.bow.transform([x[key] for x in D])
         Xs = [self.bow.transform([x[key] for x in D])
               for key in self.key]
-        return self._mixer_func(Xs)    
+        return self.mixer_func(Xs)    
 
     def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
         """Predict the response variable on the dataset `D`.
@@ -400,7 +401,7 @@ class BoW(object):
         kf = self.kfold_class(**self.kfold_kwargs)
         kfolds = [x for x in kf.split(D, y)]
         X = self.transform(D, y=y)
-        hys = Parallel(n_jobs=self._n_jobs)(delayed(train_predict)(tr, vs)
+        hys = Parallel(n_jobs=self.n_jobs)(delayed(train_predict)(tr, vs)
                                             for tr, vs in kfolds)
         K = np.unique(y).shape[0]
         if hys[0].ndim == 1:
@@ -522,6 +523,29 @@ class BoW(object):
     def b4msa_kwargs(self, value):
         self._b4msa_kwargs = value
 
+    @property
+    def mixer_func(self):
+        """The function is used to fix the output of the text's representations."""
+        return self._mixer_func
+    
+    @mixer_func.setter
+    def mixer_func(self, value):
+        self._mixer_func = value
+
+    @property
+    def n_jobs(self):
+        """Number of jobs used in multiprocessing."""
+        return self._n_jobs
+    
+    @n_jobs.setter
+    def n_jobs(self, value):
+        self._n_jobs = value
+
+    def __sklearn_clone__(self):
+        klass = self.__class__
+        params = self.get_params()
+        return klass(**params)
+
 class DenseBoW(BoW):
     """
     DenseBoW is a text classifier in fact it is 
@@ -564,13 +588,40 @@ class DenseBoW(BoW):
         self.skip_dataset = skip_dataset
         self._names = []
         self._text_representations = []
-        self._unit_vector = unit_vector
+        self.unit_vector = unit_vector
+        self._dataset = dataset
+        self._emoji = emoji
+        self._keyword = keyword
         if emoji:
             self.load_emoji()
         if dataset:
             self.load_dataset()
         if keyword:
             self.load_keyword()
+
+    @property
+    def dataset(self):
+        """Dense Representation based on human-annotated datasets"""
+        return self._dataset
+
+    @property
+    def emoji(self):
+        """Dense Representation based on emojis"""
+        return self._emoji
+
+    @property
+    def keyword(self):
+        """Dense Representation based on keywords"""
+        return self._keyword
+    
+    @property
+    def unit_vector(self):
+        """Normalize representation to have one length"""
+        return self._unit_vector
+    
+    @unit_vector.setter
+    def unit_vector(self, value):
+        self._unit_vector = value
 
     def transform(self, D: List[Union[List, dict]], y=None) -> np.ndarray:
         """Represent the texts in `D` in the vector space.
@@ -586,24 +637,24 @@ class DenseBoW(BoW):
         """                
         if isinstance(self.key, str):
             X = super(DenseBoW, self).transform(D, y=y)
-            models = Parallel(n_jobs=self._n_jobs)(delayed(m.decision_function)(X)
-                                                   for m in self.text_representations)
+            models = Parallel(n_jobs=self.n_jobs)(delayed(m.decision_function)(X)
+                                                  for m in self.text_representations)
             _ = np.array(models).T
-            if self._unit_vector:
+            if self.unit_vector:
                 return _ / np.atleast_2d(np.linalg.norm(_, axis=1)).T
             else:
                 return _
         assert len(D) and isinstance(D[0], dict)
         Xs = [super(DenseBoW, self).transform([x[key] for x in D], y=y)
               for key in self.key]
-        with Parallel(n_jobs=self._n_jobs) as parallel:
+        with Parallel(n_jobs=self.n_jobs) as parallel:
             models = []
             for X in Xs:
                 _ = parallel(delayed(m.decision_function)(X)
                              for m in self.text_representations)
                 models.append(np.array(_).T)
-        _ = self._mixer_func(models)
-        if self._unit_vector:
+        _ = self.mixer_func(models)
+        if self.unit_vector:
             return _ / np.atleast_2d(np.linalg.norm(_, axis=1)).T
         else:
             return _            
@@ -710,7 +761,7 @@ class DenseBoW(BoW):
         """
         from EvoMSA.utils import load_url
         if isinstance(value, str):
-            value = load_url(value, n_jobs=self._n_jobs)
+            value = load_url(value, n_jobs=self.n_jobs)
         names = set(self.names)
         for x in value:
             label = x.labels[-1]
@@ -731,28 +782,28 @@ class DenseBoW(BoW):
     def load_emoji(self) -> None:
         if self.v1:
             emojis = load_emoji(lang=self.lang, v1=self.v1,
-                                n_jobs=self._n_jobs)
+                                n_jobs=self.n_jobs)
             self.text_representations.extend(emojis)
             self.names.extend([x.labels[-1] for x in emojis])
         else:
             data = load_emoji(lang=self.lang,
                               d=self.voc_size_exponent, 
                               func=self.voc_selection,
-                              n_jobs=self._n_jobs)
+                              n_jobs=self.n_jobs)
             self.text_representations.extend(data)
             self.names.extend([x.labels[-1] for x in data])            
 
     def load_keyword(self) -> None:
         if self.v1:
             _ = load_keyword(lang=self.lang, v1=self.v1,
-                             n_jobs=self._n_jobs)
+                             n_jobs=self.n_jobs)
             self.text_representations.extend(_)
             self.names.extend([x.labels[-1] for x in _])
         else:       
             data = load_keyword(lang=self.lang,
                                 d=self.voc_size_exponent, 
                                 func=self.voc_selection,
-                                n_jobs=self._n_jobs)
+                                n_jobs=self.n_jobs)
             self.text_representations.extend(data)
             self.names.extend([x.labels[-1] for x in data])            
 
@@ -762,7 +813,7 @@ class DenseBoW(BoW):
         if self.v1:
             names = [name for name in dataset_information(lang=self.lang)
                     if name not in self._skip_dataset]
-            _ = Parallel(n_jobs=self._n_jobs)(delayed(load_dataset)(lang=self.lang, name=name, v1=self.v1)
+            _ = Parallel(n_jobs=self.n_jobs)(delayed(load_dataset)(lang=self.lang, name=name, v1=self.v1)
                                             for name in names)
             [self.text_representations.extend(k) for k in _]
             [self.names.extend([name] if len(k) == 1 else [f'{name}({i.labels[-1]})' for i in k])

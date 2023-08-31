@@ -78,9 +78,9 @@ def test_DenseBoW_fit():
     from EvoMSA.text_repr import DenseBoW
     D = list(tweet_iterator(TWEETS))
     text_repr = DenseBoW(lang='es', 
-                                    voc_size_exponent=13,
-                                    keyword=False, 
-                                    emoji=False).fit(D)
+                         voc_size_exponent=13,
+                         keyword=False, 
+                         emoji=False).fit(D)
     text_repr.predict(['Buen dia'])
 
 
@@ -88,12 +88,13 @@ def test_DenseBoW_key():
     from EvoMSA.text_repr import DenseBoW
     D = list(tweet_iterator(TWEETS))
     O = DenseBoW(lang='es', unit_vector=False,
-                            voc_size_exponent=13,
-                            keyword=False, emoji=False).transform(D)    
+                 voc_size_exponent=13,
+                 keyword=False, emoji=False).transform(D)    
     X = [dict(klass=x['klass'], premise=x['text'], conclusion=x['text']) for x in D]
     bow = DenseBoW(lang='es', unit_vector=False,
-                              voc_size_exponent=13,
-                              keyword=False, emoji=False, key=['premise', 'conclusion'])
+                   voc_size_exponent=13,
+                   keyword=False, emoji=False, 
+                   key=['premise', 'conclusion'])
     assert abs(bow.transform(X) - O * 2).sum() == 0    
 
 
@@ -102,10 +103,9 @@ def test_StackGeneralization():
     D = list(tweet_iterator(TWEETS))
     text_repr = StackGeneralization(lang='es',
                                     decision_function_models=[BoW(lang='es')],
-                                    transform_models=[DenseBoW(lang='es', 
-                                                                          voc_size_exponent=13,
-                                                                          keyword=False, 
-                                                                          emoji=False)]).fit(D)
+                                    transform_models=[DenseBoW(lang='es', voc_size_exponent=13,
+                                    keyword=False, 
+                                    emoji=False)]).fit(D)
     assert text_repr.predict(['Buen dia'])[0] == 'P'
 
 
@@ -114,10 +114,9 @@ def test_StackGeneralization_train_predict_decision_function():
     D = list(tweet_iterator(TWEETS))
     text_repr = StackGeneralization(lang='es',
                                     decision_function_models=[BoW(lang='es')],
-                                    transform_models=[DenseBoW(lang='es', 
-                                                                          keyword=False, 
-                                                                          voc_size_exponent=13,
-                                                                          emoji=False)])
+                                    transform_models=[DenseBoW(lang='es', keyword=False, 
+                                    voc_size_exponent=13,
+                                    emoji=False)])
     hy = text_repr.train_predict_decision_function(D)
     assert hy.shape[0] == len(D)
     D1 = [x for x in D if x['klass'] in ['P', 'N']]
@@ -129,9 +128,9 @@ def test_DenseBoW_tr_setter():
     from EvoMSA.text_repr import DenseBoW
     D = list(tweet_iterator(TWEETS))
     text_repr = DenseBoW(lang='es', 
-                                    keyword=False, 
-                                    voc_size_exponent=13,
-                                    emoji=False)
+                         keyword=False, 
+                         voc_size_exponent=13,
+                         emoji=False)
     tr = text_repr.text_representations
     text_repr.text_representations = tr[:3]
     assert text_repr.transform(['Buen dia']).shape[1] == 3
@@ -147,9 +146,9 @@ def test_BoW_setter():
 def test_DenseBoW_names():
     from EvoMSA.text_repr import DenseBoW
     text_repr = DenseBoW(lang='es', 
-                                    voc_size_exponent=13,
-                                    keyword=False, 
-                                    emoji=False)
+                         voc_size_exponent=13,
+                         keyword=False, 
+                         emoji=False)
     X = text_repr.transform(['buenos dias'])
     assert X.shape[1] == len(text_repr.names)
 
@@ -157,9 +156,9 @@ def test_DenseBoW_names():
 def test_DenseBoW_select():
     from EvoMSA.text_repr import DenseBoW
     text_repr = DenseBoW(lang='es', 
-                                    voc_size_exponent=13,
-                                    keyword=False, 
-                                    emoji=False)
+                         voc_size_exponent=13,
+                         keyword=False, 
+                         emoji=False)
     text_repr.select([1, 10, 11])
     X = text_repr.transform(['buenos dias'])
     assert X.shape[1] == len(text_repr.names)
@@ -168,7 +167,6 @@ def test_DenseBoW_select():
 def test_BoW_pretrain_False():
     from EvoMSA.text_repr import BoW
     D = list(tweet_iterator(TWEETS))
-    
     bow = BoW(lang='es', pretrain=False,
               b4msa_kwargs=dict(max_dimension=True,
                                 token_max_filter=2**10)).fit(D)
@@ -191,8 +189,8 @@ def test_BoW_pretrain_False():
 def test_DenseBoW_keyword():
     from EvoMSA.text_repr import DenseBoW
     text_repr = DenseBoW(lang='es', keyword=True,
-                                    v1=True,
-                                    emoji=False, dataset=False)
+                         v1=True,
+                         emoji=False, dataset=False)
     X = text_repr.transform(['hola'])
     assert 2113 == X.shape[1]
 
@@ -212,18 +210,18 @@ def test_DenseBoW_select2():
     from EvoMSA.text_repr import DenseBoW
     D = list(tweet_iterator(TWEETS))    
     text_repr = DenseBoW(lang='es', 
-                                    emoji=False,
-                                    keyword=False,
-                                    voc_size_exponent=13,
-                                    n_jobs=1)
+                         emoji=False,
+                         keyword=False,
+                         voc_size_exponent=13,
+                         n_jobs=1)
     n_names = len(text_repr.names)
     text_repr.select(D=D)
     assert len(text_repr.names) < n_names
     text_repr = DenseBoW(lang='es', 
-                                    emoji=False,
-                                    keyword=False,
-                                    voc_size_exponent=13,
-                                    n_jobs=1).select(D=D)
+                         emoji=False,
+                         keyword=False,
+                         voc_size_exponent=13,
+                         n_jobs=1).select(D=D)
     assert isinstance(text_repr, DenseBoW)
 
 
@@ -238,22 +236,22 @@ def test_DenseBoW_unit():
     from EvoMSA.text_repr import DenseBoW
     D = list(tweet_iterator(TWEETS))    
     text_repr = DenseBoW(lang='es', 
-                                    emoji=False,
-                                    keyword=False,
-                                    n_jobs=1,
-                                    voc_size_exponent=13,
-                                    unit_vector=True)
+                         emoji=False,
+                         keyword=False,
+                         n_jobs=1,
+                         voc_size_exponent=13,
+                         unit_vector=True)
     X = text_repr.transform(['buenos días', 'adios'])
     
     _ = np.sqrt((X ** 2).sum(axis=1))
     np.testing.assert_almost_equal(_, np.array([1, 1]))
     text_repr = DenseBoW(lang='es', 
-                                    emoji=False,
-                                    keyword=False,
-                                    n_jobs=1,
-                                    voc_size_exponent=13,
-                                    key=['text', 'text'],
-                                    unit_vector=True)
+                         emoji=False,
+                         keyword=False,
+                         n_jobs=1,
+                         voc_size_exponent=13,
+                         key=['text', 'text'],
+                         unit_vector=True)
     X = text_repr.transform([dict(text='buenos días')])
     _ = np.sqrt((X ** 2).sum(axis=1))
     np.testing.assert_almost_equal(_, 1)
@@ -294,9 +292,9 @@ def test_DenseBoW_extend():
     from os.path import isfile, dirname, join
     lang = 'es'
     text_repr = DenseBoW(lang=lang, keyword=True, v1=True,
-                                    emoji=False, dataset=False)
+                         emoji=False, dataset=False)
     text_repr = DenseBoW(lang=lang, keyword=False, v1=True,
-                                    emoji=False, dataset=False)                                    
+                         emoji=False, dataset=False)
     diroutput = join(dirname(base.__file__), 'models')
     name = 'keywords'
     fname = join(diroutput, f'{lang}_{name}_muTC2.4.2.json.gz')
@@ -310,8 +308,8 @@ def test_DenseBoW_emojis_v2():
     from EvoMSA.text_repr import DenseBoW
     lang = 'ca'
     text_repr = DenseBoW(lang=lang, keyword=False,
-                                    voc_size_exponent=13,
-                                    emoji=True, dataset=False)
+                         voc_size_exponent=13,
+                         emoji=True, dataset=False)
     X = text_repr.transform(['xxx'])
     assert X.shape[0] and X.shape[1] == 136
 
@@ -334,9 +332,9 @@ def test_DenseBoW_cache():
     # D = list(tweet_iterator(TWEETS))
     bow = BoW(lang='es', voc_size_exponent=13)
     tr = DenseBoW(keyword=False,
-                             dataset=False,
-                             voc_size_exponent=13,
-                             lang='es')
+                  dataset=False,
+                  voc_size_exponent=13,
+                  lang='es')
     X = bow.transform(['buenos dias'])
     X1 = tr.transform(['buenos dias'])
     tr.cache = X
@@ -353,9 +351,9 @@ def test_BoW_weights():
 def test_DenseBoW_weights():
     from EvoMSA.text_repr import DenseBoW
     bow = DenseBoW(lang='es',
-                              keyword=False,
-                              dataset=False,                              
-                              voc_size_exponent=13)
+                   keyword=False,
+                   dataset=False,
+                   voc_size_exponent=13)
     assert len(bow.names) == bow.weights.shape[0]
     assert len(bow.names) == bow.bias.shape[0]
 
@@ -364,8 +362,8 @@ def test_DenseBoW_keywords_v2():
     from EvoMSA.text_repr import DenseBoW
     lang = 'ca'
     text_repr = DenseBoW(lang=lang, keyword=True,
-                                    voc_size_exponent=13,
-                                    emoji=False, dataset=False)
+                         voc_size_exponent=13,
+                         emoji=False, dataset=False)
     X = text_repr.transform(['xxx'])        
     assert X.shape[0] == 1 and X.shape[1] == 2022
 
@@ -390,7 +388,7 @@ def test_DenseBoW_fromjson():
     text_repr2 = DenseBoW(lang=lang,
                                      keyword=False,
                                      dataset=False, emoji=False,
-                                     voc_size_exponent=13).fromjson(path)
+                                     voc_size_exponent=d).fromjson(path)
     for a, b in zip(text_repr.names, text_repr2.names):
         assert a == b
     text = ['hola']
@@ -432,13 +430,13 @@ def test_DenseBoW_extend2():
     d = 13
     text_repr = DenseBoW(lang=lang,
                          keyword=False,
-                         voc_size_exponent=13,
+                         voc_size_exponent=d,
                          emoji=True, dataset=False,
                          n_jobs=-1)
     url = f'{lang}_{MICROTC}_{name}_{func}_{d}.json.gz'
     text_repr2 = DenseBoW(lang=lang, 
                           keyword=False,
-                          voc_size_exponent=13,
+                          voc_size_exponent=d,
                           emoji=False, dataset=False,
                           n_jobs=-1)
     text_repr2.text_representations_extend(url)
@@ -449,7 +447,6 @@ def test_DenseBoW_extend2():
 def test_DenseBoW_dataset():
     from EvoMSA.text_repr import DenseBoW
     dense = DenseBoW(lang='it', emoji=False, keyword=False)
-
 
 
 def test_DenseBoW_select_bug():
@@ -464,7 +461,43 @@ def test_DenseBoW_select_bug():
     d = 13
     text_repr = DenseBoW(lang=lang,
                          keyword=False,
-                         voc_size_exponent=13,
+                         voc_size_exponent=d,
                          emoji=True, dataset=False,
                          n_jobs=-1)
     text_repr.select(D=pos + neg[:1]).fit(D)
+
+
+def test_BoW_get_params():
+    from EvoMSA.text_repr import BoW
+    bow = BoW(lang='es')
+    res = bow.get_params()
+    assert res['label_key'] == 'klass'
+
+
+def test_BoW_clone():
+    from EvoMSA.text_repr import BoW
+    from sklearn.base import clone
+    D = list(tweet_iterator(TWEETS))
+    bow = BoW(lang='en').fit(D)
+    bow2 = clone(bow)
+    try:
+        bow2.estimator_instance
+        assert False
+    except AttributeError:
+        pass
+    assert bow2.lang == 'en'
+
+
+def test_DenseBoW_get_params():
+    from EvoMSA.text_repr import DenseBoW
+    lang = 'es'
+    name = 'emojis'
+    func = 'most_common_by_type'
+    d = 13
+    text_repr = DenseBoW(lang=lang,
+                         keyword=False,
+                         voc_size_exponent=d,
+                         emoji=True, dataset=False,
+                         n_jobs=-1)    
+    res = text_repr.get_params()
+    assert res['emoji']
