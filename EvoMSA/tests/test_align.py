@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from test_base import StoreDelete, TWEETS
+from EvoMSA.tests.test_base import StoreDelete, TWEETS
 from EvoMSA.model import LabeledDataSet
 
 

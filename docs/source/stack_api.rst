@@ -25,4 +25,4 @@
 		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
 
 .. autoclass:: EvoMSA.text_repr.StackGeneralization
-   :members:
+   :members: fit, transform, decision_function_models, transform_models

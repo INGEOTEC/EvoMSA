@@ -13,7 +13,7 @@
 # limitations under the License.
 import os
 from microtc.utils import tweet_iterator
-from test_base import StoreDelete
+from EvoMSA.tests.test_base import StoreDelete
 import numpy as np
 TWEETS = os.path.join(os.path.dirname(__file__), 'tweets.json')
 

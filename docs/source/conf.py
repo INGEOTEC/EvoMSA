@@ -80,6 +80,7 @@ pygments_style = 'sphinx'
 highlight_language = 'python'
 # autoclass_content = 'both'
 autodoc_member_order = 'bysource'
+autodoc_class_signature = 'separated'
 
 # -- Options for HTML output -------------------------------------------------
 

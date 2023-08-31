@@ -388,7 +388,6 @@ def test_EvoMSA_cpu_count():
 def test_evomsa_wrapper():
     from microtc.utils import save_model
     from EvoMSA.base import EvoMSA
-    from test_base import get_data
     X, y = get_data()
     model = EvoMSA(stacked_method="sklearn.naive_bayes.GaussianNB",
                    n_jobs=2).fit(X, y)
