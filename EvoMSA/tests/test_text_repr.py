@@ -500,4 +500,61 @@ def test_DenseBoW_get_params():
                          emoji=True, dataset=False,
                          n_jobs=-1)    
     res = text_repr.get_params()
-    assert res['emoji']
+    assert res['emoji'] and res['voc_selection'] == 'most_common_by_type'
+
+
+def test_DenseBoW_clone():
+    from EvoMSA.text_repr import DenseBoW
+    from sklearn.base import clone    
+    lang = 'es'
+    name = 'emojis'
+    func = 'most_common_by_type'
+    d = 13
+    text_repr = DenseBoW(lang=lang,
+                         keyword=False,
+                         voc_size_exponent=d,
+                         emoji=True, dataset=False,
+                         n_jobs=-1).select(subset=[0, 1, 2])
+    cl = clone(text_repr)
+    assert len(cl.text_representations) == 3
+
+
+def test_StackGeneralization_get_params():
+    from EvoMSA.text_repr import DenseBoW, StackGeneralization, BoW
+    lang = 'es'
+    name = 'emojis'
+    func = 'most_common_by_type'
+    d = 13
+    dense = DenseBoW(lang=lang,
+                     keyword=False,
+                     voc_size_exponent=d,
+                     emoji=True, dataset=False,
+                     n_jobs=-1).select(subset=[0, 1, 2])
+    bow = BoW(lang=lang)
+    stack = StackGeneralization([bow, dense])
+    res = stack.get_params()
+    assert res['decision_function_name'] == 'predict_proba'
+
+
+def test_StackGeneralization_clone():
+    from EvoMSA.text_repr import DenseBoW, StackGeneralization, BoW
+    from sklearn.base import clone
+    lang = 'es'
+    name = 'emojis'
+    func = 'most_common_by_type'
+    d = 13
+    D = list(tweet_iterator(TWEETS))
+    dense = DenseBoW(lang=lang,
+                     keyword=False,
+                     voc_size_exponent=d,
+                     emoji=True, dataset=False,
+                     n_jobs=-1).select(subset=[0, 1, 2]).fit(D)
+    bow = BoW(lang=lang)
+    stack = StackGeneralization([bow, dense])
+    stack2 = clone(stack)
+    res = stack.get_params()
+    try:
+        _ = stack2.decision_function_models[1].estimator_instance
+        assert _ == '12'
+    except AttributeError:
+        pass

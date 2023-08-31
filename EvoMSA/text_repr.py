@@ -21,7 +21,7 @@ from microtc.weighting import TFIDF
 from microtc.utils import tweet_iterator
 from joblib import Parallel, delayed
 from typing import Union, List, Set, Callable
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, clone
 from sklearn.svm import LinearSVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import StratifiedKFold
@@ -295,6 +295,15 @@ class BoW(BaseEstimator):
             return self._weights
 
     @property
+    def estimator_instance(self):
+        """Estimator - Classifier or Regressor fitted (:py:attr:`BoW.fit`) on the dataset"""
+        return self._m
+
+    @estimator_instance.setter
+    def estimator_instance(self, m):
+        self._m = m
+
+    @property
     def pretrain(self):
         """Whether the to use pre-trained text representations
         
@@ -506,15 +515,6 @@ class BoW(BaseEstimator):
         self._estimator_kwargs = value        
 
     @property
-    def estimator_instance(self):
-        """Estimator - Classifier or Regressor fitted (:py:attr:`BoW.fit`) on the dataset"""
-        return self._m
-
-    @estimator_instance.setter
-    def estimator_instance(self, m):
-        self._m = m
-
-    @property
     def b4msa_kwargs(self):
         """Keyword arguments of B4MSA"""
         return self._b4msa_kwargs
@@ -570,10 +570,11 @@ class DenseBoW(BoW):
 
     >>> from EvoMSA import DenseBoW
     >>> from microtc.utils import tweet_iterator
-    >>> from EvoMSA.tests.test_base import TWEETS    
-    >>> text_repr =  DenseBoW(lang='es')
-    >>> text_repr.fit(list(tweet_iterator(TWEETS)))
-    >>> text_repr.predict(['Buenos dias']).tolist()
+    >>> from EvoMSA.tests.test_base import TWEETS
+    >>> D = list(tweet_iterator(TWEETS))
+    >>> dense =  DenseBoW(lang='es')
+    >>> dense.fit(D)
+    >>> dense.predict(['Buenos dias']).tolist()
     ['P']    
     """
     def __init__(self, 
@@ -589,39 +590,22 @@ class DenseBoW(BoW):
         self._names = []
         self._text_representations = []
         self.unit_vector = unit_vector
-        self._dataset = dataset
-        self._emoji = emoji
-        self._keyword = keyword
-        if emoji:
-            self.load_emoji()
-        if dataset:
-            self.load_dataset()
-        if keyword:
-            self.load_keyword()
+        self.emoji = emoji
+        self.dataset = dataset
+        self.keyword = keyword
 
-    @property
-    def dataset(self):
-        """Dense Representation based on human-annotated datasets"""
-        return self._dataset
+    def fit(self, *args, **kwargs) -> 'DenseBoW':
+        """Estimate the parameters of the classifier or regressor 
+        (:py:attr:`DenseBoW.estimator_class` - the fitted instance is accesible 
+        at :py:attr:`DenseBoW.estimator_instance`) using the dataset (`D`, `y`).
 
-    @property
-    def emoji(self):
-        """Dense Representation based on emojis"""
-        return self._emoji
-
-    @property
-    def keyword(self):
-        """Dense Representation based on keywords"""
-        return self._keyword
-    
-    @property
-    def unit_vector(self):
-        """Normalize representation to have one length"""
-        return self._unit_vector
-    
-    @unit_vector.setter
-    def unit_vector(self, value):
-        self._unit_vector = value
+        >>> from EvoMSA import DenseBoW
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> D = list(tweet_iterator(TWEETS))
+        >>> dense =  DenseBoW(lang='es').fit(D)        
+        """
+        return super(DenseBoW, self).fit(*args, **kwargs)
 
     def transform(self, D: List[Union[List, dict]], y=None) -> np.ndarray:
         """Represent the texts in `D` in the vector space.
@@ -631,7 +615,7 @@ class DenseBoW(BoW):
 
         >>> from EvoMSA import DenseBoW
         >>> X = DenseBoW(lang='en').transform([dict(text='Hi'),
-                                                          dict(text='Good morning')])
+                                               dict(text='Good morning')])
         >>> X.shape
         (2, 1287)
         """                
@@ -659,42 +643,18 @@ class DenseBoW(BoW):
         else:
             return _            
 
-    @property
-    def names(self):
-        return self._names
-
-    @names.setter
-    def names(self, value):
-        self._names = value            
-
-    @property
-    def weights(self):
-        """Weights of the vector space. 
-        It is matrix, i.e., :math:`\mathbf W \in \mathbb R^{M \\times d}`, where 
-        :math:`M` is the dimension of the vector space (see :py:attr:`DenseBoW.names`)
-        and :math:`d` is the vocabulary size.
+    def predict(self, *args, **kwargs) -> np.ndarray:
+        """Predict the response variable on the dataset `D`.
 
         >>> from EvoMSA import DenseBoW
-        >>> text_repr = DenseBoW(lang='es')
-        >>> text_repr.weights.shape
-        (2672, 131072)        
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> D = list(tweet_iterator(TWEETS))
+        >>> dense = DenseBoW(lang='es').fit(D)
+        >>> dense.predict(['Buenos dias']).tolist()
+        ['P']                
         """
-        try:
-            return self._weights
-        except AttributeError:
-            w = np.array([x._coef for x in self.text_representations])
-            self._weights = w
-            return self._weights
-
-    @property
-    def bias(self):
-        """Bias."""
-        try:
-            return self._bias
-        except AttributeError:
-            w = np.array([x._intercept for x in self.text_representations])
-            self._bias = w
-            return self._bias
+        return super(DenseBoW, self).predict(*args, **kwargs)
 
     @property
     def text_representations(self):
@@ -742,17 +702,6 @@ class DenseBoW(BoW):
         index = feature_selection.get_support(indices=True)
         return self.select(subset=index)        
 
-    def fromjson(self, filename:str) -> 'DenseBoW':
-        """Load the text representations from a json file.
-        
-        :param filename: Path
-        :type filename: str
-        """        
-        models = [Linear(**kwargs)
-                  for kwargs in tweet_iterator(filename)]
-        self.text_representations_extend(models)
-        return self
-    
     def text_representations_extend(self, value: Union[List, str]):
         """Add dense BoW representations.
 
@@ -769,6 +718,105 @@ class DenseBoW(BoW):
                 self.text_representations.append(x)
                 self.names.append(label)
                 names.add(label)    
+
+    @property
+    def names(self):
+        return self._names
+
+    @names.setter
+    def names(self, value):
+        self._names = value            
+
+    @property
+    def weights(self):
+        """Weights of the vector space. 
+        It is matrix, i.e., :math:`\mathbf W \in \mathbb R^{M \\times d}`, where 
+        :math:`M` is the dimension of the vector space (see :py:attr:`DenseBoW.names`)
+        and :math:`d` is the vocabulary size.
+
+        >>> from EvoMSA import DenseBoW
+        >>> text_repr = DenseBoW(lang='es')
+        >>> text_repr.weights.shape
+        (2672, 131072)        
+        """
+        try:
+            return self._weights
+        except AttributeError:
+            w = np.array([x._coef for x in self.text_representations])
+            self._weights = w
+            return self._weights
+
+    @property
+    def bias(self):
+        """Bias."""
+        try:
+            return self._bias
+        except AttributeError:
+            w = np.array([x._intercept for x in self.text_representations])
+            self._bias = w
+            return self._bias
+
+    @property
+    def dataset(self):
+        """Dense Representation based on human-annotated datasets"""
+        return self._dataset
+    
+    @dataset.setter
+    def dataset(self, value):
+        self._dataset = value
+        if value:
+            self.load_dataset()
+
+    @property
+    def emoji(self):
+        """Dense Representation based on emojis"""
+        return self._emoji
+    
+    @emoji.setter
+    def emoji(self, value):
+        self._emoji = value
+        if value:
+            self.load_emoji()
+
+    @property
+    def keyword(self):
+        """Dense Representation based on keywords"""
+        return self._keyword
+    
+    @keyword.setter
+    def keyword(self, value):
+        self._keyword = value
+        if value:
+            self.load_keyword()
+    
+    @property
+    def unit_vector(self):
+        """Normalize representation to have one length"""
+        return self._unit_vector
+    
+    @unit_vector.setter
+    def unit_vector(self, value):
+        self._unit_vector = value
+
+    def fromjson(self, filename:str) -> 'DenseBoW':
+        """Load the text representations from a json file.
+        
+        :param filename: Path
+        :type filename: str
+        """        
+        models = [Linear(**kwargs)
+                  for kwargs in tweet_iterator(filename)]
+        self.text_representations_extend(models)
+        return self
+    
+    def get_params(self, deep=True):
+        """Obtain the parameters of the class"""
+        dense_params = self._get_param_names()
+        bow_params = BoW._get_param_names()
+        params = dict()
+        for k in bow_params + dense_params:
+            params[k] = getattr(self, k)
+        return params
 
     @property
     def skip_dataset(self):
@@ -826,15 +874,34 @@ class DenseBoW(BoW):
             self.text_representations.extend(_)
             self.names.extend([x.labels[-1] for x in _])
 
+    def __sklearn_clone__(self):
+        klass = self.__class__
+        params = self.get_params()
+        models = ['emoji', 'keyword', 'dataset']
+        args = {k: params[k] for k in models}
+        params.update({k: False for k in models})
+        ins = klass(**params)
+        ins.text_representations_extend(self.text_representations)
+        for k, v in args.items():
+            setattr(ins, f'_{k}', v)
+        return ins
+
+
 TextRepresentations = DenseBoW
 
 class StackGeneralization(BoW):
-    """
+    """The idea behind stack generalization is to train an estimator on the predictions made by the base classifiers or regressors.
+
+    :param decision_function_models: Represent the text by calling the decision function
+    :type decision_function_models: List of :py:class:`BoW` or :py:class:`DenseBoW`
+    :param transform_models: Represent the text by calling the transform
+    :type transform_models: List of :py:class:`BoW` or :py:class:`DenseBoW`
+
     >>> from EvoMSA import DenseBoW, BoW, StackGeneralization
     >>> from microtc.utils import tweet_iterator
     >>> from EvoMSA.tests.test_base import TWEETS    
-    >>> emoji =  DenseBoW(lang='es', dataset=False)
-    >>> dataset = DenseBoW(lang='es', emoji=False)
+    >>> emoji =  DenseBoW(lang='es', dataset=False, keyword=False)
+    >>> dataset = DenseBoW(lang='es', emoji=False, keyword=False)
     >>> bow = BoW(lang='es')
     >>> stacking = StackGeneralization(decision_function_models=[bow],
                                        transform_models=[dataset, emoji])
@@ -860,20 +927,43 @@ class StackGeneralization(BoW):
         self._transform_models = transform_models
         self.estimated = False
 
-    @property
-    def estimated(self):
-        return self._estimated
-    
-    @estimated.setter
-    def estimated(self, value):
-        self._estimated = value
-
     def fit(self, *args, **kwargs) -> 'StackGeneralization':
+        """
+        >>> from EvoMSA import DenseBoW, BoW, StackGeneralization
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS    
+        >>> D = list(tweet_iterator(TWEETS))
+        >>> emoji =  DenseBoW(lang='es', dataset=False, keyword=False)
+        >>> dataset = DenseBoW(lang='es', emoji=False, keyword=False)
+        >>> bow = BoW(lang='es')
+        >>> stacking = StackGeneralization(decision_function_models=[bow],
+                                           transform_models=[dataset, emoji]).fit(D)
+        """        
         super(StackGeneralization, self).fit(*args, **kwargs)
         self._estimated = True
         return self
 
     def transform(self, D: List[Union[List, dict]], y=None) -> np.ndarray:
+        """Represent the texts in `D` in the vector space.
+
+        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`key`
+        :type D: List of texts or dictionaries.
+
+        >>> from EvoMSA import DenseBoW, BoW, StackGeneralization
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> D = list(tweet_iterator(TWEETS))
+        >>> emoji =  DenseBoW(lang='es', dataset=False, keyword=False)
+        >>> dataset = DenseBoW(lang='es', emoji=False, keyword=False)
+        >>> bow = BoW(lang='es')
+        >>> df_models = [dataset, emoji, bow]
+        >>> stacking = StackGeneralization(decision_function_models=df_models).fit(D)
+        >>> stacking.transform(['buenos días'])
+        array([[-1.56701076, -0.95614898, -0.39118087, 0.45360793, -1.65985598,
+                -1.08645745, -0.67770805, 0.9703371, -1.40547817, -1.01340492,
+                -0.57912169, 0.90450232]])
+        """
+
         Xs = [text_repr.transform(D)
               for text_repr in self._transform_models]
         if not self.estimated:
@@ -885,9 +975,34 @@ class StackGeneralization(BoW):
         Xs += [text_repr.decision_function(D)
                for text_repr in self._decision_function_models]
         return np.concatenate(Xs, axis=1)
+    
+    @property
+    def estimated(self):
+        return self._estimated
+    
+    @estimated.setter
+    def estimated(self, value):
+        self._estimated = value
 
     def train_predict_decision_function(self, *args, **kwargs) -> np.ndarray:
         assert not self.estimated
         return super(StackGeneralization, self).train_predict_decision_function(*args, **kwargs)
+    
+    @property
+    def decision_function_models(self):
+        """These models create the vector space by calling the decision function."""
+        return self._decision_function_models
 
-
+    @property
+    def transform_models(self):
+        """These models create the vector space by calling the transform."""
+        return self._transform_models
+    
+    def __sklearn_clone__(self):
+        klass = self.__class__
+        params = self.get_params()
+        params['decision_function_models'] = [clone(x) 
+                                              for x in self.decision_function_models]
+        params['transform_models'] = [clone(x)
+                                      for x in self.transform_models]
+        return klass(**params)

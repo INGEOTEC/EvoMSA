@@ -25,4 +25,4 @@
 		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
 
 .. autoclass:: EvoMSA.text_repr.BoW
-   :members:
+   :members: fit, transform, predict, decision_function, bow, names, weights, pretrain, lang, voc_selection, voc_size_exponent, v1, b4msa_fit, train_predict_decision_function, dependent_variable, cache, label_key, key, decision_function_name, kfold_class, kfold_kwargs, estimator_class, estimator_kwargs, estimator_instance, b4msa_kwargs, mixer_func, n_jobs

@@ -25,4 +25,4 @@
 		:target: https://evomsa.readthedocs.io/en/docs/?badge=docs
 
 .. autoclass:: EvoMSA.text_repr.DenseBoW
-   :members:
+   :members: dataset, emoji, keyword, unit_vector, transform, names, weights, bias, text_representations, select, fromjson, text_representations_extend, skip_dataset, fit, predict
