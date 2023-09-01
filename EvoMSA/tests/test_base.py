@@ -13,6 +13,7 @@
 # limitations under the License.
 from EvoMSA.base import EvoMSA
 from microtc.utils import tweet_iterator
+import numpy as np
 import os
 TWEETS = os.path.join(os.path.dirname(__file__), 'tweets.json')
 try:
@@ -47,7 +48,7 @@ def get_data():
     D = [[x['text'], x['klass']] for x in tweet_iterator(TWEETS)]
     X = [x[0] for x in D]
     y = [x[1] for x in D]
-    return X, y
+    return X, np.r_[y]
 
 
 def test_TextModel():
@@ -227,6 +228,7 @@ def test_EvoMSA_multinomial():
 def test_EvoMSA_empty_string():
     from EvoMSA.model import Multinomial
     X, y = get_data()
+    y = y.tolist()
     X.append("")
     y.append("NONE")
     evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,
