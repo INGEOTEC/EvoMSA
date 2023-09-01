@@ -228,6 +228,7 @@ def test_EvoMSA_multinomial():
 def test_EvoMSA_empty_string():
     from EvoMSA.model import Multinomial
     X, y = get_data()
+    y = y.tolist()
     X.append("")
     y.append("NONE")
     evo = EvoMSA(stacked_method_args=dict(popsize=10, early_stopping_rounds=10,

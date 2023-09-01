@@ -306,3 +306,105 @@ class Comp2023(object):
                                                              bow_voc,
                                                              keywords,
                                                              keywords_voc])
+    
+    def stack_3_bows(self):
+        """Stack generalization approach with three base classifiers. All of them are :py:class:`EvoMSA.text_repr.BoW`; the first two correspond pre-trained :py:class:`EvoMSA.text_repr.BoW` with the two token selection procedures described previously (i.e., BoW default parameters and BoW using :py:attr:`voc_selection`), and the latest is a :py:class:`EvoMSA.text_repr.BoW` trained on the training set.
+
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW, StackGeneralization
+        >>> from EvoMSA.utils import b4msa_params        
+        >>> D = list(tweet_iterator(TWEETS))
+        >>> bow = BoW(lang='es')
+        >>> bow_voc = BoW(lang='es',
+                          voc_selection='most_common')
+        >>> params = b4msa_params(lang='es')
+        >>> del params['token_max_filter']
+        >>> del params['max_dimension']                
+        >>> bow_train = BoW(lang='es',
+                            pretrain=False, 
+                            b4msa_kwargs=params).fit(D)                          
+        >>> st = StackGeneralization(decision_function_models=[bow,
+                                                               bow_voc,
+                                                               bow_train]).fit(D)
+        >>> hy = st.predict(['Buenos días'])                
+        """
+
+        bow = self.bow()
+        bow_voc = self.bow_voc_selection()
+        bow_train = self.bow_training_set()
+        return StackGeneralization(decision_function_models=[bow,
+                                                             bow_voc,
+                                                             bow_train])
+    
+    def stack_3_bows_tailored_keywords(self, tailored, D, y=None):
+        """Stack generalization approach with five base classifiers. The first corresponds to a :py:class:`EvoMSA.text_repr.BoW` trained on the training set, and the rest are used in :py:func:`EvoMSA.competitions.Comp2023.stack_2_bow_tailored_keywords`.
+
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW, DenseBoW, StackGeneralization
+        >>> from EvoMSA.utils import b4msa_params        
+        >>> D = list(tweet_iterator(TWEETS))
+        >>> bow = BoW(lang='es')
+        >>> keywords = DenseBoW(lang='es',
+                                dataset=False).select(D=D)
+        >>> tailored = 'IberLEF2023_DAVINCIS_task1_Es.json.gz'
+        >>> keywords.text_representations_extend(tailored)
+        >>> bow_voc = BoW(lang='es',
+                          voc_selection='most_common')
+        >>> keywords_voc = DenseBoW(lang='es',
+                                    voc_selection='most_common',
+                                    dataset=False).select(D=D)
+        >>> params = b4msa_params(lang='es')
+        >>> del params['token_max_filter']
+        >>> del params['max_dimension']                
+        >>> bow_train = BoW(lang='es',
+                            pretrain=False, 
+                            b4msa_kwargs=params)                                    
+        >>> st = StackGeneralization(decision_function_models=[bow, bow_voc,
+                                                               bow_train,
+                                                               keywords,
+                                                               keywords_voc]).fit(D)
+        >>> hy = st.predict(['Buenos días'])                
+        """
+        st = self.stack_2_bow_tailored_keywords(tailored, D, y=y)
+        st.decision_function_models.append(self.bow_training_set())
+        return st
+
+
+    def stack_3_bow_tailored_all_keywords(self, tailored, D, y=None):
+        """Stack generalization approach with five base classifiers. The first corresponds to a :py:class:`EvoMSA.text_repr.BoW` trained on the training set, and the rest are used in :py:func:`EvoMSA.competitions.Comp2023.stack_2_bow_tailored_all_keywords.
+
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW, DenseBoW, StackGeneralization
+        >>> from EvoMSA.utils import b4msa_params 
+        >>> D = list(tweet_iterator(TWEETS))        
+        >>> bow = BoW(lang='es')
+        >>> keywords = DenseBoW(lang='es')
+        >>> tailored = 'IberLEF2023_DAVINCIS_task1_Es.json.gz'
+        >>> keywords.text_representations_extend(tailored)        
+        >>> sel = [k for k, v in enumerate(keywords.names)
+                   if v not in ['davincis2022_1'] or 'semeval2023' not in v]
+        >>> keywords.select(sel).select(D=D)
+        >>> bow_voc = BoW(lang='es', voc_selection='most_common')
+        >>> keywords_voc = DenseBoW(lang='es',
+                                    voc_selection='most_common').select(sel).select(D=D)
+        >>> params = b4msa_params(lang='es')
+        >>> del params['token_max_filter']
+        >>> del params['max_dimension']                
+        >>> bow_train = BoW(lang='es',
+                            pretrain=False, 
+                            b4msa_kwargs=params)                                    
+        >>> st = StackGeneralization(decision_function_models=[bow,
+                                                               bow_voc,
+                                                               bow_train,
+                                                               keywords,
+                                                               keywords_voc]).fit(D)
+        >>> hy = st.predict(['Buenos días'])       
+        """
+
+        st = self.stack_2_bow_tailored_all_keywords(tailored, D, y=y)
+        st.decision_function_models.append(self.bow_training_set())
+        return st
+
