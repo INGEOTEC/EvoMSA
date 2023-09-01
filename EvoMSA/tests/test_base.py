@@ -13,6 +13,7 @@
 # limitations under the License.
 from EvoMSA.base import EvoMSA
 from microtc.utils import tweet_iterator
+import numpy as np
 import os
 TWEETS = os.path.join(os.path.dirname(__file__), 'tweets.json')
 try:
@@ -47,7 +48,7 @@ def get_data():
     D = [[x['text'], x['klass']] for x in tweet_iterator(TWEETS)]
     X = [x[0] for x in D]
     y = [x[1] for x in D]
-    return X, y
+    return X, np.r_[y]
 
 
 def test_TextModel():
