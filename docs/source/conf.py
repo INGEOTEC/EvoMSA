@@ -17,7 +17,6 @@ import sys
 sys.path.insert(0, os.path.abspath('../..'))
 import EvoMSA
 
-
 # -- Project information -----------------------------------------------------
 
 project = 'EvoMSA'
@@ -81,6 +80,8 @@ highlight_language = 'python'
 # autoclass_content = 'both'
 autodoc_member_order = 'bysource'
 autodoc_class_signature = 'separated'
+add_function_parentheses = False
+add_module_names = False
 
 # -- Options for HTML output -------------------------------------------------
 
