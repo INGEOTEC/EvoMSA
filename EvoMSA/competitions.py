@@ -17,7 +17,7 @@ class Comp2023(object):
         self.lang = lang
 
     def bow(self):
-        """Pre-trained :py:class:`EvoMSA.text_repr.BoW` where the tokens are selected based on a normalized frequency w.r.t. its type, i.e., bigrams, words, and q-grams of characters.
+        """Pre-trained :ref:`BoW` where the tokens are selected based on a normalized frequency w.r.t. its type, i.e., bigrams, words, and q-grams of characters.
 
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
@@ -31,7 +31,7 @@ class Comp2023(object):
                    voc_size_exponent=self.voc_size_exponent)
     
     def bow_voc_selection(self):
-        """Pre-trained :py:class:`EvoMSA.text_repr.BoW` where the tokens correspond to the most frequent ones.
+        """Pre-trained :ref:`BoW` where the tokens correspond to the most frequent ones.
 
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
@@ -47,7 +47,7 @@ class Comp2023(object):
                    voc_selection='most_common')
     
     def bow_training_set(self):
-        """:py:class`EvoMSA.text_repr.BoW` trained with the training set; the number of tokens corresponds to all the tokens in the set.
+        """:ref:`BoW` trained with the training set; the number of tokens corresponds to all the tokens in the set.
 
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
@@ -71,7 +71,7 @@ class Comp2023(object):
                    b4msa_kwargs=params)
     
     def stack_bow_keywords_emojis(self, D, y=None):
-        """Stack generalization (:py:class:`EvoMSA.text_repr.StackGeneralization`) approach where the base classifiers are the :py:class:`EvoMSA.text_repr.BoW`, the :py:attr:`emoji`, and the :py:attr:`keywords` of :py:class:`EvoMSA.text_repr.DenseBoW`.
+        """Stack generalization (:ref:`StackGeneralization`) approach where the base classifiers are the :ref:`BoW`, the :py:attr:`emoji`, and the :py:attr:`keywords` of :ref:`DenseBoW`.
 
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
@@ -104,7 +104,7 @@ class Comp2023(object):
                                                              emojis])
     
     def stack_bow_keywords_emojis_voc_selection(self, D, y=None):
-        """Stack generalization (:py:class:`EvoMSA.text_repr.StackGeneralization`) approach where the base classifiers are the :py:class:`EvoMSA.text_repr.BoW`, the :py:attr:`emoji`, and the :py:attr:`keywords` of :py:class:`EvoMSA.text_repr.DenseBoW`. The tokens in these models were selected based on a normalized frequency w.r.t. its type, i.e., bigrams, words, and q-grams of characters.
+        """Stack generalization (:ref:`StackGeneralization`) approach where the base classifiers are the :ref:`BoW`, the :py:attr:`emoji`, and the :py:attr:`keywords` of :ref:`DenseBoW`. The tokens in these models were selected based on a normalized frequency w.r.t. its type, i.e., bigrams, words, and q-grams of characters.
 
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
@@ -142,7 +142,7 @@ class Comp2023(object):
                                                              emojis])
 
     def stack_bows(self):
-        """Stack generalization approach where the base classifiers are :py:class:`EvoMSA.text_repr.BoW` with the two token selection procedures set in the parameter :py:attr:`voc_selection`.
+        """Stack generalization approach where the base classifiers are :ref:`BoW` with the two token selection procedures set in the parameter :py:attr:`voc_selection`.
 
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
@@ -160,7 +160,7 @@ class Comp2023(object):
         return  StackGeneralization(decision_function_models=[bow, bow_voc])
 
     def stack_2_bow_keywords(self, D, y=None):
-        """Stack generalization approach where with four base classifiers. These correspond to two :py:class:`EvoMSA.text_repr.BoW` and two dense :py:class:`EvoMSA.text_repr.DenseBoW` (emojis and keywords), where the difference in each is the procedure used to select the tokens, i.e., the most frequent or normalized frequency (i.e., :py:attr:`voc_selection`).
+        """Stack generalization approach where with four base classifiers. These correspond to two :ref:`BoW` and two dense :ref:`DenseBoW` (emojis and keywords), where the difference in each is the procedure used to select the tokens, i.e., the most frequent or normalized frequency (i.e., :py:attr:`voc_selection`).
 
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
@@ -194,7 +194,7 @@ class Comp2023(object):
                                                              keywords2])
 
     def stack_2_bow_tailored_keywords(self, tailored, D, y=None):
-        """Stack generalization approach where with four base classifiers. These correspond to two :py:class:`EvoMSA.text_repr.BoW` and two :py:class:`EvoMSA.text_repr.DenseBoW` (emojis and keywords), where the difference in each is the procedure used to select the tokens, i.e., the most frequent or normalized frequency. The second difference is that the dense representation with normalized frequency also includes models for the most discriminant words selected by a BoW classifier in the training set. We refer to these latter representations as **tailored keywords.**
+        """Stack generalization approach where with four base classifiers. These correspond to two :ref:`BoW` and two :ref:`DenseBoW` (emojis and keywords), where the difference in each is the procedure used to select the tokens, i.e., the most frequent or normalized frequency. The second difference is that the dense representation with normalized frequency also includes models for the most discriminant words selected by a BoW classifier in the training set. We refer to these latter representations as **tailored keywords.**
         
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
@@ -232,7 +232,7 @@ class Comp2023(object):
                                                              keywords2])
 
     def stack_2_bow_all_keywords(self, D, y=None):
-        """Stack generalization approach where with four base classifiers equivalently to :py:class:`EvoMSA.text_repr.StackGeneralization` using :py:class:`EvoMSA.text_repr.BoW` and :py:class:`EvoMSA.text_repr.DenseBoW` with and without :py:attr:`voc_selection` where the difference is that the dense representations include the models created with the human-annotated datasets.
+        """Stack generalization approach where with four base classifiers equivalently to :ref:`StackGeneralization` using :ref:`BoW` and :ref:`DenseBoW` with and without :py:attr:`voc_selection` where the difference is that the dense representations include the models created with the human-annotated datasets.
         
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
@@ -269,7 +269,7 @@ class Comp2023(object):
                                                              keywords2])
 
     def stack_2_bow_tailored_all_keywords(self, tailored, D, y=None):
-        """Stack generalization approach where with four base classifiers equivalently to :py:class:`EvoMSA.text_repr.StackGeneralization` using :py:class:`EvoMSA.text_repr.BoW` and :py:class:`EvoMSA.text_repr.DenseBoW` with and without :py:attr:`voc_selection` where the difference is that the dense representation with normalized frequency also includes the tailored keywords.
+        """Stack generalization approach where with four base classifiers equivalently to :ref:`StackGeneralization` using :ref:`BoW` and :ref:`DenseBoW` with and without :py:attr:`voc_selection` where the difference is that the dense representation with normalized frequency also includes the tailored keywords.
 
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
@@ -308,7 +308,7 @@ class Comp2023(object):
                                                              keywords_voc])
     
     def stack_3_bows(self):
-        """Stack generalization approach with three base classifiers. All of them are :py:class:`EvoMSA.text_repr.BoW`; the first two correspond pre-trained :py:class:`EvoMSA.text_repr.BoW` with the two token selection procedures described previously (i.e., BoW default parameters and BoW using :py:attr:`voc_selection`), and the latest is a :py:class:`EvoMSA.text_repr.BoW` trained on the training set.
+        """Stack generalization approach with three base classifiers. All of them are :ref:`BoW`; the first two correspond pre-trained :ref:`BoW` with the two token selection procedures described previously (i.e., BoW default parameters and BoW using :py:attr:`voc_selection`), and the latest is a :ref:`BoW` trained on the training set.
 
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
@@ -338,7 +338,7 @@ class Comp2023(object):
                                                              bow_train])
     
     def stack_3_bows_tailored_keywords(self, tailored, D, y=None):
-        """Stack generalization approach with five base classifiers. The first corresponds to a :py:class:`EvoMSA.text_repr.BoW` trained on the training set, and the rest are used in :py:func:`EvoMSA.competitions.Comp2023.stack_2_bow_tailored_keywords`.
+        """Stack generalization approach with five base classifiers. The first corresponds to a :ref:`BoW` trained on the training set, and the rest are used in :py:func:`EvoMSA.competitions.Comp2023.stack_2_bow_tailored_keywords`.
 
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS
@@ -371,9 +371,8 @@ class Comp2023(object):
         st.decision_function_models.append(self.bow_training_set())
         return st
 
-
     def stack_3_bow_tailored_all_keywords(self, tailored, D, y=None):
-        """Stack generalization approach with five base classifiers. The first corresponds to a :py:class:`EvoMSA.text_repr.BoW` trained on the training set, and the rest are used in :py:func:`EvoMSA.competitions.Comp2023.stack_2_bow_tailored_all_keywords.
+        """Stack generalization approach with five base classifiers. The first corresponds to a :ref:`BoW` trained on the training set, and the rest are used in :py:func:`EvoMSA.competitions.Comp2023.stack_2_bow_tailored_all_keywords`. 
 
         >>> from microtc.utils import tweet_iterator
         >>> from EvoMSA.tests.test_base import TWEETS

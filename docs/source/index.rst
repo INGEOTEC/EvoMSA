@@ -101,7 +101,7 @@ The text classification problem can be read using the following instruction. It 
      'klass': 'NONE',
      'q_voc_ratio': 0.4585635359116022}
 
-The field :py:attr:`text` is self-described, and the field :py:attr:`klass`` contains the label associated with that text.
+The field :py:attr:`text` is self-described, and the field :py:attr:`klass` contains the label associated with that text.
 
 
 :ref:`bow` Classifier
