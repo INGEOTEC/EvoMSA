@@ -68,8 +68,8 @@ def test_stack_2_bow_keywords():
 def test_stack_2_bow_tailored_keywords():
     D, y = get_data()
     comp2023 = instance()
-    tailored = 'es_2.4.9_emojis_most_common_by_type_13.json.gz'
-    comp2023.stack_2_bow_tailored_keywords(tailored, D, y)
+    comp2023.tailored = 'es_2.4.9_emojis_most_common_by_type_13.json.gz'
+    comp2023.stack_2_bow_tailored_keywords(D, y)
 
 
 def test_stack_2_bow_all_keywords():
@@ -81,8 +81,8 @@ def test_stack_2_bow_all_keywords():
 def test_stack_2_bow_tailored_all_keywords():
     D, y = get_data()
     comp2023 = instance()
-    tailored = 'es_2.4.9_emojis_most_common_by_type_13.json.gz'
-    comp2023.stack_2_bow_tailored_all_keywords(tailored, D, y)
+    comp2023.tailored = 'es_2.4.9_emojis_most_common_by_type_13.json.gz'
+    comp2023.stack_2_bow_tailored_all_keywords(D, y)
 
 
 def test_stack_3_bows():
@@ -94,12 +94,20 @@ def test_stack_3_bows():
 def test_stack_3_bows_tailored_keywords():
     D, y = get_data()
     comp2023 = instance()
-    tailored = 'es_2.4.9_emojis_most_common_by_type_13.json.gz'
-    comp2023.stack_3_bows_tailored_keywords(tailored, D, y)
+    comp2023.tailored = 'es_2.4.9_emojis_most_common_by_type_13.json.gz'
+    comp2023.stack_3_bows_tailored_keywords(D, y)
 
 
 def test_stack_3_bows_tailored_all_keywords():
     D, y = get_data()
     comp2023 = instance()
-    tailored = 'es_2.4.9_emojis_most_common_by_type_13.json.gz'
-    comp2023.stack_3_bow_tailored_all_keywords(tailored, D, y)    
+    comp2023.tailored = 'es_2.4.9_emojis_most_common_by_type_13.json.gz'
+    comp2023.stack_3_bow_tailored_all_keywords(D, y)
+
+
+def test_Comp2023_iter():
+    cnt = 0
+    assert sum([1 for x in Comp2023(lang='es', tailored='X')]) == 13
+    assert sum([1 for x in Comp2023(lang='it', tailored='X')]) == 10
+    assert sum([1 for x in Comp2023(lang='es')]) == 9
+    assert sum([1 for x in Comp2023(lang='it')]) == 8

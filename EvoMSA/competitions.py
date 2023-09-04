@@ -11,12 +11,47 @@ import numpy as np
 
 
 class Comp2023(object):
-    """Configurations tested on the 2023 Competitions"""
-    def __init__(self, lang='es', voc_size_exponent=17) -> None:
+    """Configurations tested on the 2023 Competitions.
+    
+    :param lang: language, see :ref:`BoW`
+    :type: lang: str
+    :param voc_size_exponent: Vocabulary size. default=17, i.e., :math:`2^{17}`.
+    :type voc_size_exponent: int
+    :param tailored: :ref:`DenseBoW` created with keywords selected from a problem.
+    :type tailored: str
+    """
+    def __init__(self, lang='es', 
+                 voc_size_exponent=17,
+                 tailored=None) -> None:
         self.voc_size_exponent = voc_size_exponent
         self.lang = lang
+        self.tailored = tailored
 
-    def bow(self):
+    def __iter__(self):
+        systems = [self.bow,
+                   self.bow_voc_selection,
+                   self.bow_training_set,
+                   self.stack_bow_keywords_emojis,
+                   self.stack_bow_keywords_emojis_voc_selection,
+                   self.stack_bows,
+                   self.stack_2_bow_keywords,
+                   self.stack_2_bow_tailored_keywords,
+                   self.stack_2_bow_all_keywords,
+                   self.stack_2_bow_tailored_all_keywords,
+                   self.stack_3_bows,
+                   self.stack_3_bows_tailored_keywords,
+                   self.stack_3_bow_tailored_all_keywords]
+        otra = []
+        for i in systems:
+            if self.lang not in ['ar', 'es', 'en'] and '_all_' in i.__name__:
+                continue
+            if '_tailored_' in i.__name__ and self.tailored is None:
+                continue
+            otra.append(i)
+        systems = otra                    
+        return systems.__iter__()
+    
+    def bow(self, D=None, y=None):
         """Pre-trained :ref:`BoW` where the tokens are selected based on a normalized frequency w.r.t. its type, i.e., bigrams, words, and q-grams of characters.
 
         >>> from microtc.utils import tweet_iterator
@@ -30,7 +65,7 @@ class Comp2023(object):
         return BoW(lang=self.lang,
                    voc_size_exponent=self.voc_size_exponent)
     
-    def bow_voc_selection(self):
+    def bow_voc_selection(self, D=None, y=None):
         """Pre-trained :ref:`BoW` where the tokens correspond to the most frequent ones.
 
         >>> from microtc.utils import tweet_iterator
@@ -46,7 +81,7 @@ class Comp2023(object):
                    voc_size_exponent=self.voc_size_exponent,
                    voc_selection='most_common')
     
-    def bow_training_set(self):
+    def bow_training_set(self, D=None, y=None):
         """:ref:`BoW` trained with the training set; the number of tokens corresponds to all the tokens in the set.
 
         >>> from microtc.utils import tweet_iterator
@@ -141,7 +176,7 @@ class Comp2023(object):
                                                              keywords,
                                                              emojis])
 
-    def stack_bows(self):
+    def stack_bows(self, D=None, y=None):
         """Stack generalization approach where the base classifiers are :ref:`BoW` with the two token selection procedures set in the parameter :py:attr:`voc_selection`.
 
         >>> from microtc.utils import tweet_iterator
@@ -193,7 +228,7 @@ class Comp2023(object):
                                                              keywords,
                                                              keywords2])
 
-    def stack_2_bow_tailored_keywords(self, tailored, D, y=None):
+    def stack_2_bow_tailored_keywords(self, D, y=None):
         """Stack generalization approach where with four base classifiers. These correspond to two :ref:`BoW` and two :ref:`DenseBoW` (emojis and keywords), where the difference in each is the procedure used to select the tokens, i.e., the most frequent or normalized frequency. The second difference is that the dense representation with normalized frequency also includes models for the most discriminant words selected by a BoW classifier in the training set. We refer to these latter representations as **tailored keywords.**
         
         >>> from microtc.utils import tweet_iterator
@@ -220,7 +255,7 @@ class Comp2023(object):
         keywords = DenseBoW(lang='es',
                             voc_size_exponent=self.voc_size_exponent,
                             dataset=False)
-        keywords.text_representations_extend(tailored)
+        keywords.text_representations_extend(self.tailored)
         keywords.select(D=D, y=y)
         bow2 = self.bow_voc_selection()
         keywords2 = DenseBoW(lang='es',
@@ -268,7 +303,7 @@ class Comp2023(object):
                                                              keywords,
                                                              keywords2])
 
-    def stack_2_bow_tailored_all_keywords(self, tailored, D, y=None):
+    def stack_2_bow_tailored_all_keywords(self, D, y=None):
         """Stack generalization approach where with four base classifiers equivalently to :ref:`StackGeneralization` using :ref:`BoW` and :ref:`DenseBoW` with and without :py:attr:`voc_selection` where the difference is that the dense representation with normalized frequency also includes the tailored keywords.
 
         >>> from microtc.utils import tweet_iterator
@@ -294,7 +329,7 @@ class Comp2023(object):
         bow = self.bow()
         keywords = DenseBoW(lang=self.lang,
                             voc_size_exponent=self.voc_size_exponent)
-        keywords.text_representations_extend(tailored)        
+        keywords.text_representations_extend(self.tailored)        
         sel = [k for k, v in enumerate(keywords.names) 
                if v not in ['davincis2022_1'] or 'semeval2023' not in v]
         keywords.select(sel).select(D=D, y=y)
@@ -307,7 +342,7 @@ class Comp2023(object):
                                                              keywords,
                                                              keywords_voc])
     
-    def stack_3_bows(self):
+    def stack_3_bows(self, D=None, y=None):
         """Stack generalization approach with three base classifiers. All of them are :ref:`BoW`; the first two correspond pre-trained :ref:`BoW` with the two token selection procedures described previously (i.e., BoW default parameters and BoW using :py:attr:`voc_selection`), and the latest is a :ref:`BoW` trained on the training set.
 
         >>> from microtc.utils import tweet_iterator
@@ -337,7 +372,7 @@ class Comp2023(object):
                                                              bow_voc,
                                                              bow_train])
     
-    def stack_3_bows_tailored_keywords(self, tailored, D, y=None):
+    def stack_3_bows_tailored_keywords(self, D, y=None):
         """Stack generalization approach with five base classifiers. The first corresponds to a :ref:`BoW` trained on the training set, and the rest are used in :py:func:`EvoMSA.competitions.Comp2023.stack_2_bow_tailored_keywords`.
 
         >>> from microtc.utils import tweet_iterator
@@ -367,11 +402,11 @@ class Comp2023(object):
                                                                keywords_voc]).fit(D)
         >>> hy = st.predict(['Buenos días'])                
         """
-        st = self.stack_2_bow_tailored_keywords(tailored, D, y=y)
+        st = self.stack_2_bow_tailored_keywords(D, y=y)
         st.decision_function_models.append(self.bow_training_set())
         return st
 
-    def stack_3_bow_tailored_all_keywords(self, tailored, D, y=None):
+    def stack_3_bow_tailored_all_keywords(self, D, y=None):
         """Stack generalization approach with five base classifiers. The first corresponds to a :ref:`BoW` trained on the training set, and the rest are used in :py:func:`EvoMSA.competitions.Comp2023.stack_2_bow_tailored_all_keywords`. 
 
         >>> from microtc.utils import tweet_iterator
@@ -403,7 +438,7 @@ class Comp2023(object):
         >>> hy = st.predict(['Buenos días'])       
         """
 
-        st = self.stack_2_bow_tailored_all_keywords(tailored, D, y=y)
+        st = self.stack_2_bow_tailored_all_keywords(D, y=y)
         st.decision_function_models.append(self.bow_training_set())
         return st
 
