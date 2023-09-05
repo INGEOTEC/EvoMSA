@@ -19,13 +19,17 @@ class Comp2023(object):
     :type voc_size_exponent: int
     :param tailored: :ref:`DenseBoW` created with keywords selected from a problem.
     :type tailored: str
+    :param feature_selection: Perform feature selection on :ref:`DenseBoW`, default=True.
+    :type feature_selection: bool
     """
     def __init__(self, lang='es', 
                  voc_size_exponent=17,
-                 tailored=None) -> None:
+                 tailored=None,
+                 feature_selection=True) -> None:
         self.voc_size_exponent = voc_size_exponent
         self.lang = lang
         self.tailored = tailored
+        self.feature_selection = feature_selection
 
     def __iter__(self):
         systems = [self.bow,
@@ -129,11 +133,14 @@ class Comp2023(object):
         keywords = DenseBoW(lang=self.lang,
                             voc_size_exponent=self.voc_size_exponent,
                             emoji=False,
-                            dataset=False).select(D=D, y=y)
+                            dataset=False)
         emojis = DenseBoW(lang=self.lang,
                           voc_size_exponent=self.voc_size_exponent,
                           keyword=False,
-                          dataset=False).select(D=D, y=y)
+                          dataset=False)
+        if self.feature_selection:
+            keywords.select(D=D, y=y)            
+            emojis.select(D=D, y=y)
         return StackGeneralization(decision_function_models=[bow,
                                                              keywords,
                                                              emojis])
@@ -166,12 +173,15 @@ class Comp2023(object):
                             voc_selection='most_common',
                             voc_size_exponent=self.voc_size_exponent,
                             emoji=False,
-                            dataset=False).select(D=D, y=y)
+                            dataset=False)
         emojis = DenseBoW(lang=self.lang,
                           voc_selection='most_common',
                           voc_size_exponent=self.voc_size_exponent,
                           keyword=False,
-                          dataset=False).select(D=D, y=y)
+                          dataset=False)
+        if self.feature_selection:
+            keywords.select(D=D, y=y)            
+            emojis.select(D=D, y=y)
         return StackGeneralization(decision_function_models=[bow,
                                                              keywords,
                                                              emojis])
@@ -218,12 +228,15 @@ class Comp2023(object):
         bow = self.bow()
         keywords = DenseBoW(lang=self.lang,
                             voc_size_exponent=self.voc_size_exponent,
-                            dataset=False).select(D=D, y=y)
+                            dataset=False)
         bow2 = self.bow_voc_selection()
         keywords2 = DenseBoW(lang=self.lang,
                              voc_size_exponent=self.voc_size_exponent,
                              voc_selection='most_common',
-                             dataset=False).select(D=D, y=y)
+                             dataset=False)
+        if self.feature_selection:
+            keywords.select(D=D, y=y)            
+            keywords2.select(D=D, y=y)
         return StackGeneralization(decision_function_models=[bow, bow2,
                                                              keywords,
                                                              keywords2])
@@ -256,12 +269,15 @@ class Comp2023(object):
                             voc_size_exponent=self.voc_size_exponent,
                             dataset=False)
         keywords.text_representations_extend(self.tailored)
-        keywords.select(D=D, y=y)
+        keywords
         bow2 = self.bow_voc_selection()
         keywords2 = DenseBoW(lang='es',
                              voc_size_exponent=self.voc_size_exponent,
                              voc_selection='most_common',
-                             dataset=False).select(D=D, y=y)
+                             dataset=False)
+        if self.feature_selection:
+            keywords.select(D=D, y=y)
+            keywords2.select(D=D, y=y)
         return StackGeneralization(decision_function_models=[bow, bow2,
                                                              keywords,
                                                              keywords2])
@@ -293,11 +309,14 @@ class Comp2023(object):
                             voc_size_exponent=self.voc_size_exponent)
         sel = [k for k, v in enumerate(keywords.names)
                if v not in ['davincis2022_1'] or 'semeval2023' not in v]
-        keywords.select(sel).select(D=D, y=y)
+        keywords.select(sel)
         bow2 = self.bow_voc_selection()
         keywords2 = DenseBoW(lang=self.lang,
                              voc_size_exponent=self.voc_size_exponent,
-                             voc_selection='most_common').select(sel).select(D=D, y=y)
+                             voc_selection='most_common').select(sel)
+        if self.feature_selection:
+            keywords.select(D=D, y=y)
+            keywords2.select(D=D, y=y)
         return StackGeneralization(decision_function_models=[bow,
                                                              bow2,
                                                              keywords,
@@ -313,10 +332,11 @@ class Comp2023(object):
         >>> bow = BoW(lang='es')
         >>> keywords = DenseBoW(lang='es')
         >>> tailored = 'IberLEF2023_DAVINCIS_task1_Es.json.gz'
-        >>> keywords.text_representations_extend(tailored)        
         >>> sel = [k for k, v in enumerate(keywords.names)
                    if v not in ['davincis2022_1'] or 'semeval2023' not in v]
-        >>> keywords.select(sel).select(D=D)
+        >>> keywords.select(sel)                           
+        >>> keywords.text_representations_extend(tailored)
+        >>> keywords.select(D=D)
         >>> bow_voc = BoW(lang='es', voc_selection='most_common')
         >>> keywords_voc = DenseBoW(lang='es',
                                     voc_selection='most_common').select(sel).select(D=D)
@@ -329,14 +349,17 @@ class Comp2023(object):
         bow = self.bow()
         keywords = DenseBoW(lang=self.lang,
                             voc_size_exponent=self.voc_size_exponent)
-        keywords.text_representations_extend(self.tailored)        
         sel = [k for k, v in enumerate(keywords.names) 
                if v not in ['davincis2022_1'] or 'semeval2023' not in v]
-        keywords.select(sel).select(D=D, y=y)
+        keywords.select(sel)
+        keywords.text_representations_extend(self.tailored)
         bow_voc = self.bow_voc_selection()
         keywords_voc = DenseBoW(lang=self.lang,
                                 voc_size_exponent=self.voc_size_exponent,
-                                voc_selection='most_common').select(sel).select(D=D, y=y)
+                                voc_selection='most_common').select(sel)
+        if self.feature_selection:
+            keywords.select(D=D, y=y)
+            keywords_voc.select(D=D, y=y)
         return StackGeneralization(decision_function_models=[bow, 
                                                              bow_voc,
                                                              keywords,
