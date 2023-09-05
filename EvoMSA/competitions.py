@@ -313,10 +313,11 @@ class Comp2023(object):
         >>> bow = BoW(lang='es')
         >>> keywords = DenseBoW(lang='es')
         >>> tailored = 'IberLEF2023_DAVINCIS_task1_Es.json.gz'
-        >>> keywords.text_representations_extend(tailored)        
         >>> sel = [k for k, v in enumerate(keywords.names)
                    if v not in ['davincis2022_1'] or 'semeval2023' not in v]
-        >>> keywords.select(sel).select(D=D)
+        >>> keywords.select(sel)                           
+        >>> keywords.text_representations_extend(tailored)
+        >>> keywords.select(D=D)
         >>> bow_voc = BoW(lang='es', voc_selection='most_common')
         >>> keywords_voc = DenseBoW(lang='es',
                                     voc_selection='most_common').select(sel).select(D=D)
@@ -329,10 +330,11 @@ class Comp2023(object):
         bow = self.bow()
         keywords = DenseBoW(lang=self.lang,
                             voc_size_exponent=self.voc_size_exponent)
-        keywords.text_representations_extend(self.tailored)        
         sel = [k for k, v in enumerate(keywords.names) 
                if v not in ['davincis2022_1'] or 'semeval2023' not in v]
-        keywords.select(sel).select(D=D, y=y)
+        keywords.select(sel)
+        keywords.text_representations_extend(self.tailored)        
+        keywords.select(D=D, y=y)
         bow_voc = self.bow_voc_selection()
         keywords_voc = DenseBoW(lang=self.lang,
                                 voc_size_exponent=self.voc_size_exponent,

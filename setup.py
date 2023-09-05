@@ -53,7 +53,7 @@ setup(
                                                'boundscheck': False}),
     package_data={'EvoMSA/tests': ['tweets.json'],
                   '': ['*.pxd']},
-    install_requires=['B4MSA'],
+    install_requires=['B4MSA', 'scikit-learn>=1.3.0'],
     entry_points={
         'console_scripts': ['EvoMSA-train=EvoMSA.command_line:train',
                             'EvoMSA-predict=EvoMSA.command_line:predict',
