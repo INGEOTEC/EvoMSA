@@ -705,7 +705,7 @@ class DenseBoW(BoW):
 
     @property
     def feature_selection(self):
-        """Feature selection used in :py:func:`EvoMSA.text_repr.DenseBoW.select`"""
+        """Feature selection used in :py:func:`~EvoMSA.text_repr.DenseBoW.select`"""
         return self._feature_selection
     
     @feature_selection.setter
