@@ -558,3 +558,19 @@ def test_StackGeneralization_clone():
         assert _ == '12'
     except AttributeError:
         pass
+
+
+def test_DenseBoW_feature_selection():
+    from EvoMSA.text_repr import DenseBoW
+    from EvoMSA.model_selection import KruskalFS   
+    lang = 'es'
+    name = 'emojis'
+    func = 'most_common_by_type'
+    d = 13
+    D = list(tweet_iterator(TWEETS))
+    text_repr = DenseBoW(lang=lang,
+                         keyword=False,
+                         voc_size_exponent=d,
+                         emoji=True, dataset=False,
+                         n_jobs=-1).select(D=D)
+    assert isinstance(text_repr.feature_selection, KruskalFS)
