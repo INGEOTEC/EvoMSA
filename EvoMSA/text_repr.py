@@ -698,9 +698,20 @@ class DenseBoW(BoW):
             return self
         y = self.dependent_variable(D, y=y)
         X = self.transform(D)
-        feature_selection = feature_selection(**feature_selection_kwargs).fit(X, y=y)
-        index = feature_selection.get_support(indices=True)
-        return self.select(subset=index)        
+        _ = feature_selection(**feature_selection_kwargs).fit(X, y=y)
+        self.feature_selection = _
+        index = self.feature_selection.get_support(indices=True)
+        return self.select(subset=index)
+
+    @property
+    def feature_selection(self):
+        """Feature selection used in :py:func:`EvoMSA.text_repr.DenseBoW.select`"""
+        return self._feature_selection
+    
+    @feature_selection.setter
+    def feature_selection(self, value):
+        self._feature_selection = value
+
 
     def text_representations_extend(self, value: Union[List, str]):
         """Add dense BoW representations.
