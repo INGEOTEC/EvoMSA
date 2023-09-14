@@ -13,9 +13,6 @@
 # limitations under the License.
 
 
-from EvoMSA.utils import MODEL_LANG
-from EvoMSA.utils import load_bow, load_emoji, dataset_information, load_dataset, load_keyword, b4msa_params, Linear
-from EvoMSA.model_selection import KruskalFS
 from b4msa.textmodel import TextModel
 from microtc.weighting import TFIDF
 from microtc.utils import tweet_iterator
@@ -27,6 +24,10 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import StratifiedKFold
 from scipy.sparse import csr_matrix
 import numpy as np
+from EvoMSA.utils import MODEL_LANG
+from EvoMSA.utils import load_bow, load_emoji, dataset_information,\
+                         load_dataset, load_keyword, b4msa_params, Linear
+from EvoMSA.model_selection import KruskalFS
 
 
 def config_regressor(instance):
@@ -546,6 +547,7 @@ class BoW(BaseEstimator):
         params = self.get_params()
         return klass(**params)
 
+
 class DenseBoW(BoW):
     """
     DenseBoW is a text classifier in fact it is 
@@ -566,7 +568,9 @@ class DenseBoW(BoW):
     :param skip_dataset: Set of discarded dataset.
     :type skip_dataset: set
     :param unit_vector: Normalize vectors to have length 1. default=True
-    :type unit_vector: bool 
+    :type unit_vector: bool
+    :param distance_hyperplane: Compute de distance to hyperplance in :py:func:`~EvoMSA.text_repr.DenseBoW.transform`
+    :type distance_hyperplane: bool
 
     >>> from EvoMSA import DenseBoW
     >>> from microtc.utils import tweet_iterator
@@ -584,6 +588,7 @@ class DenseBoW(BoW):
                  skip_dataset: Set[str]=set(),
                  estimator_kwargs=dict(dual=False),
                  unit_vector=True,
+                 distance_hyperplane=False,
                  **kwargs) -> None:
         super(DenseBoW, self).__init__(estimator_kwargs=estimator_kwargs, **kwargs)
         self.skip_dataset = skip_dataset
@@ -593,6 +598,7 @@ class DenseBoW(BoW):
         self.emoji = emoji
         self.dataset = dataset
         self.keyword = keyword
+        self.distance_hyperplane = distance_hyperplane
 
     def fit(self, *args, **kwargs) -> 'DenseBoW':
         """Estimate the parameters of the classifier or regressor 
@@ -623,11 +629,13 @@ class DenseBoW(BoW):
             X = super(DenseBoW, self).transform(D, y=y)
             models = Parallel(n_jobs=self.n_jobs)(delayed(m.decision_function)(X)
                                                   for m in self.text_representations)
-            _ = np.array(models).T
+            models = np.array(models).T
+            if self.distance_hyperplane:
+                models = models / self.norm_weights
             if self.unit_vector:
-                return _ / np.atleast_2d(np.linalg.norm(_, axis=1)).T
+                return models / np.atleast_2d(np.linalg.norm(models, axis=1)).T
             else:
-                return _
+                return models
         assert len(D) and isinstance(D[0], dict)
         Xs = [super(DenseBoW, self).transform([x[key] for x in D], y=y)
               for key in self.key]
@@ -636,12 +644,16 @@ class DenseBoW(BoW):
             for X in Xs:
                 _ = parallel(delayed(m.decision_function)(X)
                              for m in self.text_representations)
-                models.append(np.array(_).T)
-        _ = self.mixer_func(models)
+                if self.distance_hyperplane:
+                    inner_models = np.array(_).T / self.norm_weights
+                else:
+                    inner_models = np.array(_).T
+                models.append(inner_models)
+        models = self.mixer_func(models)
         if self.unit_vector:
-            return _ / np.atleast_2d(np.linalg.norm(_, axis=1)).T
+            return models / np.atleast_2d(np.linalg.norm(models, axis=1)).T
         else:
-            return _            
+            return models
 
     def predict(self, *args, **kwargs) -> np.ndarray:
         """Predict the response variable on the dataset `D`.
@@ -739,6 +751,15 @@ class DenseBoW(BoW):
         self._names = value            
 
     @property
+    def norm_weights(self):
+        """Euclidean norm of the weights"""
+        try:
+            self._norm_weights
+        except AttributeError:
+            self._norm_weights = np.linalg.norm(self.weights, axis=1)
+        return self._norm_weights
+
+    @property
     def weights(self):
         """Weights of the vector space. 
         It is matrix, i.e., :math:`\mathbf W \in \mathbb R^{M \\times d}`, where 
@@ -808,6 +829,15 @@ class DenseBoW(BoW):
     @unit_vector.setter
     def unit_vector(self, value):
         self._unit_vector = value
+
+    @property
+    def distance_hyperplane(self):
+        """Compute the distance to the hyperplance in :py:func:`~EvoMSA.text_repr.DenseBoW.transform`"""
+        return self._distance_hyperplane
+    
+    @distance_hyperplane.setter
+    def distance_hyperplane(self, value):
+        self._distance_hyperplane = value
 
     def fromjson(self, filename:str) -> 'DenseBoW':
         """Load the text representations from a json file.

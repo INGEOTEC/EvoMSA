@@ -574,3 +574,28 @@ def test_DenseBoW_feature_selection():
                          emoji=True, dataset=False,
                          n_jobs=-1).select(D=D)
     assert isinstance(text_repr.feature_selection, KruskalFS)
+
+
+def test_DenseBoW_distance_hyperplane():
+    from EvoMSA.text_repr import DenseBoW
+    lang = 'es'
+    name = 'emojis'
+    func = 'most_common_by_type'
+    d = 13
+    D = list(tweet_iterator(TWEETS))
+    text_repr = DenseBoW(lang=lang,
+                         keyword=False,
+                         voc_size_exponent=d,
+                         emoji=True, dataset=False,
+                         distance_hyperplane=True,
+                         unit_vector=False,
+                         n_jobs=-1)
+    txt = 'buenos dias'
+    X1 = text_repr.transform([txt])
+    text_repr.distance_hyperplane = False
+    X2 = text_repr.transform([txt])
+    assert np.any(X1 != X2)
+    D1 = [dict(text1=a['text'], text2=b['text']) for a, b in zip(D, D[::-1])]
+    text_repr.distance_hyperplane = True
+    text_repr.key = ['text1', 'text2']
+    text_repr.transform(D1[:3])
