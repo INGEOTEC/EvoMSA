@@ -700,6 +700,8 @@ class DenseBoW(BoW):
         (2672, 131072)        
         """
         assert subset is not None or D is not None
+        if hasattr(self, '_norm_weights'):
+            delattr(self, '_norm_weights')
         if subset is not None:
             if len(subset) == 0:
                 return self
@@ -754,9 +756,10 @@ class DenseBoW(BoW):
     def norm_weights(self):
         """Euclidean norm of the weights"""
         try:
-            self._norm_weights
+            return self._norm_weights
         except AttributeError:
-            self._norm_weights = np.linalg.norm(self.weights, axis=1)
+            self._norm_weights = np.r_[[np.linalg.norm(w._coef)
+                                        for w in self.text_representations]]       
         return self._norm_weights
 
     @property
