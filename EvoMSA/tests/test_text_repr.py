@@ -595,6 +595,8 @@ def test_DenseBoW_distance_hyperplane():
     text_repr.distance_hyperplane = False
     X2 = text_repr.transform([txt])
     assert np.any(X1 != X2)
+    text_repr.select(D=D)
+    assert len(text_repr.text_representations) == text_repr.norm_weights.shape[0]
     D1 = [dict(text1=a['text'], text2=b['text']) for a, b in zip(D, D[::-1])]
     text_repr.distance_hyperplane = True
     text_repr.key = ['text1', 'text2']
