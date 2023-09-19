@@ -269,7 +269,6 @@ class Comp2023(object):
                             voc_size_exponent=self.voc_size_exponent,
                             dataset=False)
         keywords.text_representations_extend(self.tailored)
-        keywords
         bow2 = self.bow_voc_selection()
         keywords2 = DenseBoW(lang='es',
                              voc_size_exponent=self.voc_size_exponent,
@@ -292,7 +291,7 @@ class Comp2023(object):
         >>> bow = BoW(lang='es')
         >>> keywords = DenseBoW(lang='es')
         >>> sel = [k for k, v in enumerate(keywords.names)
-                   if v not in ['davincis2022_1'] or 'semeval2023' not in v]
+                   if not(v in ['davincis2022_1'] or 'semeval2023' in v)]
         >>> keywords.select(sel).select(D=D)
         >>> bow_voc = BoW(lang='es', voc_selection='most_common')
         >>> keywords_voc = DenseBoW(lang='es',
@@ -308,7 +307,7 @@ class Comp2023(object):
         keywords = DenseBoW(lang='es',
                             voc_size_exponent=self.voc_size_exponent)
         sel = [k for k, v in enumerate(keywords.names)
-               if v not in ['davincis2022_1'] or 'semeval2023' not in v]
+               if not(v in ['davincis2022_1'] or 'semeval2023' in v)]
         keywords.select(sel)
         bow2 = self.bow_voc_selection()
         keywords2 = DenseBoW(lang=self.lang,
@@ -333,7 +332,7 @@ class Comp2023(object):
         >>> keywords = DenseBoW(lang='es')
         >>> tailored = 'IberLEF2023_DAVINCIS_task1_Es.json.gz'
         >>> sel = [k for k, v in enumerate(keywords.names)
-                   if v not in ['davincis2022_1'] or 'semeval2023' not in v]
+                   if not(v in ['davincis2022_1'] or 'semeval2023' in v)]
         >>> keywords.select(sel)                           
         >>> keywords.text_representations_extend(tailored)
         >>> keywords.select(D=D)
@@ -350,7 +349,7 @@ class Comp2023(object):
         keywords = DenseBoW(lang=self.lang,
                             voc_size_exponent=self.voc_size_exponent)
         sel = [k for k, v in enumerate(keywords.names) 
-               if v not in ['davincis2022_1'] or 'semeval2023' not in v]
+               if not(v in ['davincis2022_1'] or 'semeval2023' in v)]
         keywords.select(sel)
         keywords.text_representations_extend(self.tailored)
         bow_voc = self.bow_voc_selection()
@@ -442,7 +441,7 @@ class Comp2023(object):
         >>> tailored = 'IberLEF2023_DAVINCIS_task1_Es.json.gz'
         >>> keywords.text_representations_extend(tailored)        
         >>> sel = [k for k, v in enumerate(keywords.names)
-                   if v not in ['davincis2022_1'] or 'semeval2023' not in v]
+                   if not(v in ['davincis2022_1'] or 'semeval2023' in v)]
         >>> keywords.select(sel).select(D=D)
         >>> bow_voc = BoW(lang='es', voc_selection='most_common')
         >>> keywords_voc = DenseBoW(lang='es',
