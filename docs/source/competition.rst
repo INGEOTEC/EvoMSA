@@ -111,32 +111,32 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
       - 0.691334
       - 0.669448 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_3_bows>`)
       - 3.3%
-    * - :ref:`DAVINCIS <davincis>`
+    * - :ref:`DA-VINCIS <davincis>`
       - 2023
       - 0.9264
       - 0.8903 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_tailored_all_keywords>`)
       - 4.1%
-    * - :ref:`DAVINCIS <davincis-2022>`
+    * - :ref:`DA-VINCIS <davincis-2022>`
       - 2022
       - 0.7817
       - 0.7510 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_all_keywords>`)
       - 4.1%
-    * - :ref:`REST-MEX (Global) <rest-mex>`
+    * - :ref:`Rest-Mex (Global) <rest-mex-liga>`
       - 2023
       - 0.7790190145
       - 0.7375714730
       - 5.6%
-    * - :ref:`REST-MEX (Polarity) <rest-mex>`
+    * - :ref:`Rest-Mex (Polarity) <rest-mex-liga>`
       - 2023
       - 0.621691991
       - 0.554880778 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_bows>`)
       - 12.0%
-    * - :ref:`REST-MEX (Type) <rest-mex>`
+    * - :ref:`Rest-Mex (Type) <rest-mex-liga>`
       - 2023
       - 0.99032231
       - 0.980539122 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.bow_training_set>`)
       - 1.0%
-    * - :ref:`REST-MEX (Country) <rest-mex>`
+    * - :ref:`Rest-Mex (Country) <rest-mex-liga>`
       - 2023
       - 0.942028113
       - 0.927052594 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.bow_training_set>`)
@@ -635,8 +635,10 @@ Competitions
 
 .. _davincis:
 
-`Detection of Aggressive and Violent Incidents from Social Media in Spanish (DAVINCIS) <https://sites.google.com/view/davincis-iberlef-2023>`_
+`Detection of Aggressive and Violent Incidents from Social Media in Spanish (DA-VINCIS) <https://sites.google.com/view/davincis-iberlef-2023>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The `DA-VINCIS <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6565>`_ task presented at IberLEF 2023 focused on detecting violent events in social networks. The track has two tasks: the first was to detect texts indicating violent incidents, and the second was a multiclass problem where the categories correspond to the different types of violent incidents.
 
 .. list-table:: Performance in Cross-validation
     :header-rows: 1
@@ -684,9 +686,13 @@ Competitions
       - 0.8859
       - 0.0000
 
+.. image:: comp2023/davincis-bows.png
+
+.. image:: comp2023/davincis-denses.png
+
 .. _davincis-2022:
 
-`Detection of Aggressive and Violent Incidents from Social Media in Spanish (DAVINCIS 2022) <https://sites.google.com/view/davincis-iberlef/home>`_
+`Detection of Aggressive and Violent Incidents from Social Media in Spanish (DA-VINCIS 2022) <https://sites.google.com/view/davincis-iberlef/home>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. list-table:: Performance in Cross-validation
@@ -735,11 +741,14 @@ Competitions
       - 0.7324
       - 0.0000
 
+.. _rest-mex-liga:
 
-.. _rest-mex:
-
-`Research on Sentiment Analysis Task for Mexican Tourist Texts (REST-MEX) <https://sites.google.com/cimat.mx/rest-mex2023>`_
+`Research on Sentiment Analysis Task for Mexican Tourist Texts (Rest-Mex) <https://sites.google.com/cimat.mx/rest-mex2023>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The `Rest-Mex <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6572>`_ task presented at IberLEF 2023 focused sentiment analysis and clustering on tourist texts; nonetheless, our participation was only on the sentiment analysis tasks. The first task consisted of identifying the polarity of the tourist text. The second task was to identify whether the visited place was either an attraction, hotel, or restaurant. The third and last task was identifying the country (i.e., Colombia, Cuba, and Mexico).
+
+The following table presents the performance, in terms of macro-f1, for the different systems tested for the polarity task. It can be observed that the best configuration corresponds to a Stack Generalization using two :py:class:`~EvoMSA.text_repr.BoW` systems as its base classifier. It is statistically equivalent to Stacking Generalization using three :py:class:`~EvoMSA.text_repr.BoW`.
 
 .. list-table:: Performance in Cross-validation (Polarity)
     :header-rows: 1
@@ -787,6 +796,10 @@ Competitions
       - 0.5152
       - 0.0000
 
+The following figure presents a word cloud with the most discriminative tokens for each class in the polarity task. 
+
+.. image:: comp2023/restmex-polarity.png
+
 .. list-table:: Performance in Cross-validation (Type)
     :header-rows: 1
 
@@ -833,6 +846,9 @@ Competitions
       - 0.9742
       - 0.0000
 
+The following figure presents a word cloud with the most discriminative tokens for each class in the type task. 
+
+.. image:: comp2023/restmex-type.png
 
 .. list-table:: Performance in Cross-validation (Country)
     :header-rows: 1
@@ -880,6 +896,9 @@ Competitions
       - 0.8949
       - 0.0000
 
+The following figure presents a word cloud with the most discriminative tokens for each class in the country task. 
+
+.. image:: comp2023/restmex-country.png
 
 .. _homo-mex:
 
