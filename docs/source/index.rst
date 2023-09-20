@@ -372,7 +372,7 @@ If you find EvoMSA useful for any academic/scientific purpose, we would apprecia
 	  @article{DBLP:journals/corr/abs-1812-02307,
 	  author = {Mario Graff and Sabino Miranda{-}Jim{\'{e}}nez
 	                 and Eric Sadit Tellez and Daniela Moctezuma},
-	  title     = {EvoMSA: {A} Multilingual Evolutionary Approach for Sentiment Analysis},
+	  title     = {EvoMSA: {A} Multilingual Evolutionary Approach for Sentiment Analysis}, 
 	  journal   = {Computational Intelligence Magazine},
 	  volume    = {15},
 	  issue     = {1},

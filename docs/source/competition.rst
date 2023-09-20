@@ -444,6 +444,21 @@ Competitions
 `Political Ideology Detection in Spanish Texts (PoliticEs) <https://codalab.lisn.upsaclay.fr/competitions/10173>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+The `PoliticEs <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6570>`_ task presented at IberLEF 2023 focused on extracting political ideology and other psychographic and demographic characteristics of social networks users. 
+
+
+The following code can generate an instance of the system used in the competition.
+
+.. code-block:: python
+
+  >>> from EvoMSA.competitions import Comp2023
+  >>> import numpy as np
+  >>> X = ['text 1', 'text 2']
+  >>> y = np.r_[[0, 1]]
+  >>> comp2023 = Comp2023(lang='es')
+  >>> ins = comp2023.stack_3_bows()
+
+
 .. list-table:: Performance in Cross-validation (Gender)
     :header-rows: 1
 
@@ -490,6 +505,44 @@ Competitions
       - 0.9291
       - 0.0180
 
+.. image:: comp2023/politices-gender.png
+
+
+The following table presents the performance of these systems; it can be observed that the systems have a similar performance.
+
+.. list-table:: Performance of :py:class:`~EvoMSA.text_repr.BoW` systems and :py:class:`~EvoMSA.text_repr.StackGeneralization`
+    :header-rows: 1
+
+    * - Configuration
+      - Recall (female)
+      - Recall (male)
+      - Precision (female)
+      - Precision (male)
+      - macro-:math:`f_1`
+    * - Default
+      - 0.5422
+      - 0.8609
+      - 0.6294
+      - 0.8119
+      - 0.7091
+    * - `voc_selection='most_common'`
+      - 0.5422
+      - 0.8583
+      - 0.625
+      - 0.8114
+      - 0.7074
+    * - `pretrain=False`
+      - 0.512
+      - 0.8976
+      - 0.6855
+      - 0.8085
+      - 0.7185
+    * - :py:class:`~EvoMSA.text_repr.StackGeneralization`
+      - 0.6988
+      - 0.7585
+      - 0.5577
+      - 0.8525
+      - 0.7115
 
 
 .. list-table:: Performance in Cross-validation (Profession)
@@ -538,6 +591,51 @@ Competitions
       - 0.9022
       - 0.0880
 
+.. image:: comp2023/politices-profession.png
+
+.. list-table:: Performance of :py:class:`~EvoMSA.text_repr.BoW` systems and :py:class:`~EvoMSA.text_repr.StackGeneralization`
+    :header-rows: 1
+
+    * - Configuration
+      - Recall (celebrity)
+      - Recall (journalist)
+      - Recall (politician)
+      - Precision (celebrity)
+      - Precision (journalist)
+      - Precision (politician)
+      - macro-:math:`f_1`
+    * - Default
+      - 0.1607
+      - 0.9836
+      - 0.8333
+      - 0.8182
+      - 0.8   
+      - 0.9627
+      - 0.6815
+    * - `voc_selection='most_common'`
+      - 0.1607
+      - 0.9836
+      - 0.8333
+      - 0.8182
+      - 0.8   
+      - 0.9627
+      - 0.6815
+    * - `pretrain=False`
+      - 0.0714
+      - 0.9967
+      - 0.8548
+      - 1.0   
+      - 0.7937
+      - 0.9938
+      - 0.6454
+    * - :py:class:`~EvoMSA.text_repr.StackGeneralization`
+      - 0.6607
+      - 0.9344
+      - 0.914 
+      - 0.6491
+      - 0.9105
+      - 0.9605
+      - 0.8379   
 
 .. list-table:: Performance in Cross-validation (Ideology Binary)
     :header-rows: 1
@@ -584,6 +682,44 @@ Competitions
     * - :py:func:`Comp2023.stack_bow_keywords_emojis`
       - 0.9541
       - 0.0620
+
+.. image:: comp2023/politices-ideology_binary.png 
+
+The following table presents the performance of these systems; it can be observed that the systems have a similar performance.
+
+.. list-table:: Performance of :py:class:`~EvoMSA.text_repr.BoW` systems and :py:class:`~EvoMSA.text_repr.StackGeneralization`
+    :header-rows: 1
+
+    * - Configuration
+      - Recall (left)
+      - Recall (right)
+      - Precision (left)
+      - Precision (right)
+      - macro-:math:`f_1`
+    * - Default
+      - 0.9541
+      - 0.7773
+      - 0.8643
+      - 0.9194
+      - 0.8747
+    * - `voc_selection='most_common'`
+      - 0.948 
+      - 0.7773
+      - 0.8635
+      - 0.9096
+      - 0.871 
+    * - `pretrain=False`
+      - 0.9786 
+      - 0.7227
+      - 0.8399
+      - 0.9578
+      - 0.8639
+    * - :py:class:`~EvoMSA.text_repr.StackGeneralization`
+      - 0.9511
+      - 0.8182
+      - 0.886 
+      - 0.9184
+      - 0.8914
 
 
 .. list-table:: Performance in Cross-validation (Ideology Multiclass)
@@ -632,6 +768,63 @@ Competitions
       - 0.8467
       - 0.0000
 
+.. image:: comp2023/politices-ideology_multiclass.png
+
+The following table presents the performance of these systems; it can be observed that the systems have a similar performance.
+
+.. list-table:: Performance of :py:class:`~EvoMSA.text_repr.BoW` systems and :py:class:`~EvoMSA.text_repr.StackGeneralization`
+    :header-rows: 1
+
+    * - Configuration
+      - Recall (left)
+      - Recall (moderate left)
+      - Recall (moderate right)
+      - Recall (right)
+      - Precision (left)
+      - Precision (moderate left)
+      - Precision (moderate right)
+      - Precision (right)
+      - macro-:math:`f_1`
+    * - Default
+      - 0.5299
+      - 0.819 
+      - 0.6797
+      - 0.4627
+      - 0.6813
+      - 0.6442
+      - 0.6753
+      - 0.8857
+      - 0.6507
+    * - `voc_selection='most_common'`
+      - 0.5299
+      - 0.819 
+      - 0.6797
+      - 0.4627
+      - 0.6813
+      - 0.6466
+      - 0.671 
+      - 0.8857
+      - 0.6505
+    * - `pretrain=False`
+      - 0.5214
+      - 0.8619 
+      - 0.7124
+      - 0.2985
+      - 0.8472
+      - 0.6329
+      - 0.6566
+      - 0.8696
+      - 0.6258
+    * - :py:class:`~EvoMSA.text_repr.StackGeneralization`
+      - 0.5897
+      - 0.7381
+      - 0.7255
+      - 0.5522
+      - 0.5847
+      - 0.6798
+      - 0.707 
+      - 0.8409
+      - 0.6694
 
 .. _davincis:
 
@@ -654,7 +847,7 @@ The following code can generate an instance of the system used in the competitio
   >>> y = np.r_[[0, 1]]
   >>> tailored = 'IberLEF2023_DAVINCIS_task1_Es.json.gz'
   >>> comp2023 = Comp2023(lang='es', 
-  >>>              tailored=tailored)
+                          tailored=tailored)
   >>> ins = comp2023.stack_2_bow_tailored_all_keywords(X, y)
 
 
