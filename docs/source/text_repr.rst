@@ -204,10 +204,19 @@ The notation includes the label between parentheses in case the dataset contains
 Example
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To illustrate the usage of these representations, the text *I love this song* is represented on the emoji space. The first step is to initialize the model which can be done with the following instructions.
+To illustrate the usage of these representations, the text *I love this song* is represented on the emoji space. The representation developed are pre-trained models; therefore, the vocabulary and language are fixed. The vocabulary size (:math:`2^d`) is specified with the exponent :math:`d` in the parameter `voc_size_exponent`; the default is :math:`17`. The language is defined in the parameter `lang` (default `'es'`). The examples presented use as defaults the following.
+
+>>> SIZE = 15
+>>> LANG = 'en'
+
+The first step is to initialize the model which can be done with the following instructions.
 
 >>> from EvoMSA import DenseBoW
->>> emoji = DenseBoW(lang='en', emoji=True, keyword=False, dataset=False)
+>>> emoji = DenseBoW(lang=LANG,
+                     voc_size_exponent=SIZE,
+                     emoji=True,
+                     keyword=False,
+                     dataset=False)
 
 The method :py:attr:`DenseBoW.transform` receives a list of text to be represented on this vector space, the following code stores the output matrix in the variable :py:attr:`X`.
 
@@ -216,9 +225,9 @@ The method :py:attr:`DenseBoW.transform` receives a list of text to be represent
 Equivalent, the attribute :py:attr:`DenseBoW.names` contains the description of each component, for example the following code shows the value for the component with index 9 and its description.
 
 >>> X[:, 59], emoji.names[59]
-(array([0.05337313]), '🎶')
+(array([0.08912432]), '🎶')
 
-The value 0.05 indicates that the emoji would be present in the sentence *I love this song.*
+The value :math:`0.09`` indicates that the emoji would be present in the sentence *I love this song.*
 
 .. _text_repr_tc:
 
@@ -231,27 +240,74 @@ To illustrate this process, we used a labeled dataset found in the EvoMSA; this 
 
 >>> from microtc.utils import tweet_iterator
 >>> from EvoMSA.tests.test_base import TWEETS
+>>> import numpy as np
 >>> D = list(tweet_iterator(TWEETS))
 
-The dataset stored in :py:attr:`D` is a toy sentiment analysis dataset, in Spanish, with four labels, positive, negative, neutral, and none. It is a list of dictionaries where the dictionary has two keys *text* and *klass*; the former has the text and the latter the label. 
+The dataset stored in :py:attr:`D` is a toy sentiment analysis dataset, in Spanish, with four labels, positive, negative, neutral, and none. It is a list of dictionaries where the dictionary has two keys :py:attr:`text` and :py:attr:`klass`; the former has the text and the latter the label. 
+
+Although one can directly provide the list of dictionaries to :py:class:`~EvoMSA.text_repr.DenseBoW`, it is decided to follow the conventions of `sklearn. <https://scikit-learn.org>`_ The following instructions transform `D` into the dependent variables and their response. 
+
+>>> X = [x['text'] for x in D]
+>>> y = np.r_[[x['klass'] for x in D]]
 
 The text classifier is trained with the following instruction. 
 
->>> text_repr = DenseBoW(lang='es').fit(D)
+>>> LANG = 'es'
+>>> dense = DenseBoW(lang=LANG,
+                     voc_size_exponent=SIZE,
+                     emoji=True,
+                     keyword=True,
+                     dataset=False).fit(X, y)
 
 where the language (:py:attr:`lang`) is set to Spanish (es), and :py:attr:`fit` receives the labeled dataset. 
 
+.. note::
+
+  It is equivalente to use the following code.
+
+  >>> dense = DenseBoW(lang=LANG,
+                       voc_size_exponent=SIZE,
+                       emoji=True,
+                       keyword=True,
+                       dataset=False).fit(D)
+
+
 The method :py:attr:`DenseBoW.predict` is used to predict the label of a list of texts. For example, the label of the text *buenos días* (*good morning*) is computed as:
 
->>> text_repr.predict(['buenos días'])
+>>> dense.predict(['buenos días'])
 array(['P'], dtype='<U4')
 
 where the label 'P' corresponds to the positive class. 
 
 There are scenarios where it is more important to estimate the value(s) used to classify a particular instance; in the case of SVM, this is known as the decision function, and in the case of a Naive Bayes classifier, this is the probability of each class. This information can be found in :py:attr:`DenseBoW.decision_function` as can be seen in the following code.
 
->>> text_repr.decision_function(['buenos días'])
-array([[-2.13432793, -1.21754724, -0.7034401 ,  1.46593854]])
+>>> dense.decision_function(['buenos días'])
+array([[-2.2368439 , -1.21958811, -0.4779458 ,  1.37261126]])
+
+The text classifier used is a linear model where the value of the coefficients indicates the discriminant power of the feature in the text given; therefore, it is possible to create a word cloud to provide insight into the classification process. The dataset has four labels, so the classifier follows a strategy of one vs. the rest. Consequently, there are four binary classifiers, and the following figure presents the word cloud for the positive case in each classifier. The title of the figure indicates the label of the positive case for the word cloud. The procedure is equivalent to the one presented in :ref:`bow_tc`, and the same example is used to facilitate a comparison. 
+
+>>> from wordcloud import WordCloud                            
+>>> from matplotlib import pylab as plt
+>>> txt = 'Es un placer estar aquí.'
+>>> X = dense.transform([txt])
+>>> clouds = []
+>>> for ws in dense.estimator_instance.coef_:
+>>>     positive = {name: w * repr
+                    for name, repr, w in zip(dense.names,
+                                              X[0], ws) if w * repr > 0}
+>>>     _ = WordCloud().generate_from_frequencies(positive)
+>>>     clouds.append(_)
+>>> fig = plt.figure(dpi=300, tight_layout=True)
+>>> axs = fig.subplots(2, 2).flatten()
+>>> labels = np.unique(y)
+>>> for cloud, ax, title in zip(clouds, axs, labels):
+>>>     ax.imshow(cloud, interpolation='bilinear')
+>>>     ax.grid(False)
+>>>     ax.tick_params(left=False, right=False, labelleft=False,
+                       labelbottom=False, bottom=False)
+>>>     ax.set_title(title)
+
+.. image:: dense-cl.png
 
 API
 --------------------------------

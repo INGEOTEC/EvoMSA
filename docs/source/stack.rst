@@ -40,30 +40,46 @@ The stack generalization method is introduced by first describing the vector spa
 The second step is initializing the base estimators, i.e., the text classifiers. We used the text classifiers described so far, namely :ref:`BoW` and :ref:`DenseBoW`. These classifiers are initialized with the following instructions. 
 
 >>> from EvoMSA import BoW, DenseBoW, StackGeneralization
->>> bow = BoW(lang='es')
->>> text_repr = DenseBoW(lang='es')
+>>> SIZE = 15
+>>> LANG = 'es'
+>>> bow = BoW(lang=LANG,
+              voc_size_exponent=SIZE)
+>>> dense = DenseBoW(lang=LANG,
+                     voc_size_exponent=SIZE,
+                     emoji=True,
+                     keyword=True,
+                     dataset=False)
 
 Once the text classifiers are ready, these can be used on the stacking. There are two ways in which the models can be included; one is using the parameter :py:attr:`decision_function_models` and the other with the parameter :py:attr:`transform_models`. The former parameter is the default behavior of stack generalization, where the estimators are trained, and then their predictions are used to train another learning algorithm. The latter parameter is to include the vector space of the models as features of the stack estimator. More information about this will be provided later.
 
 The following example creates a stack generalization using the standard approach -- where the predictions of the base classifiers are used as features. 
 
->>> stack = StackGeneralization(decision_function_models=[bow, text_repr]).fit(D)
+>>> stack = StackGeneralization(decision_function_models=[bow, dense]).fit(D)
+
+.. note::
+
+	It is equivalent to use the following instructions. 
+
+	>>> import numpy as np
+	>>> X = [x['text'] for x in D]
+	>>> y = np.r_[[x['klass'] for x in D]]
+	>>> stack = StackGeneralization([bow, dense]).fit(X, y)
 
 In order to illustrate the vector space used by the stack classifier, the following instruction represent the text *buenos días* (*good morning*) in the space created by the base classifiers. As can be seen, the vector is in :math:`\mathbb R^8`, where the first four components correspond to the predictions made by the :ref:`BoW <bow_tc>` model, and the last four are the :ref:`DenseBoW <text_repr_tc>` predictions. 
 
 >>> stack.transform(['buenos días'])
-array([[-1.4054785 , -1.01340621, -0.57912873,  0.90450291,
-        -2.13432793, -1.21754724, -0.7034401 ,  1.46593854]])
+array([[-1.44976031, -1.04133473, -0.2415961, 0.58071146,
+	    -2.2368439, -1.21958811, -0.4779458, 1.37261126]])
 
 The parameter :py:attr:`transform_models` is exemplified in the following instruction. It can be observed that the model :py:attr:`text_repr` is used as input for the parameter. The difference is depicted when the text is transformed into the vector space. The vector space is in :math:`\mathbb R^{2676}`, where the last four components are the predictions of the :ref:`BoW <bow_tc>` model, and the rest correspond to the :py:attr:`transform` method of :ref:`DenseBoW <text_repr_vector_space>`. 
 
 >>> stack2 = StackGeneralization(decision_function_models=[bow], 
-                                 transform_models=[text_repr]).fit(D)
+                                 transform_models=[dense]).fit(D)
 >>> X = stack2.transform(['buenos días'])
 >>> X.shape
-(1, 2676)
+(1, 2619)
 >>> X[0, -4:]
-array([-1.40547781, -1.01340788, -0.57912217,  0.90450227])
+array([-1.4497599 , -1.04133594, -0.24159535,  0.58070953])
 
 Text Classifier
 --------------------------------
@@ -78,7 +94,7 @@ where the label 'P' corresponds to the positive class.
 There are scenarios where it is more important to estimate the value(s) used to classify a particular instance; in the case of SVM, this is known as the decision function, and in the case of a Naive Bayes classifier, this is the probability of each class. This information can be found in :py:attr:`StackGeneralization.decision_function` as can be seen in the following code.
 
 >>> stack.decision_function(['buenos días'])
-array([[1.82838370e-10, 3.72925825e-18, 1.75176825e-06, 9.99998248e-01]])
+array([[1.36906246e-09, 3.17821439e-17, 3.12052669e-04, 9.99687946e-01]])
 
 
 API

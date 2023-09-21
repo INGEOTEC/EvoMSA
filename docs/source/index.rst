@@ -135,6 +135,13 @@ The first text classifier presented is the pre-trained BoW. The following line i
     >>> bow = BoW(lang=LANG,
                   voc_size_exponent=SIZE).fit(X, y)
 
+.. note::
+
+    It is equivalent to use the following instruction
+
+    >>> bow = BoW(lang=LANG,
+                  voc_size_exponent=SIZE).fit(D)
+
 After training the text classifier, it can make predictions. For instance, the first line predicts the training set, while the second line predicts the phrase *good morning* in Spanish, *buenos días.*
 
 .. code-block:: python
@@ -188,10 +195,20 @@ Next, the second method is trained using the dataset following the same steps. T
 .. code-block:: python
 
     >>> dense = DenseBoW(lang=LANG,
+                         voc_size_exponent=SIZE,
                          emoji=True,
                          keyword=True,
-                         dataset=False,
-                         voc_size_exponent=SIZE).fit(X, y)	
+                         dataset=False).fit(X, y)
+
+.. note::
+
+  It is equivalente to use the following code.
+
+  >>> dense = DenseBoW(lang=LANG,
+                       voc_size_exponent=SIZE,
+                       emoji=True,
+                       keyword=True,
+                       dataset=False).fit(D)                         
 
 The code to predict is equivalent; therefore, the prediction for the phrase *good morning* is only shown.
 
@@ -309,6 +326,12 @@ It is worth noting that the base classifiers were not trained; as can be seen, t
 The second step is to initialize and train the stack generalization class, shown in the following instruction. 
 
 .. code-block:: python
+
+    >>> stack = StackGeneralization([bow, dense]).fit(X, y)
+
+.. note::
+
+    It is equivalent to use the following instruction.
 
     >>> stack = StackGeneralization([bow, dense]).fit(D)
 
