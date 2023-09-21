@@ -117,7 +117,7 @@ The field :py:attr:`text` is self-described, and the field :py:attr:`klass` cont
     >>> X = [x['text'] for x in D]
     >>> y = np.r_[[x['klass'] for x in D]]
 
-The text classifiers developed in the example are pre-trained models; therefore, the vocabulary and language are fixed. The vocabulary size is specified with the exponent in the parameter `voc_size_exponent`; the default is :math:`17`, and the language is defined in the parameter `lang` (default `'es'`). The examples presented use as defaults the following.
+The text classifiers developed in the example are pre-trained models; therefore, the vocabulary and language are fixed. The vocabulary size (:math:`2^d`) is specified with the exponent :math:`d` in the parameter `voc_size_exponent`; the default is :math:`17`. The language is defined in the parameter `lang` (default `'es'`). The examples presented use as defaults the following.
 
 
 .. code-block:: python
