@@ -24,7 +24,7 @@ The following code can generate an instance of the system used in the competitio
   >>> ins = comp2023.stack_2_bow_tailored_all_keywords(X, y)
 
 
-.. list-table:: Performance in Cross-validation
+.. list-table:: Performance (:math:`f_1`) in k-fold cross-validation.
     :header-rows: 1
 
     * - Configuration
@@ -124,7 +124,7 @@ The following table presents the performance of these systems; it can be observe
 `Detection of Aggressive and Violent Incidents from Social Media in Spanish (DA-VINCIS 2022) <https://sites.google.com/view/davincis-iberlef/home>`_
 =======================================================================================================================================================
 
-.. list-table:: Performance in Cross-validation
+.. list-table:: Performance (:math:`f_1`) in k-fold cross-validation.
     :header-rows: 1
 
     * - Configuration

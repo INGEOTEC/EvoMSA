@@ -17,7 +17,7 @@ The following code can generate an instance of the system used in the competitio
   >>> comp2023 = Comp2023(lang='es')
   >>> ins = comp2023.stack_bows()
 
-.. list-table:: Performance in Cross-validation (Polarity)
+.. list-table:: Performance (macro-:math:`f_1`) obtained on the task **Polarity** in the developement set.
     :header-rows: 1
 
     * - Configuration
@@ -77,7 +77,7 @@ It can be observed that the best configuration corresponds to a :py:class:`~EvoM
   >>> comp2023 = Comp2023(lang='es')
   >>> ins = comp2023.bow_training_set()
 
-.. list-table:: Performance in Cross-validation (Type)
+.. list-table:: Performance (macro-:math:`f_1`) obtained on the task **Type** in the developement set.
     :header-rows: 1
 
     * - Configuration
@@ -137,7 +137,7 @@ It can be observed that the best configuration corresponds to a :py:class:`~EvoM
   >>> comp2023 = Comp2023(lang='es')
   >>> ins = comp2023.bow_training_set()  
 
-.. list-table:: Performance in Cross-validation (Country)
+.. list-table:: Performance (macro-:math:`f_1`) obtained on the task **Country** in the developement set.
     :header-rows: 1
 
     * - Configuration
