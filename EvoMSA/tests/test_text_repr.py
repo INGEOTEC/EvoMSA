@@ -13,9 +13,9 @@
 # limitations under the License.
 
 
-from EvoMSA.tests.test_base import TWEETS
 from microtc.utils import tweet_iterator
 import numpy as np
+from EvoMSA.tests.test_base import TWEETS
 
 
 def test_BoW_train_predict_decision_function():
