@@ -49,25 +49,25 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
       - Difference
     * - :ref:`HaSpeeDe3 (textual) <haspeede>`
       - 2023 
-      - 
+      - macro-:math:`f_1`
       - 0.9128
       - 0.8845 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_tailored_keywords>`)
       - 3.2%
     * - :ref:`HaSpeeDe3 (XReligiousHate) <haspeede>`
       - 2023 
-      - 
+      - macro-:math:`f_1`
       - 0.6525
       - 0.5522 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_tailored_keywords>`)
       - 18.2% 
     * - :ref:`HODI <hodi>` 
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.81079 
       - 0.71527 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_3_bows_tailored_keywords>`)
       - 13.4%
     * - :ref:`ACTI <acti>`
       - 2023
-      - 
+      - Accuracy
       - 0.85712
       - 0.78207 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_3_bows_tailored_keywords>`)
       - 9.6%

@@ -1,7 +1,10 @@
 .. _hodi:
 
+========================================================================================================
 `Homotransphobia Detection in Italian (HODI) <https://hodi-evalita.github.io>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+========================================================================================================
+
+`The HODI <https://ceur-ws.org/Vol-3473/paper26.pdf>`_ task presented at EVALITA 2023 focused on the detection of homotransphobia in Italian tweets.
 
 .. list-table:: Performance in Cross-validation
     :header-rows: 1
