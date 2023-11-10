@@ -1,13 +1,6 @@
+"""Module containing the code used in the Competitions"""
 from EvoMSA import BoW, DenseBoW, StackGeneralization
-from EvoMSA.utils import Linear, b4msa_params
-from microtc.utils import tweet_iterator, load_model, save_model
-from sklearn.metrics import f1_score
-from sklearn.model_selection import StratifiedKFold
-from glob import glob
-from os.path import isfile
-from collections import defaultdict
-from os.path import basename
-import numpy as np
+from EvoMSA.utils import b4msa_params
 
 
 class Comp2023(object):
@@ -54,7 +47,7 @@ class Comp2023(object):
             otra.append(i)
         systems = otra                    
         return systems.__iter__()
-    
+
     def bow(self, D=None, y=None):
         """Pre-trained :ref:`BoW` where the tokens are selected based on a normalized frequency w.r.t. its type, i.e., bigrams, words, and q-grams of characters.
 
@@ -68,7 +61,7 @@ class Comp2023(object):
 
         return BoW(lang=self.lang,
                    voc_size_exponent=self.voc_size_exponent)
-    
+
     def bow_voc_selection(self, D=None, y=None):
         """Pre-trained :ref:`BoW` where the tokens correspond to the most frequent ones.
 
@@ -265,12 +258,12 @@ class Comp2023(object):
         """
 
         bow = self.bow()
-        keywords = DenseBoW(lang='es',
+        keywords = DenseBoW(lang=self.lang,
                             voc_size_exponent=self.voc_size_exponent,
                             dataset=False)
         keywords.text_representations_extend(self.tailored)
         bow2 = self.bow_voc_selection()
-        keywords2 = DenseBoW(lang='es',
+        keywords2 = DenseBoW(lang=self.lang,
                              voc_size_exponent=self.voc_size_exponent,
                              voc_selection='most_common',
                              dataset=False)
@@ -304,7 +297,7 @@ class Comp2023(object):
         """
 
         bow = self.bow()
-        keywords = DenseBoW(lang='es',
+        keywords = DenseBoW(lang=self.lang,
                             voc_size_exponent=self.voc_size_exponent)
         sel = [k for k, v in enumerate(keywords.names)
                if not(v in ['davincis2022_1'] or 'semeval2023' in v)]
