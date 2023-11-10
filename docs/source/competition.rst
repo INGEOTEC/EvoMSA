@@ -79,19 +79,19 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
       - 8.1%
     * - :ref:`PoliticIT (Gender) <politicit>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.824287
       - 0.732259 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_3_bows>`)
       - 12.6%
     * - :ref:`PoliticIT (Ideology Binary) <politicit>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.928223
-      - 0.848525 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.bow_training_set>`)
+      - 0.848525 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_3_bows>`)
       - 9.4%
     * - :ref:`PoliticIT (Ideology Multiclass) <politicit>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.751477
       - 0.705220 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_3_bows>`)
       - 6.6%

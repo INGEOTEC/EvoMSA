@@ -3,8 +3,15 @@
 `Automatic Conspiracy Theory Identification (ACTI) <https://russogiuseppe.github.io/ACTI>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
 `The ACTI <https://ceur-ws.org/Vol-3473/paper36.pdf>`_ task presented at EVALITA 2023 focused on the automatic identification of conspiracy theories.
+
+.. code-block:: python
+
+  >>> from EvoMSA.competitions import Comp2023
+  >>> D = # Training set
+  >>> tailored = 'evalita2023_ACTI_It.json.gz'
+  >>> comp2023 = Comp2023(lang='it', tailored=tailored)
+  >>> ins = comp2023.stack_3_bows_tailored_keywords(D)
 
 .. list-table:: Performance in Cross-validation
     :header-rows: 1

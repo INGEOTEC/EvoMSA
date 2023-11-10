@@ -7,7 +7,6 @@
 
 The `HaSpeeDe3 <https://ceur-ws.org/Vol-3473/paper22.pdf>`_ task presented at EVALITA 2023 focused at the detection of hateful content written in Italian tweets. 
 
-
 The following code can generate an instance of the system used in the competition.
 
 .. code-block:: python
