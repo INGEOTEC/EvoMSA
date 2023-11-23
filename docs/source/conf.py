@@ -49,7 +49,9 @@ extensions = [
 ]
 
 intersphinx_mapping = {'b4msa': ('https://b4msa.readthedocs.io/en/latest',
-                                 None)}
+                                 None),
+                       'IngeoML': ('https://ingeoml.readthedocs.io/en/latest',
+                                   None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

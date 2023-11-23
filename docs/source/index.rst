@@ -82,13 +82,22 @@ A more general approach to installing EvoMSA is through the use of the command p
 Libraries and Text Classification Problem    
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Once EvoMSA is installed, one must load a few libraries. The first line loads EvoMSA core classes. Line 2 contains the pathname where the text classification problem is. Finally, line 3 is a method to read a file containing a JSON per line.  
+Once EvoMSA is installed, one must load a few libraries. The first line loads EvoMSA core classes. Line 2 contains the pathname where the text classification problem is. Line 3 is a method to read a file containing a JSON per line. The rest of the lines are libraries used in the examples.
 
 .. code-block:: python
 
     >>> from EvoMSA import BoW, DenseBoW, StackGeneralization
     >>> from EvoMSA.tests.test_base import TWEETS
     >>> from microtc.utils import tweet_iterator
+    >>> from IngeoML import CI, SelectFromModelCV
+    >>> from sklearn.model_selection import StratifiedKFold
+    >>> from sklearn.base import clone
+    >>> from sklearn import metrics
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> import seaborn as sns
+    >>> np.set_printoptions(precision=4)
+    >>> sns.set_style('whitegrid')
 	
 
 The text classification problem can be read using the following instruction. It is stored in a variable D which is a list of dictionaries. The second line shows the content of the first element in D.
@@ -101,8 +110,20 @@ The text classification problem can be read using the following instruction. It 
      'klass': 'NONE',
      'q_voc_ratio': 0.4585635359116022}
 
-The field :py:attr:`text` is self-described, and the field :py:attr:`klass` contains the label associated with that text.
+The field :py:attr:`text` is self-described, and the field :py:attr:`klass` contains the label associated with that text. Although one can directly provide the list of dictionaries to :py:class:`~EvoMSA.text_repr.BoW` and :py:class:`~EvoMSA.text_repr.DenseBoW`, it is decided to follow the conventions of `sklearn. <https://scikit-learn.org>`_ The following instructions transform `D` into the dependent variables and their response. 
 
+.. code-block:: python
+
+    >>> X = [x['text'] for x in D]
+    >>> y = np.r_[[x['klass'] for x in D]]
+
+The text classifiers developed in the example are pre-trained models; therefore, the vocabulary and language are fixed. The vocabulary size (:math:`2^d`) is specified with the exponent :math:`d` in the parameter `voc_size_exponent`; the default is :math:`17`. The language is defined in the parameter `lang` (default `'es'`). The examples presented use as defaults the following.
+
+
+.. code-block:: python
+
+    >>> SIZE = 15
+    >>> LANG = 'es'
 
 :ref:`bow` Classifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -111,7 +132,15 @@ The first text classifier presented is the pre-trained BoW. The following line i
 
 .. code-block:: python
 
-    >>> bow = BoW(lang='es').fit(D)
+    >>> bow = BoW(lang=LANG,
+                  voc_size_exponent=SIZE).fit(X, y)
+
+.. note::
+
+    It is equivalent to use the following instruction
+
+    >>> bow = BoW(lang=LANG,
+                  voc_size_exponent=SIZE).fit(D)
 
 After training the text classifier, it can make predictions. For instance, the first line predicts the training set, while the second line predicts the phrase *good morning* in Spanish, *buenos días.*
 
@@ -123,6 +152,40 @@ After training the text classifier, it can make predictions. For instance, the f
 
 It can be observed that the predicted class for *buenos días* is positive (P).
 
+In order to measure the text classifier performance in this dataset, a stratified k-fold cross-validation can be used. The first step is to create a clean instance of :py:class:`~EvoMSA.text_repr.BoW` with the following instruction. 
+
+.. code-block:: python
+
+    >>> bow = BoW(lang=LANG,
+                  voc_size_exponent=SIZE)
+
+The next step is to implement the k-fold strategy with the following instructions. 
+
+.. code-block:: python
+
+    >>> hy = np.empty_like(y)
+    >>> skf = StratifiedKFold(shuffle=True, random_state=0)
+    >>> for tr, vs in skf.split(X, y):
+    >>>     m = clone(bow).fit([X[x] for x in tr], y[tr])
+    >>>     hy[vs] = m.predict([X[x] for x in vs])
+
+Finally, the performance (:math:`f_1` score) for the different labels can be computed as follows.
+
+.. code-block:: python
+
+    >>> metrics.f1_score(y, hy, average=None)
+    array([0.5595, 0.    , 0.3741, 0.7474])
+
+In order to complement the point performance obtained in the previous instruction, the confidence interval can be computed with the following instructions. 
+
+.. code-block:: python
+
+    >>> f1 = lambda y, hy: metrics.f1_score(y, hy, 
+                                            average=None)
+    >>> ci = CI(statistic=f1)
+    >>> ci(y, hy)
+    (array([0.5072, 0.    , 0.3021, 0.7206]),
+     array([0.612 , 0.    , 0.4452, 0.7769]))   
 
 :ref:`densebow` Classifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -131,12 +194,116 @@ Next, the second method is trained using the dataset following the same steps. T
 
 .. code-block:: python
 
-    >>> dense = DenseBoW(lang='es').fit(D)	
+    >>> dense = DenseBoW(lang=LANG,
+                         voc_size_exponent=SIZE,
+                         emoji=True,
+                         keyword=True,
+                         dataset=False).fit(X, y)
+
+.. note::
+
+  It is equivalente to use the following code.
+
+  >>> dense = DenseBoW(lang=LANG,
+                       voc_size_exponent=SIZE,
+                       emoji=True,
+                       keyword=True,
+                       dataset=False).fit(D)                         
 
 The code to predict is equivalent; therefore, the prediction for the phrase *good morning* is only shown.
 
     >>> dense.predict(['buenos días'])
     array(['P'], dtype='<U4')
+
+In order to measure the text classifier performance in this dataset, a stratified k-fold cross-validation can be used. The first step is to create a clean instance of :py:class:`~EvoMSA.text_repr.DenseBoW` with the following instruction. 
+
+.. code-block:: python
+
+    >>> dense = DenseBoW(lang=LANG,
+                         emoji=True,
+                         keyword=True,
+                         dataset=False,    
+                         voc_size_exponent=SIZE)
+
+The next step is to implement the k-fold strategy with the following instructions. 
+
+.. code-block:: python
+
+    >>> hy = np.empty_like(y)
+    >>> skf = StratifiedKFold(shuffle=True, random_state=0)
+    >>> for tr, vs in skf.split(X, y):
+    >>>     m = clone(dense).fit([X[x] for x in tr], y[tr])
+    >>>     hy[vs] = m.predict([X[x] for x in vs])
+
+Finally, the performance (:math:`f_1` score) for the different labels can be computed as follows.
+
+.. code-block:: python
+
+    >>> metrics.f1_score(y, hy, average=None)
+    array([0.6208, 0.    , 0.4828, 0.7679])
+
+In order to complement the point performance obtained in the previous instruction, the confidence interval can be computed with the following instructions. 
+
+.. code-block:: python
+
+    >>> f1 = lambda y, hy: metrics.f1_score(y, hy, average=None)
+    >>> ci = CI(statistic=f1)
+    >>> ci(y, hy)
+    (array([0.5682, 0.    , 0.418 , 0.7395]),
+     array([0.6648, 0.    , 0.5472, 0.7968]))  
+
+It is also possible to select the most discriminant features for the problem being solved. The method :py:class:`~IngeoML.feature_selection.SelectFromModelCV` is used in the following example. The first step is to create a clean instance of :py:class:`~EvoMSA.text_repr.DenseBoW`. The following lines define the parameters for the class :py:class:`~IngeoML.feature_selection.SelectFromModelCV`. Finally, the feature selection is performed on the method :py:func:`~EvoMSA.text_repr.DenseBoW.select`.
+
+.. code-block:: python
+
+    >>> dense = DenseBoW(lang=LANG,
+                         emoji=True,
+                         keyword=True,
+                         dataset=False,    
+                         voc_size_exponent=SIZE)
+    >>> macro_f1 = lambda y, hy: metrics.f1_score(y, hy,
+                                                  average='macro')
+    >>> kwargs = dense.estimator_kwargs
+    >>> estimator = dense.estimator_class(**kwargs)
+    >>> kwargs = dict(estimator=estimator,
+                      scoring=macro_f1)
+    >>> dense.select(D=X, y=y,
+                     feature_selection=SelectFromModelCV,
+                     feature_selection_kwargs=kwargs)
+
+The performance for the selected features can be retrieved with the following instructions. The figure shows the performance when the number of features is varied.
+
+
+.. code-block:: python
+
+    >>> select = dense.feature_selection
+    >>> perf = select.cv_results_
+    >>> _ = [{'d': k, 'macro-f1': v} for k, v in perf.items()]
+    >>> df = pd.DataFrame(_)
+    >>> ax = sns.lineplot(df, x='d', y='macro-f1')      
+
+
+.. image:: dense-select.png
+
+The performance of the text classifier enhanced with the feature selection algorithm can be computed with the following instructions. 
+
+.. code-block:: python
+
+    >>> dense = DenseBoW(lang=LANG,
+                         emoji=True,
+                         keyword=True,
+                         dataset=False,    
+                         voc_size_exponent=SIZE)
+    >>> hy = np.empty_like(y)
+    >>> skf = StratifiedKFold(shuffle=True, random_state=0)
+    >>> for tr, vs in skf.split(X, y):
+    >>>     m = clone(dense).select(D=[X[x] for x in tr], y=y[tr],
+                                    feature_selection=SelectFromModelCV,
+                                    feature_selection_kwargs=kwargs)
+    >>>     m.fit([X[x] for x in tr], y[tr])
+    >>>     hy[vs] = m.predict([X[x] for x in vs])
+    >>> metrics.f1_score(y, hy, average=None)
+    array([0.6324, 0.    , 0.521 , 0.766 ])    
 
 :ref:`Stack Generalization <StackGeneralization>`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -146,14 +313,25 @@ The final text classifier uses a stack generalization approach. The first step i
 
 .. code-block:: python
 
-    >>> bow = BoW(lang='es')
-    >>> dense = DenseBoW(lang='es')	
+    >>> bow = BoW(lang=LANG,
+                  voc_size_exponent=SIZE)    	
+    >>> dense = DenseBoW(lang=LANG,
+                         emoji=True,
+                         keyword=True,
+                         dataset=False,
+                         voc_size_exponent=SIZE)
 
 It is worth noting that the base classifiers were not trained; as can be seen, the method fit was not called. These base classifiers will be trained inside the stack generalization algorithm. 
 
 The second step is to initialize and train the stack generalization class, shown in the following instruction. 
 
 .. code-block:: python
+
+    >>> stack = StackGeneralization([bow, dense]).fit(X, y)
+
+.. note::
+
+    It is equivalent to use the following instruction.
 
     >>> stack = StackGeneralization([bow, dense]).fit(D)
 
@@ -166,6 +344,47 @@ The code to predict is kept constant in all the classes; therefore, the followin
     >>> stack.predict(['buenos días'])
     array(['P'], dtype='<U4')
 
+In order to measure the text classifier performance in this dataset, a stratified k-fold cross-validation can be used. The first step is to create a clean instance of :py:class:`~EvoMSA.text_repr.StackGeneralization` with the following instruction. 
+
+.. code-block:: python
+
+    >>> bow = BoW(lang=LANG,
+                  voc_size_exponent=SIZE)    	
+    >>> dense = DenseBoW(lang=LANG,
+                         emoji=True,
+                         keyword=True,
+                         dataset=False,
+                         voc_size_exponent=SIZE)
+    >>> stack = StackGeneralization([bow, dense])                         
+
+
+The next step is to implement the k-fold strategy with the following instructions. 
+
+.. code-block:: python
+
+    >>> hy = np.empty_like(y)
+    >>> skf = StratifiedKFold(shuffle=True, random_state=0)
+    >>> for tr, vs in skf.split(X, y):
+    >>>     m = clone(stack).fit([X[x] for x in tr], y[tr])
+    >>>     hy[vs] = m.predict([X[x] for x in vs])
+
+Finally, the performance (:math:`f_1` score) for the different labels can be computed as follows.
+
+.. code-block:: python
+
+    >>> metrics.f1_score(y, hy, average=None)
+    array([0.6445, 0.08  , 0.5181, 0.7426])
+
+In order to complement the point performance obtained in the previous instruction, the confidence interval can be computed with the following instructions. 
+
+.. code-block:: python
+
+    >>> f1 = lambda y, hy: metrics.f1_score(y, hy, average=None)
+    >>> ci = CI(statistic=f1)
+    >>> ci(y, hy)
+    (array([0.5971, 0.    , 0.4444, 0.7132]),
+     array([0.6882, 0.2353, 0.5739, 0.7712]))    
+
 Citing
 ==========
 
@@ -176,7 +395,7 @@ If you find EvoMSA useful for any academic/scientific purpose, we would apprecia
 	  @article{DBLP:journals/corr/abs-1812-02307,
 	  author = {Mario Graff and Sabino Miranda{-}Jim{\'{e}}nez
 	                 and Eric Sadit Tellez and Daniela Moctezuma},
-	  title     = {EvoMSA: {A} Multilingual Evolutionary Approach for Sentiment Analysis},
+	  title     = {EvoMSA: {A} Multilingual Evolutionary Approach for Sentiment Analysis}, 
 	  journal   = {Computational Intelligence Magazine},
 	  volume    = {15},
 	  issue     = {1},

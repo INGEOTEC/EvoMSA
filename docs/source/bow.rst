@@ -172,6 +172,22 @@ The IDF values associate to each token are in the dictionary :py:attr:`BoW.bow.t
 
 Nonetheless, the value that the component 46695 has in the variable :py:attr:`X` is 0.2523 because the vector that represents *good morning* has been normalized to have a unit length. 
 
+An approach that provides an insight into the representation used in :py:class:`~EvoMSA.text_repr.BoW` is to create a word cloud. The idea is that the tokes' size is proportional to the weight of the corresponding component in the vector space. For example, the following example creates the word cloud for the text *It is a pleasure to be here.*
+
+>>> from wordcloud import WordCloud                            
+>>> from matplotlib import pylab as plt
+>>> txt = 'It is a pleasure to be here.'
+>>> X = bow.transform([txt]).toarray()
+>>> tokens = {bow.names[id]: v for id, v in enumerate(X[0]) if v > 0}
+>>> word_cloud = WordCloud().generate_from_frequencies(tokens)
+>>> plt.imshow(word_cloud, interpolation='bilinear')
+>>> plt.grid(False)
+>>> plt.tick_params(left=False, right=False, labelleft=False,
+                    labelbottom=False, bottom=False)
+
+
+.. image:: bow-repr.png
+
 .. _bow_tc:
 
 Text Classifier
@@ -183,13 +199,33 @@ To illustrate the process of creating a text classifier with :ref:`BoW`, the fol
 
 >>> from microtc.utils import tweet_iterator
 >>> from EvoMSA.tests.test_base import TWEETS
+>>> import numpy as np
 >>> D = list(tweet_iterator(TWEETS))
 
-The dataset stored in :py:attr:`D` is a toy sentiment analysis dataset, in Spanish, with four labels, positive, negative, neutral, and none. It is a list of dictionaries where the dictionary has two keys *text* and *klass*; the former has the text and the latter the label. 
+The dataset stored in :py:attr:`D` is a toy sentiment analysis dataset, in Spanish, with four labels, positive, negative, neutral, and none. It is a list of dictionaries where the dictionary has two keys :py:attr:`text` and :py:attr:`klass`; the former has the text and the latter the label. 
+
+Although one can directly provide the list of dictionaries to :py:class:`~EvoMSA.text_repr.BoW`, it is decided to follow the conventions of `sklearn. <https://scikit-learn.org>`_ The following instructions transform `D` into the dependent variables and their response. 
+
+>>> X = [x['text'] for x in D]
+>>> y = np.r_[[x['klass'] for x in D]]
+
+
+The text classifiers developed in the example are pre-trained models; therefore, the vocabulary and language are fixed. The vocabulary size (:math:`2^d`) is specified with the exponent :math:`d` in the parameter `voc_size_exponent`; the default is :math:`17`. The language is defined in the parameter `lang` (default `'es'`). The examples presented use as defaults the following.
+
+>>> SIZE = 17
+>>> LANG = 'es'
 
 The text classifier is trained with the following instruction. 
 
->>> bow = BoW(lang='es').fit(D)
+>>> bow = BoW(lang=LANG,
+              voc_size_exponent=SIZE).fit(X, y)
+
+.. note::
+
+    It is equivalent to use the following instruction
+
+    >>> bow = BoW(lang=LANG,
+                  voc_size_exponent=SIZE).fit(D)              
 
 where the language (:py:attr:`lang`) is set to Spanish (es), and :py:attr:`fit` receives the labeled dataset. 
 
@@ -204,6 +240,36 @@ There are scenarios where it is more important to estimate the value(s) used to 
 
 >>> bow.decision_function(['buenos días'])
 array([[-1.40547862, -1.01339793, -0.57912008,  0.90450319]])
+
+Following the previous example, we can use the model created to predict the class of the text *It is a pleasure to be here*; however, in Spanish *Es un placer estar aquí.* The following code predicts this text. 
+
+>>> txt = 'Es un placer estar aquí.'
+>>> bow.predict([txt])
+array(['P'], dtype='<U4')
+
+The text classifier used is a linear model where the value of the coefficients indicates the discriminant power of the token in the text given; therefore, it is possible to create a word cloud to provide insight into the classification process. The dataset has four labels, so the classifier follows a strategy of one vs. the rest. Consequently, there are four binary classifiers, and the following figure presents the word cloud for the positive case in each classifier. The title of the figure indicates the label of the positive case for the word cloud. 
+
+>>> from wordcloud import WordCloud                            
+>>> from matplotlib import pylab as plt
+>>> X = bow.transform([txt]).toarray()
+>>> clouds = []
+>>> for ws in bow.estimator_instance.coef_:
+>>>     positive = {name: w * tfidf
+                    for name, tfidf, w in zip(bow.names,
+                                              X[0], ws) if w > 0}
+>>>     _ = WordCloud().generate_from_frequencies(positive)
+>>>     clouds.append(_)
+>>> fig = plt.figure(dpi=300, tight_layout=True)
+>>> axs = fig.subplots(2, 2).flatten()
+>>> labels = np.unique(y)
+>>> for cloud, ax, title in zip(clouds, axs, labels):
+>>>     ax.imshow(cloud, interpolation='bilinear')
+>>>     ax.grid(False)
+>>>     ax.tick_params(left=False, right=False, labelleft=False,
+                       labelbottom=False, bottom=False)
+>>>     ax.set_title(title)
+
+.. image:: bow-cl.png
 
 API
 --------------------------------
