@@ -13,18 +13,19 @@
 # limitations under the License.
 
 
+from typing import Union, List, Set, Callable
 from b4msa.textmodel import TextModel
 from microtc.weighting import TFIDF
 from microtc.utils import tweet_iterator
 from joblib import Parallel, delayed
-from typing import Union, List, Set, Callable
 from sklearn.base import BaseEstimator, clone
 from sklearn.svm import LinearSVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import StratifiedKFold
 from scipy.sparse import csr_matrix
 import numpy as np
-from EvoMSA.utils import MODEL_LANG
+from EvoMSA.utils import load_url
+from EvoMSA.utils import MODEL_LANG, TAILORED, MICROTC
 from EvoMSA.utils import load_bow, load_emoji, dataset_information,\
                          load_dataset, load_keyword, b4msa_params, Linear
 from EvoMSA.model_selection import KruskalFS
@@ -733,8 +734,15 @@ class DenseBoW(BoW):
         :param value: List of models or name
         :type value: List of models or string
         """
-        from EvoMSA.utils import load_url
+
         if isinstance(value, str):
+            if value in TAILORED:
+                func = self.voc_selection
+                d = self.voc_size_exponent
+                if func == 'most_common_by_type' and d == 17:
+                    value = f'{value}.json.gz'
+                else:
+                    value = f'{self.lang}_{MICROTC}_{value}_{func}_{d}.json.gz'
             value = load_url(value, n_jobs=self.n_jobs)
         names = set(self.names)
         for x in value:

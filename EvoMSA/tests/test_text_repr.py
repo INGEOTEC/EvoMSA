@@ -13,9 +13,9 @@
 # limitations under the License.
 
 
-from EvoMSA.tests.test_base import TWEETS
 from microtc.utils import tweet_iterator
 import numpy as np
+from EvoMSA.tests.test_base import TWEETS
 
 
 def test_BoW_train_predict_decision_function():
@@ -601,3 +601,15 @@ def test_DenseBoW_distance_hyperplane():
     text_repr.distance_hyperplane = True
     text_repr.key = ['text1', 'text2']
     text_repr.transform(D1[:3])
+
+
+def test_DenseBoW_tailored():
+    from EvoMSA.text_repr import DenseBoW    
+    dense = DenseBoW(lang='es',
+                     keyword=False,
+                     voc_size_exponent=13,
+                     emoji=False, dataset=False,
+                     n_jobs=-1)
+    assert len(dense.names) == 0
+    dense.text_representations_extend('IberLEF2023_DAVINCIS_task1')
+    assert len(dense.names)

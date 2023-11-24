@@ -38,6 +38,18 @@ MODEL_LANG = ['ar', 'ca', 'de', 'en', 'es', 'fr',
               'pl', 'pt', 'ru', 'tl', 'tr', 'zh']
 BASEURL = 'https://github.com/INGEOTEC/text_models/releases/download/models'
 
+TAILORED = ['IberLEF2022_DAVINCIS_task1', 'IberLEF2023_DAVINCIS_task1',
+            'IberLEF2023_DIPROMATS_task1', 'IberLEF2023_HOMO-MEX',
+            'IberLEF2023_HOPE', 'IberLEF2023_HUHU_task1', 'IberLEF2023_PoliticEs_gender',
+            'IberLEF2023_PoliticEs_ideology_binary', 'IberLEF2023_PoliticEs_ideology_multiclass',
+            'IberLEF2023_PoliticEs_profession', 'IberLEF2023_RestMex_task1_country',
+            'IberLEF2023_RestMex_task1_polarity', 'IberLEF2023_RestMex_task1_type',
+            'evalita2023_ACTI', 'evalita2023_HODI', 'evalita2023_HaSpeeDe3',
+            'evalita2023_PoliticIT_gender', 'evalita2023_PoliticIT_ideology_binary',
+            'evalita2023_PoliticIT_ideology_multiclass', 'haha2018',
+            'semeval2017', 'semeval2018_anger', 'semeval2018_fear', 'semeval2018_joy',
+            'semeval2018_sadness', 'semeval2018_valence', 'semeval2023_task10_A_edos',
+            'semeval2023_task10_B_edos', 'semeval2023_task10_C_edos', 'tass2016']
 
 class LabelEncoderWrapper(object):
     """Wrapper of LabelEncoder. The idea is to keep the order when the classes are numbers
