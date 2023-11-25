@@ -49,7 +49,9 @@ TAILORED = ['IberLEF2022_DAVINCIS_task1', 'IberLEF2023_DAVINCIS_task1',
             'evalita2023_PoliticIT_ideology_multiclass', 'haha2018',
             'semeval2017', 'semeval2018_anger', 'semeval2018_fear', 'semeval2018_joy',
             'semeval2018_sadness', 'semeval2018_valence', 'semeval2023_task10_A_edos',
-            'semeval2023_task10_B_edos', 'semeval2023_task10_C_edos', 'tass2016']
+            'semeval2023_task10_B_edos', 'semeval2023_task10_C_edos', 'tass2016',
+            'semeval2024_EDiReF_task1', 'semeval2024_EDiReF_task2',
+            'semeval2024_EDiReF_task3']
 
 class LabelEncoderWrapper(object):
     """Wrapper of LabelEncoder. The idea is to keep the order when the classes are numbers
