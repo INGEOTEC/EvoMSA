@@ -750,7 +750,8 @@ class DenseBoW(BoW):
             if label not in names:
                 self.text_representations.append(x)
                 self.names.append(label)
-                names.add(label)    
+                names.add(label)
+        return self   
 
     @property
     def names(self):
