@@ -3,6 +3,8 @@
 `Hate Speech Detection towards the Mexican Spanish Speaking LGBT+ Population (HOMO-MEX) <https://codalab.lisn.upsaclay.fr/competitions/10019>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+ `The HOMO-MEX <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6566>`_ task presented at IberLEF 2023 focused on detecting LGBTQ+ phobic content in Spanish tweets.
+
 .. list-table:: Performance in Cross-validation
     :header-rows: 1
 

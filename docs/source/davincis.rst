@@ -16,12 +16,11 @@ The following code can generate an instance of the system used in the competitio
 
   >>> from EvoMSA.competitions import Comp2023
   >>> import numpy as np
-  >>> X = ['text 1', 'text 2']
-  >>> y = np.r_[[0, 1]]
-  >>> tailored = 'IberLEF2023_DAVINCIS_task1_Es.json.gz'
+  >>> D = # Training set
+  >>> tailored = 'IberLEF2023_DAVINCIS_task1'
   >>> comp2023 = Comp2023(lang='es', 
                           tailored=tailored)
-  >>> ins = comp2023.stack_2_bow_tailored_all_keywords(X, y)
+  >>> ins = comp2023.stack_2_bow_tailored_all_keywords(D)
 
 
 .. list-table:: Performance (:math:`f_1`) in k-fold cross-validation.

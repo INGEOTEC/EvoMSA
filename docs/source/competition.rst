@@ -163,22 +163,22 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
       - 1.6%    
     * - :ref:`HOMO-MEX <homo-mex>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.8847
       - 0.8050 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_3_bow_tailored_all_keywords>`)
       - 9.9%
     * - :ref:`HOPE (ES) <hope>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.9161
-      - 0.4198 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_bow_keywords_emojis_voc_selection>`)
-      - 118.2%
+      - 0.5214 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_bow_keywords_emojis_voc_selection>`)
+      - 75.7%
     * - :ref:`HOPE (EN) <hope>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.5012
-      - 0.4429 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_bow_keywords_emojis>`)
-      - 13.2%
+      - 0.4651 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_bow_keywords_emojis>`)
+      - 7.8%
     * - :ref:`DIPROMATS (ES) <dipromats>`
       - 2023
       - 

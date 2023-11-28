@@ -11,9 +11,6 @@ The following code can generate an instance of the system used in the competitio
 .. code-block:: python
 
   >>> from EvoMSA.competitions import Comp2023
-  >>> import numpy as np
-  >>> X = ['text 1', 'text 2']
-  >>> y = np.r_[[0, 1]]
   >>> comp2023 = Comp2023(lang='es')
   >>> ins = comp2023.stack_3_bows()
 

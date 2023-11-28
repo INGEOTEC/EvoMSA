@@ -244,7 +244,7 @@ class Comp2023(object):
         >>> bow = BoW(lang='es')
         >>> keywords = DenseBoW(lang='es',
                                 dataset=False).select(D=D)
-        >>> tailored = 'IberLEF2023_DAVINCIS_task1_Es.json.gz'
+        >>> tailored = 'IberLEF2023_DAVINCIS_task1'
         >>> keywords.text_representations_extend(tailored)
         >>> bow_voc = BoW(lang='es',
                           voc_selection='most_common')
@@ -323,7 +323,7 @@ class Comp2023(object):
         >>> D = list(tweet_iterator(TWEETS))        
         >>> bow = BoW(lang='es')
         >>> keywords = DenseBoW(lang='es')
-        >>> tailored = 'IberLEF2023_DAVINCIS_task1_Es.json.gz'
+        >>> tailored = 'IberLEF2023_DAVINCIS_task1'
         >>> sel = [k for k, v in enumerate(keywords.names)
                    if not(v in ['davincis2022_1'] or 'semeval2023' in v)]
         >>> keywords.select(sel)                           
@@ -398,7 +398,7 @@ class Comp2023(object):
         >>> bow = BoW(lang='es')
         >>> keywords = DenseBoW(lang='es',
                                 dataset=False).select(D=D)
-        >>> tailored = 'IberLEF2023_DAVINCIS_task1_Es.json.gz'
+        >>> tailored = 'IberLEF2023_DAVINCIS_task1'
         >>> keywords.text_representations_extend(tailored)
         >>> bow_voc = BoW(lang='es',
                           voc_selection='most_common')
@@ -431,7 +431,7 @@ class Comp2023(object):
         >>> D = list(tweet_iterator(TWEETS))        
         >>> bow = BoW(lang='es')
         >>> keywords = DenseBoW(lang='es')
-        >>> tailored = 'IberLEF2023_DAVINCIS_task1_Es.json.gz'
+        >>> tailored = 'IberLEF2023_DAVINCIS_task1'
         >>> keywords.text_representations_extend(tailored)        
         >>> sel = [k for k, v in enumerate(keywords.names)
                    if not(v in ['davincis2022_1'] or 'semeval2023' in v)]

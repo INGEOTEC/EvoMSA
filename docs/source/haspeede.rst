@@ -13,7 +13,7 @@ The following code can generate an instance of the system used in the competitio
 
   >>> from EvoMSA.competitions import Comp2023
   >>> D = # Training set
-  >>> tailored = 'evalita2023_HaSpeeDe3_It.json.gz'
+  >>> tailored = 'evalita2023_HaSpeeDe3'
   >>> comp2023 = Comp2023(lang='it', tailored=tailored)
   >>> ins = comp2023.stack_2_bow_tailored_keywords(D)
 

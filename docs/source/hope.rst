@@ -3,6 +3,9 @@
 `Multilingual Hope Speech Detection (HOPE) <https://codalab.lisn.upsaclay.fr/competitions/10215>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+`The HOPE <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6567>`_ task presented at IberLEF 2023 focused on the identification of positive speech in Spanish and English.
+
+
 .. list-table:: Performance in Cross-validation (Spanish)
     :header-rows: 1
 
