@@ -3,6 +3,8 @@
 `Automatic Detection and Characterization of Propaganda Techniques from Diplomats (DIPROMATS) <https://sites.google.com/view/dipromats2023>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+`The DIPROMATS <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6569/3969>`_ task presented at IberLEF 2023 focused on indentifying tweets that have a propaganda technique. 
+
 .. list-table:: Performance in Cross-validation (Spanish)
     :header-rows: 1
 

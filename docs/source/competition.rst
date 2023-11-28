@@ -181,13 +181,13 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
       - 7.8%
     * - :ref:`DIPROMATS (ES) <dipromats>`
       - 2023
-      - 
+      - :math:`f_1`
       - 0.8089
       - 0.7485 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_3_bows>`)
       - 8.1%
     * - :ref:`DIPROMATS (EN) <dipromats>`
       - 2023
-      - 
+      - :math:`f_1`
       - 0.8090
       - 0.7255 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_3_bow_tailored_all_keywords>`)
       - 11.5%
