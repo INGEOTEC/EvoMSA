@@ -740,7 +740,7 @@ class DenseBoW(BoW):
                 func = self.voc_selection
                 d = self.voc_size_exponent
                 if func == 'most_common_by_type' and d == 17:
-                    value = f'{value}.json.gz'
+                    value = f'{value}_{self.lang.capitalize()}.json.gz'
                 else:
                     value = f'{self.lang}_{MICROTC}_{value}_{func}_{d}.json.gz'
             value = load_url(value, n_jobs=self.n_jobs)
