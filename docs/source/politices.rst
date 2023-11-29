@@ -1,10 +1,10 @@
 .. _politicses:
 
-=============================================================================================================================
-`Political Ideology Detection in Spanish Texts (PoliticEs) <https://codalab.lisn.upsaclay.fr/competitions/10173>`_
-=============================================================================================================================
+========================================================================================================================================
+`Political Ideology Detection in Spanish Texts (PoliticEs) <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6570>`_
+========================================================================================================================================
 
-The `PoliticEs <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6570>`_ task presented at IberLEF 2023 focused on extracting political ideology and demographic characteristics such as gender and profession. 
+The `PoliticEs <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6570>`_ task (`webpage <https://codalab.lisn.upsaclay.fr/competitions/10173>`_) presented at IberLEF 2023 focused on extracting political ideology and demographic characteristics such as gender and profession. 
 
 The following code can generate an instance of the system used in the competition. The system comprises three :py:class:`~EvoMSA.text_repr.BoW` systems. The first one usses the default parameters, the second uses the vocabulary specified in the parameter `voc_selection='most_common'`, and the third is trained on the competition training set. 
 
@@ -77,11 +77,11 @@ The following table presents the performance of these systems; it can be observe
     :header-rows: 1
 
     * - Configuration
-      - Recall (female)
+      - Recall(female) 
       - Recall (male)
-      - Precision (female)
+      - Precision(female)
       - Precision (male)
-      - macro-:math:`f_1`
+      - macro-:math:`f_1` 
     * - Default
       - 0.5422
       - 0.8609

@@ -1,10 +1,10 @@
 .. _davincis:
 
-=================================================================================================================================================
-`Detection of Aggressive and Violent Incidents from Social Media in Spanish (DA-VINCIS) <https://sites.google.com/view/davincis-iberlef-2023>`_
-=================================================================================================================================================
+=============================================================================================================================================================================
+`Detection of Aggressive and Violent Incidents from Social Media in Spanish (DA-VINCIS) <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6565>`_
+=============================================================================================================================================================================
 
-The `DA-VINCIS <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6565>`_ task presented at IberLEF 2023 focused on detecting violent events in social networks. The track has two tasks: the first was to detect texts indicating violent incidents, and the second was a multiclass problem where the categories correspond to different violent incidents. 
+The `DA-VINCIS <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6565>`_ task (`webpage <https://sites.google.com/view/davincis-iberlef-2023>`_) presented at IberLEF 2023 focused on detecting violent events in social networks. The track has two tasks: the first was to detect texts indicating violent incidents, and the second was a multiclass problem where the categories correspond to different violent incidents. 
 
 The following table presents the performance, in terms of :math:`f_1` score, for the different systems tested for the polarity task. The performance was estimated using stratified k-fold (:math:`k=5`) cross-validation. 
 
@@ -119,9 +119,10 @@ The following table presents the performance of these systems; it can be observe
 
 .. _davincis-2022:
 
-=======================================================================================================================================================
-`Detection of Aggressive and Violent Incidents from Social Media in Spanish (DA-VINCIS 2022) <https://sites.google.com/view/davincis-iberlef/home>`_
-=======================================================================================================================================================
+==================================================================================================================================================================================
+`Detection of Aggressive and Violent Incidents from Social Media in Spanish (DA-VINCIS 2022) <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6441>`_
+==================================================================================================================================================================================
+
 
 .. list-table:: Performance (:math:`f_1`) in k-fold cross-validation.
     :header-rows: 1

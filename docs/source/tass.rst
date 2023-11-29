@@ -3,6 +3,16 @@
 `Workshop on Sentiment Analysis at SEPLN (TASS) <https://ceur-ws.org/Vol-1896/p0_overview_tass2017.pdf>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+`The TASS <https://ceur-ws.org/Vol-1896/p0_overview_tass2017.pdf>`_ workshop aims at the identification of polarity in Spanish tweets. 
+
+.. code-block:: python
+
+  >>> from EvoMSA.competitions import Comp2023
+  >>> D = # Training set
+  >>> tailored = 'tass2016'  
+  >>> comp2023 = Comp2023(lang='es', tailored=tailored)
+  >>> ins = comp2023.stack_2_bow_tailored_all_keywords(D)
+
 .. list-table:: Performance in Cross-validation (A)
     :header-rows: 1
 

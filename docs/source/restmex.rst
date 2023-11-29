@@ -1,9 +1,9 @@
 .. _restmex:
 
-`Research on Sentiment Analysis Task for Mexican Tourist Texts (Rest-Mex) <https://sites.google.com/cimat.mx/rest-mex2023>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`Research on Sentiment Analysis Task for Mexican Tourist Texts (Rest-Mex) <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6572>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The `Rest-Mex <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6572>`_ task presented at IberLEF 2023 focused sentiment analysis and clustering on tourist texts; nonetheless, our participation was only on the sentiment analysis tasks. The first task consisted of identifying the polarity of the tourist text. The second task was to identify whether the visited place was either an attraction, hotel, or restaurant. The third and last task was identifying the country (i.e., Colombia, Cuba, and Mexico).
+The `Rest-Mex <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6572>`_ task (`webpage <https://sites.google.com/cimat.mx/rest-mex2023>`_) presented at IberLEF 2023 focused sentiment analysis and clustering on tourist texts; nonetheless, our participation was only on the sentiment analysis tasks. The first task consisted of identifying the polarity of the tourist text. The second task was to identify whether the visited place was either an attraction, hotel, or restaurant. The third and last task was identifying the country (i.e., Colombia, Cuba, and Mexico).
 
 The following table presents the performance, in terms of macro-:math:`f_1`, for the different systems tested for the polarity task. The performance was estimated using a cross-validation approach, the training set :math:`\mathcal T` was split into a training (80%) and validation set (20%) of the original dataset. 
 

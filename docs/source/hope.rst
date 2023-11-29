@@ -1,10 +1,19 @@
 .. _hope:
 
-`Multilingual Hope Speech Detection (HOPE) <https://codalab.lisn.upsaclay.fr/competitions/10215>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`Multilingual Hope Speech Detection (HOPE) <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6567>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`The HOPE <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6567>`_ task presented at IberLEF 2023 focused on the identification of positive speech in Spanish and English.
+`The HOPE <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6567>`_ task (`webpage <https://codalab.lisn.upsaclay.fr/competitions/10215>`_) presented at IberLEF 2023 focused on the identification of positive speech in Spanish and English.
 
+
+The following code can generate an instance of the system used in the competition.
+
+.. code-block:: python
+
+  >>> from EvoMSA.competitions import Comp2023
+  >>> D = # Training set
+  >>> comp2023 = Comp2023(lang='es')
+  >>> ins = comp2023.stack_bow_keywords_emojis_voc_selection(D)
 
 .. list-table:: Performance in Cross-validation (Spanish)
     :header-rows: 1
@@ -51,6 +60,16 @@
     * - :py:func:`Comp2023.bow_training_set`
       - 0.7807
       - 0.0000
+
+
+The following code can generate an instance of the system used in the competition.
+
+.. code-block:: python
+
+  >>> from EvoMSA.competitions import Comp2023
+  >>> D = # Training set
+  >>> comp2023 = Comp2023(lang='en')
+  >>> ins = comp2023.stack_bow_keywords_emojis(D)
 
 
 .. list-table:: Performance in Cross-validation (English)

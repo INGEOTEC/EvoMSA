@@ -199,28 +199,28 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
       - 5.8%
     * - :ref:`TASS <tass>`
       - 2017
-      - 
+      - macro-:math:`f_1`
       - 0.577  
       - 0.525 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_tailored_all_keywords>`)
       - 9.9%
     * - :ref:`EDOS (A) <edos>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.8746
       - 0.7890 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_keywords>`)
       - 10.8%
     * - :ref:`EDOS (B) <edos>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.7326
       - 0.5413 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_bow_keywords_emojis>`)
       - 35.3%
     * - :ref:`EDOS (C) <edos>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.5606
-      - 0.3500 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_all_keywords>`)
-      - 60.2%
+      - 0.3388 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_all_keywords>`)
+      - 65.5%
 
 Competitions
 ------------------------------
