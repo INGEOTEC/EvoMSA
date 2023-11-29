@@ -3,6 +3,9 @@
 `HUrtful HUmour (HUHU) <https://sites.google.com/view/huhuatiberlef23>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+`The HUHU <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6568>` task presented at IberLEF 2023 aims at the identification of prejudiced tweets in Spanish that have the additional characteristic of presenting humour. 
+
+
 .. list-table:: Performance in Cross-validation 
     :header-rows: 1
 

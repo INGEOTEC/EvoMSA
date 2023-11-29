@@ -193,7 +193,7 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
       - 11.5%
     * - :ref:`HUHU <huhu>`
       - 2023
-      - 
+      - :math:`f_1`
       - 0.820
       - 0.775 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_all_keywords>`)
       - 5.8%
