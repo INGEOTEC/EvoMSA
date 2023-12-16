@@ -45,7 +45,7 @@ class BoWBP(BoW):
                  optimizer_kwargs: dict=dict(),
                  **kwargs):
         super(BoWBP, self).__init__(voc_size_exponent=voc_size_exponent,
-                                    estimator_kwargs=estimator_kwargs)
+                                    estimator_kwargs=estimator_kwargs, **kwargs)
         self.deviation = deviation
         self.validation_set = validation_set
         self.optimizer_kwargs = optimizer_kwargs

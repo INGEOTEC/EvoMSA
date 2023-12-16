@@ -89,4 +89,5 @@ def test_DenseBoWBP():
                        estimator_kwargs=dict(dual=True,
                                              random_state=0,
                                              class_weight='balanced'))
-    assert dense.voc_size_exponent == 15
+    assert dense.voc_size_exponent == 13
+    assert dense.bow.num_terms == 2**13
