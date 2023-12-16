@@ -19,15 +19,21 @@ from jax.experimental.sparse import BCSR
 from sklearn.model_selection import StratifiedShuffleSplit
 from IngeoML.utils import Batches
 from IngeoML.optimizer import classifier
-from EvoMSA.text_repr import BoW
+from EvoMSA.text_repr import BoW, DenseBoW
 
 
 @jax.jit
 def bow_model(params, X):
+    Y = X @ params['W_cl'] + params['W0_cl']
+    return Y
+
+
+@jax.jit
+def dense_model(params, X):
     _ = X @ params['W'] + params['W0']
-    # Y = _ / jnp.linalg.norm(_, axis=1, keepdims=True)
-    # Y = Y @ params['W_cl'] + params['W0_cl']
-    return _
+    Y = _ / jnp.linalg.norm(_, axis=1, keepdims=True)
+    Y = Y @ params['W_cl'] + params['W0_cl']
+    return Y
 
 
 class BoWBP(BoW):
@@ -103,42 +109,71 @@ class BoWBP(BoW):
         except AttributeError:
             W = jnp.array(self.estimator_instance.coef_.T)
             W0 = jnp.array(self.estimator_instance.intercept_)
-            self._parameters = dict(W=W, W0=W0)
+            self._parameters = dict(W_cl=W, W0_cl=W0)
         return self._parameters
     
     @parameters.setter
     def parameters(self, value):
-        W = np.array(value['W'].T)
-        W0 = np.array(value['W0'])
+        W = np.array(value['W_cl'].T)
+        W0 = np.array(value['W0_cl'])
         self.estimator_instance.coef_ = W
         self.estimator_instance.intercept_ = W0
 
-    def fit(self, D: List[Union[dict, list]], 
-            y: Union[np.ndarray, None]=None) -> 'BoWBP':        
-        super(BoWBP, self).fit(D, y=y)
-        remainder = 'drop'
+    @property
+    def model(self):
+        return bow_model
+
+    def set_validation_set(self, D: List[Union[dict, list]], 
+                        y: Union[np.ndarray, None]=None):
+        """Procedure to create the validation set"""
         if self.validation_set is None:
             if len(D) < 2048:
-                self.validation_set = StratifiedShuffleSplit(n_splits=1,
-                                                             test_size=0.2)
-                remainder = 'fill'
+                test_size = 0.2
+            else:
+                test_size = 512
+            y = self.dependent_variable(D, y=y)
+            _ = StratifiedShuffleSplit(n_splits=1,
+                                       test_size=test_size).split(D, y)
+            tr, vs = next(_)
+            self.validation_set = [D[x] for x in vs]
+            D = [D[x] for x in tr]
+            y = y[tr]
+        return D, y
+    
+    def combine_optimizer_kwargs(self):
         decoder = self.estimator_instance.classes_
         n_outputs = 1 if decoder.shape[0] == 2 else decoder.shape[0]
-        if self.batches is None:
-            self.batches = Batches(size=512 if len(D) >= 2048 else 256,
-                                   random_state=0,
-                                   remainder=remainder)
         optimizer_defaults = dict(array=BCSR.from_scipy_sparse,
-                                  every_k_schedule=4,
+                                  every_k_schedule=4, n_outputs=n_outputs,
                                   epochs=100, learning_rate=1e-4,
                                   n_iter_no_change=5)
-        optimizer_defaults.update(self.optimizer_kwargs)
+        optimizer_defaults.update(self.optimizer_kwargs)        
+        return optimizer_defaults
+
+    def fit(self, D: List[Union[dict, list]], 
+            y: Union[np.ndarray, None]=None) -> 'BoWBP':
+        if self.batches is None:
+            self.batches = Batches(size=512 if len(D) >= 2048 else 256,
+                                   random_state=0)
+        D, y = self.set_validation_set(D, y=y)
+        super(BoWBP, self).fit(D, y=y)
+        optimizer_kwargs = self.combine_optimizer_kwargs()
         texts = self.transform(D)
         labels = self.dependent_variable(D, y=y)
-        p = classifier(self.parameters, bow_model,
+        p = classifier(self.parameters, self.model,
                        texts, labels,
-                       deviation=self.deviation, n_outputs=n_outputs,
+                       deviation=self.deviation,
                        validation=self.validation_set,
-                       batches=self.batches, **optimizer_defaults)
+                       batches=self.batches, **optimizer_kwargs)
         self.parameters = p
-        return self        
+        return self
+
+
+class DenseBoWBP(DenseBoW, BoWBP):
+    def __init__(self, dataset=False, 
+                 **kwargs):
+        super(DenseBoWBP, self).__init__(dataset=dataset, **kwargs)
+
+    @property
+    def model(self):
+        return dense_model

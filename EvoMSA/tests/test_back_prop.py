@@ -16,7 +16,7 @@
 from microtc.utils import tweet_iterator
 from jax.experimental.sparse import BCSR
 import numpy as np
-from EvoMSA.back_prop import BoWBP, bow_model
+from EvoMSA.back_prop import BoWBP, bow_model, DenseBoWBP
 from EvoMSA.text_repr import BoW
 from EvoMSA.tests.test_base import TWEETS
 
@@ -48,8 +48,8 @@ def test_bow_model():
                 estimator_kwargs=dict(dual=True,
                                       random_state=0,
                                       class_weight='balanced')).fit(D)
-    assert 'W' in bow.parameters
-    assert 'W0' in bow.parameters
+    assert 'W_cl' in bow.parameters
+    assert 'W0_cl' in bow.parameters
     X = BCSR.from_scipy_sparse(bow.transform(D))
     y = bow_model(bow.parameters, X)
     y2 = bow.decision_function(D)
@@ -79,3 +79,14 @@ def test_BoWBP_validation_set():
                 estimator_kwargs=dict(dual=True,
                                       random_state=0,
                                       class_weight='balanced')).fit(D)    
+
+
+def test_DenseBoWBP():
+    """Test DenseBoWBP"""
+    D = list(tweet_iterator(TWEETS))
+    dense = DenseBoWBP(lang='es',
+                       voc_size_exponent=13,
+                       estimator_kwargs=dict(dual=True,
+                                             random_state=0,
+                                             class_weight='balanced'))
+    assert dense.voc_size_exponent == 15
