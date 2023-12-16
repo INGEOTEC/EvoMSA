@@ -17,7 +17,7 @@ from microtc.utils import tweet_iterator
 from jax.experimental.sparse import BCSR
 import numpy as np
 from EvoMSA.back_prop import BoWBP, bow_model, DenseBoWBP
-from EvoMSA.text_repr import BoW
+from EvoMSA.text_repr import BoW, DenseBoW
 from EvoMSA.tests.test_base import TWEETS
 
 
@@ -88,6 +88,13 @@ def test_DenseBoWBP():
                        voc_size_exponent=13,
                        estimator_kwargs=dict(dual=True,
                                              random_state=0,
-                                             class_weight='balanced'))
+                                             class_weight='balanced')
+                       ).fit(D)
     assert dense.voc_size_exponent == 13
     assert dense.bow.num_terms == 2**13
+    params = dense.parameters
+    for key in ['W', 'W0', 'W_cl', 'W0_cl']:
+        assert key in params
+    # assert not hasattr(dense, '_weights')
+    hy = dense.predict(D)
+    assert len(hy) == len(D)

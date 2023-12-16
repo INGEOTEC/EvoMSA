@@ -74,6 +74,9 @@ class BoWBP(BoW):
         """Validation set"""
         return self._validation_set
     
+    def _transform(self, X):
+        return super(BoWBP, self).transform(X)
+    
     @validation_set.setter
     def validation_set(self, value):
         if value is None:
@@ -85,11 +88,11 @@ class BoWBP(BoW):
         assert isinstance(value, list) and len(value)
         if isinstance(value[0], dict):
             y = self.dependent_variable(value)
-            X = self.transform(value)
+            X = self._transform(value)
             self._validation_set = [X, y]
         else:
             X, y = value
-            self._validation_set = [self.transform(X), y]
+            self._validation_set = [self._transform(X), y]
 
     @property
     def deviation(self):
@@ -114,17 +117,15 @@ class BoWBP(BoW):
     
     @parameters.setter
     def parameters(self, value):
-        W = np.array(value['W_cl'].T)
-        W0 = np.array(value['W0_cl'])
-        self.estimator_instance.coef_ = W
-        self.estimator_instance.intercept_ = W0
+        self.estimator_instance.coef_ = np.array(value['W_cl'].T)
+        self.estimator_instance.intercept_ = np.array(value['W0_cl'])
 
     @property
     def model(self):
         return bow_model
 
     def set_validation_set(self, D: List[Union[dict, list]], 
-                        y: Union[np.ndarray, None]=None):
+                           y: Union[np.ndarray, None]=None):
         """Procedure to create the validation set"""
         if self.validation_set is None:
             if len(D) < 2048:
@@ -158,7 +159,7 @@ class BoWBP(BoW):
         D, y = self.set_validation_set(D, y=y)
         super(BoWBP, self).fit(D, y=y)
         optimizer_kwargs = self.combine_optimizer_kwargs()
-        texts = self.transform(D)
+        texts = self._transform(D)
         labels = self.dependent_variable(D, y=y)
         p = classifier(self.parameters, self.model,
                        texts, labels,
@@ -177,3 +178,33 @@ class DenseBoWBP(DenseBoW, BoWBP):
     @property
     def model(self):
         return dense_model
+    
+    def _transform(self, X):
+        return self.bow.transform(X)
+
+    @property
+    def parameters(self):
+        """Parameters to optimize"""
+        super(DenseBoWBP, self).parameters
+        self._parameters['W'] = jnp.array(self.weights.T)
+        self._parameters['W0'] = jnp.array(self.bias)
+        return self._parameters
+
+    @property
+    def weights(self):
+        return np.array([x._coef for x in self.text_representations])
+    
+    @property
+    def bias(self):
+        return np.array([x._intercept for x in self.text_representations])
+
+    @parameters.setter
+    def parameters(self, value):
+        self.estimator_instance.coef_ = np.array(value['W_cl'].T)
+        self.estimator_instance.intercept_ = np.array(value['W0_cl'])
+        for x, m in zip(np.array(value['W'].T),
+                        self.text_representations):
+            m._coef[:] = x[:]
+        for x, m in zip(np.array(value['W0']),
+                        self.text_representations):
+            m._intercept = float(x)
