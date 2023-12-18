@@ -81,6 +81,26 @@ def test_BoWBP_validation_set():
                                       class_weight='balanced')).fit(D)    
 
 
+def test_BoWBP_evolution():
+    D = list(tweet_iterator(TWEETS))
+    bow = BoWBP(lang='es',
+                optimizer_kwargs=dict(epochs=2),
+                estimator_kwargs=dict(dual=True,
+                                      random_state=0,
+                                      class_weight='balanced')).fit(D)
+    assert len(bow.evolution)
+    bow = BoWBP(lang='es',
+                optimizer_kwargs=dict(epochs=2, return_evolution=False),
+                estimator_kwargs=dict(dual=True,
+                                      random_state=0,
+                                      class_weight='balanced')).fit(D)
+    try:
+        bow.evolution
+        assert False
+    except AttributeError:
+        pass
+
+
 def test_DenseBoWBP():
     """Test DenseBoWBP"""
     D = list(tweet_iterator(TWEETS))
@@ -98,3 +118,15 @@ def test_DenseBoWBP():
     # assert not hasattr(dense, '_weights')
     hy = dense.predict(D)
     assert len(hy) == len(D)
+
+
+def test_DenseBoWBP_zero_validation_set():
+    D = list(tweet_iterator(TWEETS))
+    dense = DenseBoWBP(lang='es',
+                       voc_size_exponent=13,
+                       validation_set=0,
+                       estimator_kwargs=dict(dual=True,
+                                             random_state=0,
+                                             class_weight='balanced')
+                       ).fit(D)
+    assert dense.validation_set is None

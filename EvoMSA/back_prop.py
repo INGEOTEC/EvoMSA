@@ -52,6 +52,15 @@ class BoWBP(BoW):
         self.batches = batches
 
     @property
+    def evolution(self):
+        """Evolution of the objective-function value"""
+        return self._evolution
+    
+    @evolution.setter
+    def evolution(self, value):
+        self._evolution = value
+
+    @property
     def batches(self):
         """Instance to create the batches"""
         return self._batches
@@ -73,13 +82,10 @@ class BoWBP(BoW):
     def validation_set(self):
         """Validation set"""
         return self._validation_set
-    
-    def _transform(self, X):
-        return super(BoWBP, self).transform(X)
-    
+        
     @validation_set.setter
     def validation_set(self, value):
-        if value is None:
+        if value is None or value == 0:
             self._validation_set = value
             return
         if hasattr(value, 'split'):
@@ -124,6 +130,9 @@ class BoWBP(BoW):
     def model(self):
         return bow_model
 
+    def _transform(self, X):
+        return super(BoWBP, self).transform(X)
+
     def set_validation_set(self, D: List[Union[dict, list]], 
                            y: Union[np.ndarray, None]=None):
         """Procedure to create the validation set"""
@@ -139,6 +148,8 @@ class BoWBP(BoW):
             self.validation_set = [D[x] for x in vs]
             D = [D[x] for x in tr]
             y = y[tr]
+        elif self.validation_set == 0:
+            self.validation_set = None
         return D, y
     
     def combine_optimizer_kwargs(self):
@@ -147,6 +158,7 @@ class BoWBP(BoW):
         optimizer_defaults = dict(array=BCSR.from_scipy_sparse,
                                   every_k_schedule=4, n_outputs=n_outputs,
                                   epochs=100, learning_rate=1e-4,
+                                  return_evolution=True,
                                   n_iter_no_change=5)
         optimizer_defaults.update(self.optimizer_kwargs)        
         return optimizer_defaults
@@ -166,14 +178,22 @@ class BoWBP(BoW):
                        deviation=self.deviation,
                        validation=self.validation_set,
                        batches=self.batches, **optimizer_kwargs)
+        if optimizer_kwargs['return_evolution']:
+            self.evolution = p[1]
+            p = p[0]
         self.parameters = p
         return self
 
 
 class DenseBoWBP(DenseBoW, BoWBP):
-    def __init__(self, dataset=False, 
+    def __init__(self, emoji: bool=True, 
+                 dataset: bool=True, keyword: bool=True,
+                 estimator_kwargs=dict(dual='auto', class_weight='balanced'),
                  **kwargs):
-        super(DenseBoWBP, self).__init__(dataset=dataset, **kwargs)
+        super(DenseBoWBP, self).__init__(emoji=emoji, dataset=dataset,
+                                         keyword=keyword,
+                                         estimator_kwargs=estimator_kwargs,
+                                         **kwargs)
 
     @property
     def model(self):
