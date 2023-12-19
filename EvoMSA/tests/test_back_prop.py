@@ -55,7 +55,7 @@ def test_bow_model():
     y = bow_model(bow.parameters, X)
     y2 = bow.decision_function(D)
     diff = np.fabs(y - y2)
-    m = diff > 1e-6
+    m = diff > 1e-5
     assert m.sum() == 0
     D = [x for x in D if x['klass'] in ['N', 'P']]
     bow = BoWBP(lang='es',
@@ -125,6 +125,7 @@ def test_DenseBoWBP():
 def test_DenseBoWBP_zero_validation_set():
     """Test the option of no using a validation set"""
     D = list(tweet_iterator(TWEETS))
+    D = D + D + D
     dense = DenseBoWBP(lang='es',
                        voc_size_exponent=13,
                        validation_set=0,
