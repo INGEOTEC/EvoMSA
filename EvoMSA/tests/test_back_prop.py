@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+from sklearn.base import clone
 from microtc.utils import tweet_iterator
 from jax.experimental.sparse import BCSR
 import numpy as np
@@ -82,6 +83,7 @@ def test_BoWBP_validation_set():
 
 
 def test_BoWBP_evolution():
+    """Test the evolution feature"""
     D = list(tweet_iterator(TWEETS))
     bow = BoWBP(lang='es',
                 optimizer_kwargs=dict(epochs=2),
@@ -121,6 +123,7 @@ def test_DenseBoWBP():
 
 
 def test_DenseBoWBP_zero_validation_set():
+    """Test the option of no using a validation set"""
     D = list(tweet_iterator(TWEETS))
     dense = DenseBoWBP(lang='es',
                        voc_size_exponent=13,
@@ -130,3 +133,13 @@ def test_DenseBoWBP_zero_validation_set():
                                              class_weight='balanced')
                        ).fit(D)
     assert dense.validation_set is None
+
+
+def test_DenseBoWBP_clone():
+    """Test DenseBoWBP clone"""
+    D = list(tweet_iterator(TWEETS))
+    dense = DenseBoWBP(lang='es',
+                       voc_size_exponent=13,
+                       n_jobs=-1)
+    dense2 = clone(dense)
+    assert not dense.text_representations[0] is dense2.text_representations[0]

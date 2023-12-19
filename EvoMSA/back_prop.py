@@ -17,6 +17,7 @@ import jax.numpy as jnp
 import numpy as np
 from jax.experimental.sparse import BCSR
 from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.base import clone
 from IngeoML.utils import Batches
 from IngeoML.optimizer import classifier
 from EvoMSA.text_repr import BoW, DenseBoW
@@ -203,14 +204,6 @@ class DenseBoWBP(DenseBoW, BoWBP):
         return self.bow.transform(X)
 
     @property
-    def parameters(self):
-        """Parameters to optimize"""
-        super(DenseBoWBP, self).parameters
-        self._parameters['W'] = jnp.array(self.weights.T)
-        self._parameters['W0'] = jnp.array(self.bias)
-        return self._parameters
-
-    @property
     def weights(self):
         return np.array([x._coef for x in self.text_representations])
     
@@ -218,13 +211,27 @@ class DenseBoWBP(DenseBoW, BoWBP):
     def bias(self):
         return np.array([x._intercept for x in self.text_representations])
 
+    @property
+    def parameters(self):
+        """Parameters to optimize"""
+        super(DenseBoWBP, self).parameters
+        self._parameters['W'] = jnp.array(self.weights.T)
+        self._parameters['W0'] = jnp.array(self.bias)
+        return self._parameters
+
     @parameters.setter
     def parameters(self, value):
         self.estimator_instance.coef_ = np.array(value['W_cl'].T)
         self.estimator_instance.intercept_ = np.array(value['W0_cl'])
         for x, m in zip(np.array(value['W'].T),
                         self.text_representations):
-            m._coef[:] = x[:]
+            m.coef[:] = x[:]
         for x, m in zip(np.array(value['W0']),
                         self.text_representations):
-            m._intercept = float(x)
+            m.intercept = float(x)
+
+    def __sklearn_clone__(self):
+        ins = super(DenseBoWBP, self).__sklearn_clone__()
+        _ = [clone(m) for m in self.text_representations]
+        ins.text_representations = _
+        return ins
