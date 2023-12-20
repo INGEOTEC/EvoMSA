@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11"]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -32,7 +32,9 @@ jobs:
         conda install --yes pip
         pip install coverage
         pip install coveralls
-        conda install --yes numpy scipy scikit-learn nltk nose b4msa evodag cython
+        conda install --yes numpy scipy scikit-learn nltk nose b4msa evodag cython IngeoML
+        pip install jax
+        pip install optax        
         python -c "import nltk; nltk.download('stopwords')"
         python setup.py build_ext --inplace
     - name: Tests on Linux

@@ -390,18 +390,46 @@ class Linear(object):
                  intercept: float=0,
                  labels: Union[list, np.ndarray, None]=None,
                  N: int=0) -> None:
-        self._coef = np.atleast_1d(coef)
-        self._intercept = intercept
-        self._labels = np.atleast_1d(labels) if labels is not None else labels
-        self._N = N
+        self.coef = np.atleast_1d(coef)
+        self.intercept = intercept
+        self.labels = np.atleast_1d(labels) if labels is not None else labels
+        self.N = N
     
     @property
     def N(self):
+        """Size"""
         return self._N
+    
+    @N.setter
+    def N(self, value):
+        self._N = value
 
     @property
     def labels(self):
+        """Classes"""
         return self._labels
+    
+    @labels.setter
+    def labels(self, value):
+        self._labels = value
+
+    @property
+    def coef(self):
+        """Coefficients"""
+        return self._coef
+    
+    @coef.setter
+    def coef(self, value):
+        self._coef = value
+
+    @property
+    def intercept(self):
+        """Bias or intercept"""
+        return self._intercept
+    
+    @intercept.setter
+    def intercept(self, value):
+        self._intercept = value
 
     @labels.setter
     def labels(self, v):
@@ -409,14 +437,20 @@ class Linear(object):
 
     def decision_function(self, X: Union[np.ndarray, csr_matrix]) -> np.ndarray:
         if isinstance(X, np.ndarray):
-            return np.dot(X, self._coef) + self._intercept
-        return X.dot(self._coef) + self._intercept
+            return np.dot(X, self.coef) + self.intercept
+        return X.dot(self.coef) + self.intercept
 
     def predict(self, X: Union[np.ndarray, csr_matrix]) -> np.ndarray:
         hy = self.decision_function(X)
-        if self._labels is not None:
-            return self._labels[np.where(hy > 0, 1, 0)]
+        if self.labels is not None:
+            return self.labels[np.where(hy > 0, 1, 0)]
         return np.where(hy > 0, 1, -1)
+    
+    def __sklearn_clone__(self):
+        klass = self.__class__
+        ins = klass(self.coef, intercept=self.intercept,
+                    labels=self.labels, N=self.N)
+        return ins
 
 def load_url(url, n_jobs=1):
     def linear(data):

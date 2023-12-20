@@ -26,3 +26,6 @@
 
 .. autoclass:: EvoMSA.text_repr.DenseBoW
    :members: dataset, emoji, keyword, unit_vector, transform, names, weights, bias, text_representations, select, feature_selection, fromjson, text_representations_extend, skip_dataset, fit, predict, norm_weights
+
+.. autoclass:: EvoMSA.back_prop.DenseBoWBP
+	:members: model
