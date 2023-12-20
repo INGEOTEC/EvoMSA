@@ -163,64 +163,64 @@ Following an unconventional approach, the performance of :ref:`v2` in different 
       - 1.6%    
     * - :ref:`HOMO-MEX <homo-mex>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.8847
       - 0.8050 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_3_bow_tailored_all_keywords>`)
       - 9.9%
     * - :ref:`HOPE (ES) <hope>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.9161
-      - 0.4198 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_bow_keywords_emojis_voc_selection>`)
-      - 118.2%
+      - 0.5214 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_bow_keywords_emojis_voc_selection>`)
+      - 75.7%
     * - :ref:`HOPE (EN) <hope>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.5012
-      - 0.4429 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_bow_keywords_emojis>`)
-      - 13.2%
+      - 0.4651 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_bow_keywords_emojis>`)
+      - 7.8%
     * - :ref:`DIPROMATS (ES) <dipromats>`
       - 2023
-      - 
+      - :math:`f_1`
       - 0.8089
       - 0.7485 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_3_bows>`)
       - 8.1%
     * - :ref:`DIPROMATS (EN) <dipromats>`
       - 2023
-      - 
+      - :math:`f_1`
       - 0.8090
       - 0.7255 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_3_bow_tailored_all_keywords>`)
       - 11.5%
     * - :ref:`HUHU <huhu>`
       - 2023
-      - 
+      - :math:`f_1`
       - 0.820
       - 0.775 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_all_keywords>`)
       - 5.8%
     * - :ref:`TASS <tass>`
       - 2017
-      - 
+      - macro-:math:`f_1`
       - 0.577  
       - 0.525 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_tailored_all_keywords>`)
       - 9.9%
     * - :ref:`EDOS (A) <edos>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.8746
       - 0.7890 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_keywords>`)
       - 10.8%
     * - :ref:`EDOS (B) <edos>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.7326
       - 0.5413 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_bow_keywords_emojis>`)
       - 35.3%
     * - :ref:`EDOS (C) <edos>`
       - 2023
-      - 
+      - macro-:math:`f_1`
       - 0.5606
-      - 0.3500 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_all_keywords>`)
-      - 60.2%
+      - 0.3388 (:py:func:`Conf. <EvoMSA.competitions.Comp2023.stack_2_bow_all_keywords>`)
+      - 65.5%
 
 Competitions
 ------------------------------

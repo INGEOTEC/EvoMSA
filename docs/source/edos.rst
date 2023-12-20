@@ -1,7 +1,19 @@
 .. _edos:
 
-`Explainable Detection of Online Sexism (EDOS) <https://arxiv.org/pdf/2303.04222.pdf>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`Explainable Detection of Online Sexism (EDOS) <https://aclanthology.org/2023.semeval-1.305/>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`The EDOS <https://aclanthology.org/2023.semeval-1.305/>`_ task presented at SemEval 2023 aims at the detection of sexism. 
+
+The following code can generate an instance of the system used in the competition.
+
+.. code-block:: python
+
+  >>> from EvoMSA.competitions import Comp2023
+  >>> D = # Training set
+  >>> comp2023 = Comp2023(lang='en')
+  >>> ins = comp2023.stack_2_bow_keywords(D)
+
 
 .. list-table:: Performance in Cross-validation (A)
     :header-rows: 1
@@ -49,6 +61,17 @@
       - 0.7350
       - 0.0000
 
+
+The following code can generate an instance of the system used in the competition.
+
+.. code-block:: python
+
+  >>> from EvoMSA.competitions import Comp2023
+  >>> D = # Training set
+  >>> comp2023 = Comp2023(lang='en')
+  >>> ins = comp2023.stack_bow_keywords_emojis(D)
+
+
 .. list-table:: Performance in Cross-validation (B)
     :header-rows: 1
 
@@ -94,6 +117,17 @@
     * - :py:func:`Comp2023.bow_voc_selection`
       - 0.4427
       - 0.0140
+
+
+The following code can generate an instance of the system used in the competition.
+
+.. code-block:: python
+
+  >>> from EvoMSA.competitions import Comp2023
+  >>> D = # Training set
+  >>> comp2023 = Comp2023(lang='en')
+  >>> ins = comp2023.stack_2_bow_all_keywords(D)
+
 
 .. list-table:: Performance in Cross-validation (C)
     :header-rows: 1

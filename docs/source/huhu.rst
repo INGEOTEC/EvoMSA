@@ -1,7 +1,20 @@
 .. _huhu:
 
-`HUrtful HUmour (HUHU) <https://sites.google.com/view/huhuatiberlef23>`_
+`HUrtful HUmour (HUHU) <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6568>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`The HUHU <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6568>`_ task (`webpage <https://sites.google.com/view/huhuatiberlef23>`_) presented at IberLEF 2023 aims at the identification of prejudiced tweets in Spanish that have the additional characteristic of presenting humour. 
+
+
+The following code can generate an instance of the system used in the competition.
+
+.. code-block:: python
+
+  >>> from EvoMSA.competitions import Comp2023
+  >>> D = # Training set
+  >>> comp2023 = Comp2023(lang='es')
+  >>> ins = comp2023.stack_2_bow_all_keywords(D)
+
 
 .. list-table:: Performance in Cross-validation 
     :header-rows: 1

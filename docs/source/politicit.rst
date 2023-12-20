@@ -1,9 +1,9 @@
 .. _politicit:
 
-`Political Ideology Detection in Italian Texts (PoliticIT) <https://codalab.lisn.upsaclay.fr/competitions/8507>`_ 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`Political Ideology Detection in Italian Texts (PoliticIT) <https://ceur-ws.org/Vol-3473/paper7.pdf>`_ 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`The PoliticIT <https://ceur-ws.org/Vol-3473/paper7.pdf>`_ task presented at EVALITA 2023 focused on identifying politicians’ ideology information.
+`The PoliticIT <https://ceur-ws.org/Vol-3473/paper7.pdf>`_ task (`webpage <https://codalab.lisn.upsaclay.fr/competitions/8507>`_) presented at EVALITA 2023 focused on identifying politicians’ ideology information.
 
 The following code can generate an instance of the system used in the competition.
 

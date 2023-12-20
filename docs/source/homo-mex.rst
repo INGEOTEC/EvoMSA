@@ -1,7 +1,21 @@
 .. _homo-mex:
 
-`Hate Speech Detection towards the Mexican Spanish Speaking LGBT+ Population (HOMO-MEX) <https://codalab.lisn.upsaclay.fr/competitions/10019>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`Hate Speech Detection towards the Mexican Spanish Speaking LGBT+ Population (HOMO-MEX) <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6566>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`The HOMO-MEX <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6566>`_ task (`webpage <https://codalab.lisn.upsaclay.fr/competitions/10019>`_) presented at IberLEF 2023 focused on detecting LGBTQ+ phobic content in Spanish tweets.
+
+The following code can generate an instance of the system used in the competition.
+
+
+.. code-block:: python
+
+  >>> from EvoMSA.competitions import Comp2023
+  >>> D = # Training set
+  >>> tailored = 'IberLEF2023_HOMO-MEX'
+  >>> comp2023 = Comp2023(lang='es', tailored=tailored)
+  >>> ins = comp2023.stack_3_bow_tailored_all_keywords(D)
+
 
 .. list-table:: Performance in Cross-validation
     :header-rows: 1

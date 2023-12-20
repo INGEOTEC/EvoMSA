@@ -1,7 +1,18 @@
 .. _dipromats:
 
-`Automatic Detection and Characterization of Propaganda Techniques from Diplomats (DIPROMATS) <https://sites.google.com/view/dipromats2023>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`Automatic Detection and Characterization of Propaganda Techniques from Diplomats (DIPROMATS) <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6569/3969>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`The DIPROMATS <http://journal.sepln.org/sepln/ojs/ojs/index.php/pln/article/view/6569/3969>`_ task (`webpage <https://sites.google.com/view/dipromats2023>`_)presented at IberLEF 2023 focused on indentifying tweets that have a propaganda technique. 
+
+The following code can generate an instance of the system used in the competition.
+
+.. code-block:: python
+
+  >>> from EvoMSA.competitions import Comp2023
+  >>> D = # Training set
+  >>> comp2023 = Comp2023(lang='es')
+  >>> ins = comp2023.stack_3_bows(D)
 
 .. list-table:: Performance in Cross-validation (Spanish)
     :header-rows: 1
@@ -49,6 +60,16 @@
       - 0.6123
       - 0.0000
 
+
+The following code can generate an instance of the system used in the competition.
+
+.. code-block:: python
+
+  >>> from EvoMSA.competitions import Comp2023
+  >>> D = # Training set
+  >>> tailored = 'IberLEF2023_DIPROMATS_task1'
+  >>> comp2023 = Comp2023(lang='en', tailored=tailored)
+  >>> ins = comp2023.stack_3_bow_tailored_all_keywords(D)
 
 .. list-table:: Performance in Cross-validation (English)
     :header-rows: 1
