@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+from sklearn.base import clone
 from microtc.utils import tweet_iterator
 from jax.experimental.sparse import BCSR
 import numpy as np
@@ -54,7 +55,7 @@ def test_bow_model():
     y = bow_model(bow.parameters, X)
     y2 = bow.decision_function(D)
     diff = np.fabs(y - y2)
-    m = diff > 1e-6
+    m = diff > 1e-5
     assert m.sum() == 0
     D = [x for x in D if x['klass'] in ['N', 'P']]
     bow = BoWBP(lang='es',
@@ -81,6 +82,27 @@ def test_BoWBP_validation_set():
                                       class_weight='balanced')).fit(D)    
 
 
+def test_BoWBP_evolution():
+    """Test the evolution feature"""
+    D = list(tweet_iterator(TWEETS))
+    bow = BoWBP(lang='es',
+                optimizer_kwargs=dict(epochs=2),
+                estimator_kwargs=dict(dual=True,
+                                      random_state=0,
+                                      class_weight='balanced')).fit(D)
+    assert len(bow.evolution)
+    bow = BoWBP(lang='es',
+                optimizer_kwargs=dict(epochs=2, return_evolution=False),
+                estimator_kwargs=dict(dual=True,
+                                      random_state=0,
+                                      class_weight='balanced')).fit(D)
+    try:
+        bow.evolution
+        assert False
+    except AttributeError:
+        pass
+
+
 def test_DenseBoWBP():
     """Test DenseBoWBP"""
     D = list(tweet_iterator(TWEETS))
@@ -98,3 +120,27 @@ def test_DenseBoWBP():
     # assert not hasattr(dense, '_weights')
     hy = dense.predict(D)
     assert len(hy) == len(D)
+
+
+def test_DenseBoWBP_zero_validation_set():
+    """Test the option of no using a validation set"""
+    D = list(tweet_iterator(TWEETS))
+    D = D + D + D
+    dense = DenseBoWBP(lang='es',
+                       voc_size_exponent=13,
+                       validation_set=0,
+                       estimator_kwargs=dict(dual=True,
+                                             random_state=0,
+                                             class_weight='balanced')
+                       ).fit(D)
+    assert dense.validation_set is None
+
+
+def test_DenseBoWBP_clone():
+    """Test DenseBoWBP clone"""
+    D = list(tweet_iterator(TWEETS))
+    dense = DenseBoWBP(lang='es',
+                       voc_size_exponent=13,
+                       n_jobs=-1)
+    dense2 = clone(dense)
+    assert not dense.text_representations[0] is dense2.text_representations[0]

@@ -17,6 +17,7 @@ import jax.numpy as jnp
 import numpy as np
 from jax.experimental.sparse import BCSR
 from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.base import clone
 from IngeoML.utils import Batches
 from IngeoML.optimizer import classifier
 from EvoMSA.text_repr import BoW, DenseBoW
@@ -24,12 +25,16 @@ from EvoMSA.text_repr import BoW, DenseBoW
 
 @jax.jit
 def bow_model(params, X):
+    """BoW model"""
+
     Y = X @ params['W_cl'] + params['W0_cl']
     return Y
 
 
 @jax.jit
 def dense_model(params, X):
+    """DenseBoW model"""
+
     _ = X @ params['W'] + params['W0']
     Y = _ / jnp.linalg.norm(_, axis=1, keepdims=True)
     Y = Y @ params['W_cl'] + params['W0_cl']
@@ -37,12 +42,23 @@ def dense_model(params, X):
 
 
 class BoWBP(BoW):
+    """BoWBP is a :py:class:`~EvoMSA.text_repr.BoW` with the difference that the parameters are fine-tuned using jax
+    
+    >>> from microtc.utils import tweet_iterator
+    >>> from EvoMSA.tests.test_base import TWEETS
+    >>> from EvoMSA.back_prop import BoWBP
+    >>> D = list(tweet_iterator(TWEETS))
+    >>> bow = BoWBP(lang='es').fit(D)
+    >>> bow.predict(['Buenos dias']).tolist()
+    ['NONE']
+    """
+
     def __init__(self, voc_size_exponent: int=15,
                  estimator_kwargs=dict(dual=True, class_weight='balanced'),
                  deviation=None,
                  validation_set=None,
                  batches=None,
-                 optimizer_kwargs: dict=dict(),
+                 optimizer_kwargs: dict=None,
                  **kwargs):
         super(BoWBP, self).__init__(voc_size_exponent=voc_size_exponent,
                                     estimator_kwargs=estimator_kwargs, **kwargs)
@@ -50,6 +66,15 @@ class BoWBP(BoW):
         self.validation_set = validation_set
         self.optimizer_kwargs = optimizer_kwargs
         self.batches = batches
+
+    @property
+    def evolution(self):
+        """Evolution of the objective-function value"""
+        return self._evolution
+    
+    @evolution.setter
+    def evolution(self, value):
+        self._evolution = value
 
     @property
     def batches(self):
@@ -67,19 +92,18 @@ class BoWBP(BoW):
 
     @optimizer_kwargs.setter
     def optimizer_kwargs(self, value):
+        if value is None:
+            value = {}
         self._optimizer_kwargs = value
 
     @property
     def validation_set(self):
         """Validation set"""
         return self._validation_set
-    
-    def _transform(self, X):
-        return super(BoWBP, self).transform(X)
-    
+        
     @validation_set.setter
     def validation_set(self, value):
-        if value is None:
+        if value is None or value == 0:
             self._validation_set = value
             return
         if hasattr(value, 'split'):
@@ -107,14 +131,10 @@ class BoWBP(BoW):
     def parameters(self):
         """Parameter to optimize"""
 
-        try:
-            return self._parameters
-        except AttributeError:
-            W = jnp.array(self.estimator_instance.coef_.T)
-            W0 = jnp.array(self.estimator_instance.intercept_)
-            self._parameters = dict(W_cl=W, W0_cl=W0)
-        return self._parameters
-    
+        W = jnp.array(self.estimator_instance.coef_.T)
+        W0 = jnp.array(self.estimator_instance.intercept_)
+        return dict(W_cl=W, W0_cl=W0)
+
     @parameters.setter
     def parameters(self, value):
         self.estimator_instance.coef_ = np.array(value['W_cl'].T)
@@ -124,9 +144,13 @@ class BoWBP(BoW):
     def model(self):
         return bow_model
 
+    def _transform(self, X):
+        return super(BoWBP, self).transform(X)
+
     def set_validation_set(self, D: List[Union[dict, list]], 
                            y: Union[np.ndarray, None]=None):
         """Procedure to create the validation set"""
+
         if self.validation_set is None:
             if len(D) < 2048:
                 test_size = 0.2
@@ -139,14 +163,17 @@ class BoWBP(BoW):
             self.validation_set = [D[x] for x in vs]
             D = [D[x] for x in tr]
             y = y[tr]
+        elif self.validation_set == 0:
+            self.validation_set = None
         return D, y
-    
-    def combine_optimizer_kwargs(self):
+
+    def _combine_optimizer_kwargs(self):
         decoder = self.estimator_instance.classes_
         n_outputs = 1 if decoder.shape[0] == 2 else decoder.shape[0]
         optimizer_defaults = dict(array=BCSR.from_scipy_sparse,
                                   every_k_schedule=4, n_outputs=n_outputs,
                                   epochs=100, learning_rate=1e-4,
+                                  return_evolution=True,
                                   n_iter_no_change=5)
         optimizer_defaults.update(self.optimizer_kwargs)        
         return optimizer_defaults
@@ -158,7 +185,7 @@ class BoWBP(BoW):
                                    random_state=0)
         D, y = self.set_validation_set(D, y=y)
         super(BoWBP, self).fit(D, y=y)
-        optimizer_kwargs = self.combine_optimizer_kwargs()
+        optimizer_kwargs = self._combine_optimizer_kwargs()
         texts = self._transform(D)
         labels = self.dependent_variable(D, y=y)
         p = classifier(self.parameters, self.model,
@@ -166,14 +193,34 @@ class BoWBP(BoW):
                        deviation=self.deviation,
                        validation=self.validation_set,
                        batches=self.batches, **optimizer_kwargs)
+        if optimizer_kwargs['return_evolution']:
+            self.evolution = p[1]
+            p = p[0]
         self.parameters = p
         return self
 
 
 class DenseBoWBP(DenseBoW, BoWBP):
-    def __init__(self, dataset=False, 
-                 **kwargs):
-        super(DenseBoWBP, self).__init__(dataset=dataset, **kwargs)
+    """DenseBoWBP is a :py:class:`~EvoMSA.text_repr.DenseBoW` with the difference that the parameters are fine-tuned using jax
+    
+    >>> from microtc.utils import tweet_iterator
+    >>> from EvoMSA.tests.test_base import TWEETS
+    >>> from EvoMSA.back_prop import DenseBoWBP
+    >>> D = list(tweet_iterator(TWEETS))
+    >>> dense = DenseBoWBP(lang='es').fit(D)
+    >>> dense.predict(['Buenos dias']).tolist()
+    ['P']
+    """
+
+    def __init__(self, emoji: bool=True,
+                 dataset: bool=True, keyword: bool=True,
+                 estimator_kwargs=dict(dual='auto', class_weight='balanced'),
+                 validation_set=0, **kwargs):
+        super(DenseBoWBP, self).__init__(emoji=emoji, dataset=dataset,
+                                         keyword=keyword,
+                                         validation_set=validation_set,
+                                         estimator_kwargs=estimator_kwargs,
+                                         **kwargs)
 
     @property
     def model(self):
@@ -183,20 +230,20 @@ class DenseBoWBP(DenseBoW, BoWBP):
         return self.bow.transform(X)
 
     @property
-    def parameters(self):
-        """Parameters to optimize"""
-        super(DenseBoWBP, self).parameters
-        self._parameters['W'] = jnp.array(self.weights.T)
-        self._parameters['W0'] = jnp.array(self.bias)
-        return self._parameters
-
-    @property
     def weights(self):
-        return np.array([x._coef for x in self.text_representations])
+        return np.array([x.coef for x in self.text_representations])
     
     @property
     def bias(self):
-        return np.array([x._intercept for x in self.text_representations])
+        return np.array([x.intercept for x in self.text_representations])
+
+    @property
+    def parameters(self):
+        """Parameters to optimize"""
+        _parameters = super(DenseBoWBP, self).parameters
+        _parameters['W'] = jnp.array(self.weights.T)
+        _parameters['W0'] = jnp.array(self.bias)
+        return _parameters
 
     @parameters.setter
     def parameters(self, value):
@@ -204,7 +251,22 @@ class DenseBoWBP(DenseBoW, BoWBP):
         self.estimator_instance.intercept_ = np.array(value['W0_cl'])
         for x, m in zip(np.array(value['W'].T),
                         self.text_representations):
-            m._coef[:] = x[:]
+            m.coef[:] = x[:]
         for x, m in zip(np.array(value['W0']),
                         self.text_representations):
-            m._intercept = float(x)
+            m.intercept = float(x)
+
+    def set_validation_set(self, D: List[Union[dict, list]], 
+                           y: Union[np.ndarray, None]=None):
+        """Procedure to create the validation set"""
+
+        n_dim = len(self.text_representations)
+        if n_dim >= len(D) and self.validation_set == 0:
+            self.validation_set = None
+        return super(DenseBoWBP, self).set_validation_set(D=D, y=y)
+
+    def __sklearn_clone__(self):
+        ins = super(DenseBoWBP, self).__sklearn_clone__()
+        _ = [clone(m) for m in self.text_representations]
+        ins.text_representations = _
+        return ins
