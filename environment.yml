@@ -6,3 +6,6 @@ dependencies:
   - evodag
   - b4msa
   - cython
+  - jax
+  - optax
+  - IngeoML

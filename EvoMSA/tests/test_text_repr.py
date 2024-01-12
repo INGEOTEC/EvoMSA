@@ -613,3 +613,24 @@ def test_DenseBoW_tailored():
     assert len(dense.names) == 0
     dense.text_representations_extend('IberLEF2023_DAVINCIS_task1')
     assert len(dense.names)
+
+
+def test_unique():
+    """Test unique function"""
+    from EvoMSA.text_repr import unique
+
+    D = ['hola buenos dias', 'peticion', 'la vida', 'peticion',
+         'adios colegas', 'la vida', 'comiendo en el salón', 'adios colegas',
+         'nuevo', 'la vida', 'nuevo', 'hola buenos dias']
+    actual = np.array([0, 1, 2, 4, 6, 8])
+    index = unique(D, lang='es', return_index=True, batch_size=4)
+    assert np.all(index == actual)
+    index = unique(D, G=['hola buenos dias'],
+                   lang='es', return_index=True, batch_size=4)
+    assert index[0] != 0
+    index = unique(D, lang='es', return_index=False, batch_size=4)
+    assert isinstance(index, list) and len(index) == actual.shape[0]
+    D = list(tweet_iterator(TWEETS))
+    D[-1] = D[0]
+    index = unique(D, lang='es', batch_size=11, return_index=True)
+    assert index[-1] == 998
