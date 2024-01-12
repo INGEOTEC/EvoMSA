@@ -1059,3 +1059,60 @@ class StackGeneralization(BoW):
         params['transform_models'] = [clone(x)
                                       for x in self.transform_models]
         return klass(**params)
+    
+
+def unique(D: List[Union[dict, list]],
+           lang: str='es',
+           return_index: bool=True,
+           alpha: float=0.95,
+           batch_size: int=1024):
+    """Compute the unique elements in a set using :py:class:`~EvoMSA.text_repr.BoW`
+
+    :param D: Texts; in the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+    :type D: List of texts or dictionaries.
+    :param lang: Language.
+    :type lang: str
+    :param return_index: Return the indexes.
+    :type return_index: bool
+    :param alpha: Value to assert similarity.
+    :type alpha: float
+    :param batch_size: Batch size
+    :type batch_size: int
+    """
+
+    def unique_self(elementos):
+        _ = X[elementos]
+        sim = np.dot(_, _.T) >= alpha
+        indptr = sim.indptr
+        indices = sim.indices
+        remove = []
+        index = np.where(np.diff(indptr) > 1)[0]
+        init = indptr[index]
+        index = index[index == indices[init]]
+        for i, j in zip(index, index+1):
+            remove.extend(indices[indptr[i]:indptr[j]][1:].tolist())
+        remove = set(remove)
+        _ = [i for k, i in enumerate(elementos)
+             if k not in remove]
+        return np.array(_)
+    
+
+    def unique_rest(frst, rest):
+        sim = np.dot(X[rest], X[frst].T).max(axis=1).toarray()
+        mask = sim.flatten() < alpha
+        return rest[mask]
+
+    X = BoW(lang=lang).transform(D)
+    init = 0
+    pool = np.arange(len(D))
+    while init < pool.shape[0]:
+        past = pool[:init]    
+        elementos = pool[init:init + batch_size]
+        rest = pool[init + batch_size:]
+        frst = unique_self(elementos)
+        rest = unique_rest(frst, rest)
+        init = init + frst.shape[0]
+        pool = np.r_[past, frst, rest]
+    if return_index:
+        return pool
+    return [D[x] for x in pool]
