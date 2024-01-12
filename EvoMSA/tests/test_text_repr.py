@@ -625,10 +625,12 @@ def test_unique():
     actual = np.array([0, 1, 2, 4, 6, 8])
     index = unique(D, lang='es', return_index=True, batch_size=4)
     assert np.all(index == actual)
+    index = unique(D, G=['hola buenos dias'],
+                   lang='es', return_index=True, batch_size=4)
+    assert index[0] != 0
     index = unique(D, lang='es', return_index=False, batch_size=4)
     assert isinstance(index, list) and len(index) == actual.shape[0]
     D = list(tweet_iterator(TWEETS))
     D[-1] = D[0]
-    index = unique(D, lang='es', batch_size=11)
+    index = unique(D, lang='es', batch_size=11, return_index=True)
     assert index[-1] == 998
-
