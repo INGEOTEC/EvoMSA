@@ -17,7 +17,7 @@ from sklearn.base import clone
 from microtc.utils import tweet_iterator
 from jax.experimental.sparse import BCSR
 import numpy as np
-from EvoMSA.back_prop import BoWBP, bow_model, DenseBoWBP
+from EvoMSA.back_prop import BoWBP, bow_model, DenseBoWBP, StackBoWBP
 from EvoMSA.text_repr import BoW, DenseBoW
 from EvoMSA.tests.test_base import TWEETS
 
@@ -31,55 +31,27 @@ def test_BoWBP():
                                      random_state=0,
                                      class_weight='balanced'),
                voc_size_exponent=15).fit(D)
-    bow2_coef = bow2.estimator_instance.coef_
+    bow2_coef = bow2.estimator_instance.coef_.T
     bow = BoWBP(lang='es',
                 estimator_kwargs=dict(dual=True,
                                       random_state=0,
                                       class_weight='balanced')).fit(D)
-    bow_coef = bow.estimator_instance.coef_
+    # assert bow.parameters is None
+    bow_coef = bow.parameters['W_cl']
     diff = np.fabs(bow_coef - bow2_coef).sum()
     assert diff > 0
+    assert bow.predict(D) is not None
 
 
-def test_bow_model():
-    """Test bow_model"""
-    D = list(tweet_iterator(TWEETS))
-    bow = BoWBP(lang='es',
-                optimizer_kwargs=dict(epochs=2),
-                estimator_kwargs=dict(dual=True,
-                                      random_state=0,
-                                      class_weight='balanced')).fit(D)
-    assert 'W_cl' in bow.parameters
-    assert 'W0_cl' in bow.parameters
-    X = BCSR.from_scipy_sparse(bow.transform(D))
-    y = bow_model(bow.parameters, X)
-    y2 = bow.decision_function(D)
-    diff = np.fabs(y - y2)
-    m = diff > 1e-5
-    assert m.sum() == 0
-    D = [x for x in D if x['klass'] in ['N', 'P']]
-    bow = BoWBP(lang='es',
-                optimizer_kwargs=dict(epochs=2),
-                estimator_kwargs=dict(dual=True,
-                                      random_state=0,
-                                      class_weight='balanced')).fit(D)
-    X = BCSR.from_scipy_sparse(bow.transform(D))
-    y = bow_model(bow.parameters, X)
-    y2 = bow.decision_function(D)
-    diff = np.fabs(y - y2)
-    m = diff > 1e-6
-    assert m.sum() == 0
-
-
-def test_BoWBP_validation_set():
-    """Test the validation_set property"""
-    D = list(tweet_iterator(TWEETS))
-    bow = BoWBP(lang='es',
-                optimizer_kwargs=dict(epochs=2),
-                validation_set=D,
-                estimator_kwargs=dict(dual=True,
-                                      random_state=0,
-                                      class_weight='balanced')).fit(D)    
+# def test_BoWBP_validation_set():
+#     """Test the validation_set property"""
+#     D = list(tweet_iterator(TWEETS))
+#     bow = BoWBP(lang='es',
+#                 optimizer_kwargs=dict(epochs=2),
+#                 validation_set=D,
+#                 estimator_kwargs=dict(dual=True,
+#                                       random_state=0,
+#                                       class_weight='balanced')).fit(D)    
 
 
 def test_BoWBP_evolution():
@@ -122,25 +94,9 @@ def test_DenseBoWBP():
     assert len(hy) == len(D)
 
 
-def test_DenseBoWBP_zero_validation_set():
-    """Test the option of no using a validation set"""
-    D = list(tweet_iterator(TWEETS))
-    D = D + D + D
-    dense = DenseBoWBP(lang='es',
-                       voc_size_exponent=13,
-                       validation_set=0,
-                       estimator_kwargs=dict(dual=True,
-                                             random_state=0,
-                                             class_weight='balanced')
-                       ).fit(D)
-    assert dense.validation_set is None
+def test_StackBoWBP():
+    """Test StackBoWBP"""
 
-
-def test_DenseBoWBP_clone():
-    """Test DenseBoWBP clone"""
-    D = list(tweet_iterator(TWEETS))
-    dense = DenseBoWBP(lang='es',
-                       voc_size_exponent=13,
-                       n_jobs=-1)
-    dense2 = clone(dense)
-    assert not dense.text_representations[0] is dense2.text_representations[0]
+    dataset = list(tweet_iterator(TWEETS))
+    ins = StackBoWBP(lang='es', voc_size_exponent=13).fit(dataset)
+    assert 'E' in ins.parameters
