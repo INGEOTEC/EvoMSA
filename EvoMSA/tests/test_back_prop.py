@@ -32,7 +32,7 @@ def test_BoWBP():
                                      class_weight='balanced'),
                voc_size_exponent=15).fit(D)
     bow2_coef = bow2.estimator_instance.coef_.T
-    bow = BoWBP(lang='es',
+    bow = BoWBP(lang='es', fraction_initial_parameters=0.6,
                 estimator_kwargs=dict(dual=True,
                                       random_state=0,
                                       class_weight='balanced')).fit(D)

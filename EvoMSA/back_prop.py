@@ -68,7 +68,7 @@ class BoWBP(BoW):
 
     def __init__(self, voc_size_exponent: int=15,
                  estimator_kwargs=dict(dual=True, class_weight='balanced'),
-                 deviation=None, fraction_initial_parameters=0.6,
+                 deviation=None, fraction_initial_parameters=1,
                  optimizer_kwargs: dict=None,
                  **kwargs):
         super(BoWBP, self).__init__(voc_size_exponent=voc_size_exponent,
@@ -118,9 +118,12 @@ class BoWBP(BoW):
     def initial_parameters(self, X, y):
         y = y.argmax(axis=1)
         train_size = self.fraction_initial_parameters
-        _ = StratifiedShuffleSplit(n_splits=1,
-                                   train_size=train_size).split(X, y)
-        tr, _ = next(_)
+        if train_size == 1:
+            tr = np.arange(X.shape[0])
+        else:
+            _ = StratifiedShuffleSplit(n_splits=1,
+                                    train_size=train_size).split(X, y)
+            tr, _ = next(_)
         m = self.estimator_class(**self.estimator_kwargs).fit(X[tr], y[tr])
         W = jnp.array(m.coef_.T)
         W0 = jnp.array(m.intercept_)
@@ -210,9 +213,12 @@ class DenseBoWBP(DenseBoW, BoWBP):
     def initial_parameters(self, X, y):
         y = y.argmax(axis=1)
         train_size = self.fraction_initial_parameters
-        _ = StratifiedShuffleSplit(n_splits=1,
-                                   train_size=train_size).split(X, y)
-        tr, _ = next(_)
+        if train_size == 1:
+            tr = np.arange(X.shape[0])
+        else:
+            _ = StratifiedShuffleSplit(n_splits=1,
+                                    train_size=train_size).split(X, y)
+            tr, _ = next(_)
         dense_w = self.weights.T
         dense_bias = self.bias
         _ = X[tr] @ dense_w + dense_bias
