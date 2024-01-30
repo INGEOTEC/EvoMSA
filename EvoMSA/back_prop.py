@@ -216,6 +216,7 @@ class DenseBoWBP(DenseBoW, BoWBP):
         dense_w = self.weights.T
         dense_bias = self.bias
         _ = X[tr] @ dense_w + dense_bias
+        _ = _ / np.linalg.norm(_, axis=1, keepdims=True)
         m = self.estimator_class(**self.estimator_kwargs).fit(_, y[tr])
         W = jnp.array(m.coef_.T)
         W0 = jnp.array(m.intercept_)
