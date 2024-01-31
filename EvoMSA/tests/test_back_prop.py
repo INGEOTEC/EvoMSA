@@ -47,6 +47,11 @@ def test_binary():
     """Test BoWBP"""
     D = list(tweet_iterator(TWEETS))
     D = [x for x in D if x['klass'] in {'N', 'P'}]
+    stack = StackBoWBP(lang='es',
+                       voc_size_exponent=13).fit(D)
+    hy = stack.predict(D)
+    acc = (np.array([x['klass'] for x in D]) == hy).mean()
+    assert acc > 0.95
     bow = BoWBP(lang='es').fit(D)
     hy = bow.predict(D)
     acc = (np.array([x['klass'] for x in D]) == hy).mean()

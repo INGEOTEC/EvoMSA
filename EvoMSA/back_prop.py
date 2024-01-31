@@ -16,7 +16,6 @@ import jax
 from jax import nn
 import jax.numpy as jnp
 import numpy as np
-from scipy.special import softmax
 from scipy.sparse import spmatrix
 from jax.experimental.sparse import BCSR
 from sklearn.model_selection import StratifiedShuffleSplit
@@ -51,7 +50,19 @@ def stack_model(params, X, df):
     Y = Y @ params['W_cl'] + params['W0_cl']
     Y = nn.softmax(Y, axis=1)
     pesos = nn.softmax(params['E'])
-    return Y * pesos[0] + df * pesos[1]
+    return Y * pesos[0] + nn.softmax(df, axis=1) * pesos[1]
+
+
+@jax.jit
+def stack_model_binary(params, X, df):
+    """StackBoWBP model"""
+
+    _ = X @ params['W'] + params['W0']
+    Y = _ / jnp.linalg.norm(_, axis=1, keepdims=True)
+    Y = Y @ params['W_cl'] + params['W0_cl']
+    Y = nn.sigmoid(Y)
+    pesos = nn.softmax(params['E'])
+    return Y * pesos[0] + nn.sigmoid(df) * pesos[1] - 0.5
 
 
 class BoWBP(BoW):
@@ -76,6 +87,7 @@ class BoWBP(BoW):
         self.deviation = deviation
         self.optimizer_kwargs = optimizer_kwargs
         self.fraction_initial_parameters = fraction_initial_parameters
+        self.classes_ = None
 
     @property
     def fraction_initial_parameters(self):
@@ -171,7 +183,7 @@ class BoWBP(BoW):
             p = p[0]
         self.parameters = p
         return self
-    
+
     def decision_function(self, D: List[Union[dict, list]]) -> np.ndarray:
         X = self._transform(D)
         params = self.parameters
@@ -182,7 +194,7 @@ class BoWBP(BoW):
             args = [self.array(x) for x in args]
             hy = self.model(params, BCSR.from_scipy_sparse(X), *args)
         return hy
-    
+
     def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
         df = self.decision_function(D)
         if df.shape[1] == 1:
@@ -190,7 +202,7 @@ class BoWBP(BoW):
         else:
             index = df.argmax(axis=1)
         return self.classes_[index]
-    
+
     @staticmethod
     def array(data):
         """Encode data on jax"""
@@ -227,7 +239,7 @@ class DenseBoWBP(DenseBoW, BoWBP):
 
     def _transform(self, X):
         return self.bow.transform(X)
-    
+
     def initial_parameters(self, X, y):
         if y.ndim > 1:
             y = y.argmax(axis=1)
@@ -261,11 +273,13 @@ class DenseBoWBP(DenseBoW, BoWBP):
     #     _ = [clone(m) for m in self.text_representations]
     #     ins.text_representations = _
     #     return ins
-    
+
 
 class StackBoWBP(DenseBoWBP):
     @property
     def model(self):
+        if self.classes_.shape[0] == 2:
+            return stack_model_binary
         return stack_model
 
     def initial_parameters(self, X, y, df):
@@ -281,8 +295,6 @@ class StackBoWBP(DenseBoWBP):
             hy = getattr(self._bow_ins, self.decision_function_name)(X)
         if hy.ndim == 1:
             hy = np.atleast_2d(hy).T
-        else:
-            hy = softmax(hy, axis=1)
         return (hy, )
 
     def fit(self, D: List[Union[dict, list]], 
