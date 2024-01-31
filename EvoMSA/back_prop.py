@@ -17,9 +17,9 @@ from jax import nn
 import jax.numpy as jnp
 import numpy as np
 from scipy.special import softmax
+from scipy.sparse import spmatrix
 from jax.experimental.sparse import BCSR
 from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.base import clone
 from IngeoML.optimizer import classifier
 from EvoMSA.text_repr import BoW, DenseBoW
 
@@ -174,12 +174,25 @@ class BoWBP(BoW):
     def decision_function(self, D: List[Union[dict, list]]) -> np.ndarray:
         X = self._transform(D)
         params = self.parameters
-        hy = self.model(params, BCSR.from_scipy_sparse(X))
+        args = self.model_args(D)
+        if args is None:
+            hy = self.model(params, BCSR.from_scipy_sparse(X))
+        else:
+            args = [self.array(x) for x in args]
+            hy = self.model(params, BCSR.from_scipy_sparse(X), *args)
         return hy
     
     def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
         df = self.decision_function(D)
-        return self.classes_[df.argmax(axis=1)]    
+        return self.classes_[df.argmax(axis=1)]
+    
+    @staticmethod
+    def array(data):
+        """Encode data on jax"""
+
+        if isinstance(data, spmatrix):
+            return BCSR.from_scipy_sparse(data)
+        return jnp.array(data)    
 
 
 class DenseBoWBP(DenseBoW, BoWBP):
@@ -273,11 +286,3 @@ class StackBoWBP(DenseBoWBP):
         labels = self.dependent_variable(D, y=y)
         self._bow_ins = self.estimator_class(**self.estimator_kwargs).fit(_, labels)
         return self
-    
-    def decision_function(self, D: List[Union[dict, list]]) -> np.ndarray:
-        X = self._transform(D)
-        params = self.parameters
-        df = self.model_args(D)[0]
-        hy = self.model(params, BCSR.from_scipy_sparse(X),
-                        jnp.array(df))
-        return hy
