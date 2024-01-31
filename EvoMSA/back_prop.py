@@ -185,7 +185,11 @@ class BoWBP(BoW):
     
     def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
         df = self.decision_function(D)
-        return self.classes_[df.argmax(axis=1)]
+        if df.shape[1] == 1:
+            index = np.where(df.flatten() > 0, 1, 0)
+        else:
+            index = df.argmax(axis=1)
+        return self.classes_[index]
     
     @staticmethod
     def array(data):

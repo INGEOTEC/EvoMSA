@@ -48,8 +48,15 @@ def test_binary():
     D = list(tweet_iterator(TWEETS))
     D = [x for x in D if x['klass'] in {'N', 'P'}]
     bow = BoWBP(lang='es').fit(D)
+    hy = bow.predict(D)
+    acc = (np.array([x['klass'] for x in D]) == hy).mean()
+    assert acc > 0.9
     dense = DenseBoWBP(lang='es',
                        voc_size_exponent=13).fit(D)
+    hy = dense.predict(D)
+    acc = (np.array([x['klass'] for x in D]) == hy).mean()
+    assert acc > 0.85
+
 
 
 # def test_BoWBP_validation_set():
