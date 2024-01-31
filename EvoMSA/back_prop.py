@@ -116,7 +116,8 @@ class BoWBP(BoW):
         self._deviation = value
 
     def initial_parameters(self, X, y):
-        y = y.argmax(axis=1)
+        if y.ndim > 1:
+            y = y.argmax(axis=1)
         train_size = self.fraction_initial_parameters
         if train_size == 1:
             tr = np.arange(X.shape[0])
@@ -224,7 +225,8 @@ class DenseBoWBP(DenseBoW, BoWBP):
         return self.bow.transform(X)
     
     def initial_parameters(self, X, y):
-        y = y.argmax(axis=1)
+        if y.ndim > 1:
+            y = y.argmax(axis=1)
         train_size = self.fraction_initial_parameters
         if train_size == 1:
             tr = np.arange(X.shape[0])

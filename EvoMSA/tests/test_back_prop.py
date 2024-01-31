@@ -43,6 +43,15 @@ def test_BoWBP():
     assert bow.predict(D) is not None
 
 
+def test_binary():
+    """Test BoWBP"""
+    D = list(tweet_iterator(TWEETS))
+    D = [x for x in D if x['klass'] in {'N', 'P'}]
+    bow = BoWBP(lang='es').fit(D)
+    dense = DenseBoWBP(lang='es',
+                       voc_size_exponent=13).fit(D)
+
+
 # def test_BoWBP_validation_set():
 #     """Test the validation_set property"""
 #     D = list(tweet_iterator(TWEETS))
