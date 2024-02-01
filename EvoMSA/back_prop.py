@@ -65,6 +65,25 @@ def stack_model_binary(params, X, df):
     return Y * pesos[0] + nn.sigmoid(df) * pesos[1] - 0.5
 
 
+def initial_parameters(df, df2, y, score=None):
+    """Estimate initial parameters :py:class:`~EvoMSA.back_prop.StackBoWBP`"""
+    from sklearn.metrics import f1_score
+    from scipy.special import softmax
+
+    def f(x):
+        hy = (x[0] * df + x[1] * df2).argmax(axis=1)
+        return score(y, hy)
+
+    if score is None:
+        score = lambda y, hy: f1_score(y, hy, average='macro')
+    df = softmax(df, axis=1)
+    df2 = softmax(df2, axis=1)
+    value = np.linspace(0, 1, 100)
+    _ = [f([v, 1-v]) for v in value]
+    index = np.argmax(_)
+    return jnp.array([value[index], 1 - value[index]])
+
+
 class BoWBP(BoW):
     """BoWBP is a :py:class:`~EvoMSA.text_repr.BoW` with the difference that the parameters are fine-tuned using jax
     
@@ -289,7 +308,8 @@ class StackBoWBP(DenseBoWBP):
 
     def model_args(self, D: List[Union[dict, list]]):
         if not hasattr(self, '_bow_ins'):
-            hy = BoW.train_predict_decision_function(self, D)
+            X = self._transform(D)
+            hy = self.train_predict_decision_function(D, X=X)
         else:
             X = super(StackBoWBP, self)._transform(D)
             hy = getattr(self._bow_ins, self.decision_function_name)(X)

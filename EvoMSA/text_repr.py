@@ -379,7 +379,8 @@ class BoW(BaseEstimator):
         return self.bow.fit(_)
 
     def train_predict_decision_function(self, D: List[Union[dict, list]], 
-                                        y: Union[np.ndarray, None]=None) -> np.ndarray:
+                                        y: Union[np.ndarray, None]=None,
+                                        X=None) -> np.ndarray:
         """
         Method to compute the kfold predictions on dataset `D` with response `y`
 
@@ -387,6 +388,7 @@ class BoW(BaseEstimator):
         :type D: List of texts or dictionaries. 
         :param y: Response variable
         :type y: Array or None
+        :param X: Transform dataset
 
         For example, the following code computes the accuracy using k-fold cross-validation on the dataset found on `TWEETS` 
 
@@ -411,7 +413,8 @@ class BoW(BaseEstimator):
         y = self.dependent_variable(D, y=y)
         kf = self.kfold_class(**self.kfold_kwargs)
         kfolds = [x for x in kf.split(D, y)]
-        X = self.transform(D, y=y)
+        if X is None:
+            X = self.transform(D, y=y)
         hys = Parallel(n_jobs=self.n_jobs)(delayed(train_predict)(tr, vs)
                                             for tr, vs in kfolds)
         K = np.unique(y).shape[0]
