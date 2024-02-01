@@ -16,6 +16,7 @@ import jax
 from jax import nn
 import jax.numpy as jnp
 import numpy as np
+from scipy.special import expit, softmax
 from scipy.sparse import spmatrix
 from jax.experimental.sparse import BCSR
 from sklearn.model_selection import StratifiedShuffleSplit
@@ -65,19 +66,24 @@ def stack_model_binary(params, X, df):
     return Y * pesos[0] + nn.sigmoid(df) * pesos[1] - 0.5
 
 
-def initial_parameters(df, df2, y, score=None):
+def initial_parameters(df, df2, y,
+                       nclasses=2, score=None):
     """Estimate initial parameters :py:class:`~EvoMSA.back_prop.StackBoWBP`"""
     from sklearn.metrics import f1_score
     from scipy.special import softmax
 
     def f(x):
-        hy = (x[0] * df + x[1] * df2).argmax(axis=1)
+        hy = (x[0] * df + x[1] * df2)
+        if nclasses ==2:
+            hy = np.where(hy > 0.5, 1, 0)
+        else:
+            hy = hy.argmax(axis=1)
         return score(y, hy)
 
     if score is None:
         score = lambda y, hy: f1_score(y, hy, average='macro')
-    df = softmax(df, axis=1)
-    df2 = softmax(df2, axis=1)
+    # df = softmax(df, axis=1)
+    # df2 = softmax(df2, axis=1)
     value = np.linspace(0, 1, 100)
     _ = [f([v, 1-v]) for v in value]
     index = np.argmax(_)
@@ -303,7 +309,20 @@ class StackBoWBP(DenseBoWBP):
 
     def initial_parameters(self, X, y, df):
         params = super(StackBoWBP, self).initial_parameters(X, y)
-        params['E'] = jnp.array([0.5, 0.5])
+        dense_w = self.weights.T
+        dense_bias = self.bias
+        Xd = X @ dense_w + dense_bias
+        if self.classes_.shape[0] > 2:
+            y = y.argmax(axis=1)
+        df2 = self.train_predict_decision_function([1] * Xd.shape[0], y=y, X=Xd)
+        if self.classes_.shape[0] > 2:
+            df = expit(df)
+            df2 = expit(df2)
+        else:
+            df = softmax(df, axis=1)
+            df2 = softmax(df2, axis=1)
+        params['E'] = initial_parameters(df, df2, y,
+                                         nclasses=self.classes_.shape[0])
         return params
 
     def model_args(self, D: List[Union[dict, list]]):

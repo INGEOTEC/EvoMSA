@@ -115,9 +115,12 @@ def test_DenseBoWBP():
     assert len(hy) == len(D)
 
 
-def test_StackBoWBP():
+def test_StackBoWBP_initial_parameters():
     """Test StackBoWBP"""
 
     dataset = list(tweet_iterator(TWEETS))
     ins = StackBoWBP(lang='es', voc_size_exponent=13).fit(dataset)
-    assert 'E' in ins.parameters
+    assert np.fabs(ins.parameters['E'] - np.array([0.5, 0.5])).sum() > 0
+    D = [x for x in dataset if x['klass'] in {'N', 'P'}]   
+    ins = StackBoWBP(lang='es', voc_size_exponent=13).fit(D)
+    assert np.fabs(ins.parameters['E'] - np.array([0.5, 0.5])).sum() > 0
