@@ -66,14 +66,14 @@ def stack_model_binary(params, X, df):
     return Y * pesos[0] + nn.sigmoid(df) * pesos[1] - 0.5
 
 
-def initial_parameters(df, df2, y,
+def initial_parameters(hy_dense, df, y,
                        nclasses=2, score=None):
     """Estimate initial parameters :py:class:`~EvoMSA.back_prop.StackBoWBP`"""
     from sklearn.metrics import f1_score
     from scipy.special import softmax
 
     def f(x):
-        hy = (x[0] * df + x[1] * df2)
+        hy = (x[0] * hy_dense + x[1] * df)
         if nclasses ==2:
             hy = np.where(hy > 0.5, 1, 0)
         else:
@@ -314,14 +314,14 @@ class StackBoWBP(DenseBoWBP):
         Xd = X @ dense_w + dense_bias
         if self.classes_.shape[0] > 2:
             y = y.argmax(axis=1)
-        df2 = self.train_predict_decision_function([1] * Xd.shape[0], y=y, X=Xd)
+        hy_dense = self.train_predict_decision_function([1] * Xd.shape[0], y=y, X=Xd)
         if self.classes_.shape[0] > 2:
             df = expit(df)
-            df2 = expit(df2)
+            hy_dense = expit(hy_dense)
         else:
             df = softmax(df, axis=1)
-            df2 = softmax(df2, axis=1)
-        params['E'] = initial_parameters(df, df2, y,
+            hy_dense = softmax(hy_dense, axis=1)
+        params['E'] = initial_parameters(hy_dense, df, y,
                                          nclasses=self.classes_.shape[0])
         return params
 
