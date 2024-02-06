@@ -16,11 +16,12 @@ import jax
 from jax import nn
 import jax.numpy as jnp
 import numpy as np
+from numpy import ndarray
 from scipy.special import expit, softmax
-from scipy.sparse import spmatrix
 from jax.experimental.sparse import BCSR
 from sklearn.model_selection import StratifiedShuffleSplit
-from IngeoML.optimizer import classifier
+from IngeoML.optimizer import classifier, array
+from IngeoML.utils import soft_BER
 from EvoMSA.text_repr import BoW, DenseBoW
 
 
@@ -88,6 +89,14 @@ def initial_parameters(hy_dense, df, y,
     _ = [f([v, 1-v]) for v in value]
     index = np.argmax(_)
     return jnp.array([value[index], 1 - value[index]])
+
+
+@jax.jit
+def stackbow(params, X, X2):
+    mixer = nn.sigmoid(params['mixer'])
+    frst = X * mixer
+    scnd = X2 * (1  - mixer)
+    return frst + scnd
 
 
 class BoWBP(BoW):
@@ -216,7 +225,7 @@ class BoWBP(BoW):
         if args is None:
             hy = self.model(params, BCSR.from_scipy_sparse(X))
         else:
-            args = [self.array(x) for x in args]
+            args = [array(x) for x in args]
             hy = self.model(params, BCSR.from_scipy_sparse(X), *args)
         return hy
 
@@ -227,14 +236,6 @@ class BoWBP(BoW):
         else:
             index = df.argmax(axis=1)
         return self.classes_[index]
-
-    @staticmethod
-    def array(data):
-        """Encode data on jax"""
-
-        if isinstance(data, spmatrix):
-            return BCSR.from_scipy_sparse(data)
-        return jnp.array(data)    
 
 
 class DenseBoWBP(DenseBoW, BoWBP):
@@ -283,7 +284,7 @@ class DenseBoWBP(DenseBoW, BoWBP):
         W = jnp.array(m.coef_.T)
         W0 = jnp.array(m.intercept_)
         return dict(W_cl=W, W0_cl=W0,
-                    W=jnp.array(dense_w), W0=jnp.array(dense_bias)) 
+                    W=jnp.array(dense_w), W0=jnp.array(dense_bias))
 
     @property
     def weights(self):
@@ -299,6 +300,99 @@ class DenseBoWBP(DenseBoW, BoWBP):
     #     ins.text_representations = _
     #     return ins
 
+
+class StackBoW(DenseBoW):
+    def __init__(self, voc_size_exponent: int=15,
+                 estimator_kwargs=dict(dual=True, class_weight='balanced'),
+                 deviation=None, **kwargs):
+        super(StackBoW, self).__init__(voc_size_exponent=voc_size_exponent,
+                                       estimator_kwargs=estimator_kwargs, **kwargs)
+        self.deviation = deviation
+
+    @property
+    def mixer_value(self):
+        """Contribution of each classifier to the prediction"""
+        return self._mixer_value
+
+    @property
+    def deviation(self):
+        """Function to measure the deviation between the true observations and the predictions."""
+        return self._deviation
+
+    @deviation.setter
+    def deviation(self, value):
+        self._deviation = value
+
+    def fit(self, D: List[Union[dict, list]], 
+            y: Union[np.ndarray, None]=None) -> 'StackBoW':
+        if not self.pretrain and not self._b4msa_estimated:
+            self.b4msa_fit(D)
+        y = self.dependent_variable(D, y=y)
+        self.classes_ = np.unique(y)
+        X = self.bow.transform(D)
+        bow_df = self.train_predict_decision_function([None]*y.shape[0],
+                                                      y=y,
+                                                      X=X)
+        dense_df = self.train_predict_decision_function(D, y=y)
+        if bow_df.shape[1] > 1:
+            bow_df = softmax(bow_df, axis=1)
+            dense_df = softmax(dense_df, axis=1)
+            _ = np.zeros(bow_df.shape[1])
+            params = dict(mixer=jnp.array(_))
+            p = classifier(params, stackbow, bow_df, y, 
+                           model_args=(dense_df,), 
+                           validation=0, epochs=10000,
+                           deviation=self.deviation,
+                           distribution=True)
+            self._mixer_value = p['mixer']
+        else:
+            bow_df = expit(bow_df)
+            dense_df = expit(dense_df)
+            X1 = jnp.c_[1 - bow_df, bow_df]
+            X2 = jnp.c_[1 - dense_df, dense_df]
+            h = {v: k for k, v in enumerate(self.classes_)}
+            y_ = jnp.array([h[i] for i in y])
+            y_ = np.c_[1 - y_, y_]
+            if self.deviation is None:
+                deviation = soft_BER
+            else:
+                deviation = self.deviation
+            params = jnp.linspace(0, 1, 100)
+            perf = [deviation(y_, p * X1 + (1 - p) * X2)
+                    for p in params]
+            self._mixer_value = params[np.argmin(perf)]
+        self._bow_ins = self.estimator_class(**self.estimator_kwargs).fit(X, y)
+        super(StackBoW, self).fit(D, y=y)
+        return self
+    
+    def decision_function(self, D: List[Union[dict, list]]) -> np.ndarray:
+        dense_df = super(StackBoW, self).decision_function(D)
+        X = self.bow.transform(D)
+        bow_df = self._bow_ins.decision_function(X)
+        if bow_df.ndim > 1:
+            bow_df = softmax(bow_df, axis=1)
+            dense_df = softmax(dense_df, axis=1)
+            mixer = expit(self._mixer_value)
+            frst = bow_df * mixer
+            scnd = dense_df * (1  - mixer)
+            return frst + scnd
+        else:
+            bow_df = expit(bow_df)
+            dense_df = expit(dense_df)
+            X1 = jnp.c_[1 - bow_df, bow_df]
+            X2 = jnp.c_[1 - dense_df, dense_df]
+            p = self._mixer_value
+            return p * X1 + (1 - p) * X2
+
+    def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
+        df = self.decision_function(D)
+        index = df.argmax(axis=1)
+        return self.classes_[index]
+
+
+
+    
+        
 
 class StackBoWBP(DenseBoWBP):
     @property

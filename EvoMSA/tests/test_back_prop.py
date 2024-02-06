@@ -17,7 +17,7 @@ from sklearn.base import clone
 from microtc.utils import tweet_iterator
 from jax.experimental.sparse import BCSR
 import numpy as np
-from EvoMSA.back_prop import BoWBP, bow_model, DenseBoWBP, StackBoWBP
+from EvoMSA.back_prop import BoWBP, bow_model, DenseBoWBP, StackBoWBP, StackBoW
 from EvoMSA.text_repr import BoW, DenseBoW
 from EvoMSA.tests.test_base import TWEETS
 
@@ -124,3 +124,19 @@ def test_StackBoWBP_initial_parameters():
     D = [x for x in dataset if x['klass'] in {'N', 'P'}]   
     ins = StackBoWBP(lang='es', voc_size_exponent=13).fit(D)
     assert np.fabs(ins.parameters['E'] - np.array([0.5, 0.5])).sum() > 0
+
+
+def test_StackBoW():
+    """Test StackBoW"""
+    from sklearn.metrics import f1_score
+
+    dataset = list(tweet_iterator(TWEETS))
+    ins = StackBoW(lang='es', voc_size_exponent=13).fit(dataset)
+    y = np.array([x['klass'] for x in dataset])
+    _ = f1_score(y, ins.predict(dataset), average='macro') 
+    assert _ > 0.95
+    D = [x for x in dataset if x['klass'] in {'N', 'P'}]   
+    ins = StackBoW(lang='es', voc_size_exponent=13).fit(D).fit(D)
+    y = np.array([x['klass'] for x in D])
+    _ = f1_score(y, ins.predict(D), average='macro')
+    assert _ > 0.95
