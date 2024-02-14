@@ -169,7 +169,7 @@ class BoWBP(BoW):
             tr = np.arange(X.shape[0])
         else:
             _ = StratifiedShuffleSplit(n_splits=1,
-                                    train_size=train_size).split(X, y)
+                                       train_size=train_size).split(X, y)
             tr, _ = next(_)
         m = self.estimator_class(**self.estimator_kwargs).fit(X[tr], y[tr])
         W = jnp.array(m.coef_.T)
@@ -304,10 +304,23 @@ class DenseBoWBP(DenseBoW, BoWBP):
 class StackBoW(DenseBoW):
     def __init__(self, voc_size_exponent: int=15,
                  estimator_kwargs=dict(dual=True, class_weight='balanced'),
-                 deviation=None, **kwargs):
+                 deviation=None, optimizer_kwargs: dict=None,
+                 **kwargs):
         super(StackBoW, self).__init__(voc_size_exponent=voc_size_exponent,
                                        estimator_kwargs=estimator_kwargs, **kwargs)
         self.deviation = deviation
+        self.optimizer_kwargs = optimizer_kwargs
+
+    @property
+    def optimizer_kwargs(self):
+        """Arguments for the optimizer"""
+        return self._optimizer_kwargs
+
+    @optimizer_kwargs.setter
+    def optimizer_kwargs(self, value):
+        if value is None:
+            value = {}
+        self._optimizer_kwargs = value        
 
     @property
     def mixer_value(self):
@@ -343,7 +356,8 @@ class StackBoW(DenseBoW):
                            model_args=(dense_df,), 
                            validation=0, epochs=10000,
                            deviation=self.deviation,
-                           distribution=True)
+                           distribution=True,
+                           **self.optimizer_kwargs)
             self._mixer_value = p['mixer']
         else:
             bow_df = expit(bow_df)
