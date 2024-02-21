@@ -20,9 +20,10 @@ from numpy import ndarray
 from scipy.special import expit, softmax
 from jax.experimental.sparse import BCSR
 from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.base import clone
 from IngeoML.optimizer import classifier, array
 from IngeoML.utils import soft_BER
-from EvoMSA.text_repr import BoW, DenseBoW
+from EvoMSA.text_repr import BoW, DenseBoW, StackGeneralization
 
 
 @jax.jit
@@ -301,15 +302,28 @@ class DenseBoWBP(DenseBoW, BoWBP):
     #     return ins
 
 
-class StackBoW(DenseBoW):
-    def __init__(self, voc_size_exponent: int=15,
-                 estimator_kwargs=dict(dual=True, class_weight='balanced'),
+class StackBoW(StackGeneralization):
+    """StackBoW"""
+
+    def __init__(self, decision_function_models: list=None,
+                 transform_models: list=[],
                  deviation=None, optimizer_kwargs: dict=None,
-                 **kwargs):
-        super(StackBoW, self).__init__(voc_size_exponent=voc_size_exponent,
-                                       estimator_kwargs=estimator_kwargs, **kwargs)
+                 lang: str='es', **kwargs):
+        if decision_function_models is None:
+            estimator_kwargs = dict(dual='auto', class_weight='balanced')
+            bow = BoW(lang=lang, voc_size_exponent=15,
+                      estimator_kwargs=estimator_kwargs)
+            dense = DenseBoW(lang=lang, voc_size_exponent=15,
+                             estimator_kwargs=estimator_kwargs)
+            decision_function_models = [bow, dense]
+        assert len(decision_function_models) == 2
+        assert len(transform_models) == 0
+        super().__init__(decision_function_models=decision_function_models,
+                         **kwargs)
         self.deviation = deviation
         self.optimizer_kwargs = optimizer_kwargs
+        self.classes_ = None
+        self._mixer_value = None
 
     @property
     def optimizer_kwargs(self):
@@ -320,7 +334,7 @@ class StackBoW(DenseBoW):
     def optimizer_kwargs(self, value):
         if value is None:
             value = {}
-        self._optimizer_kwargs = value        
+        self._optimizer_kwargs = value
 
     @property
     def mixer_value(self):
@@ -336,34 +350,27 @@ class StackBoW(DenseBoW):
     def deviation(self, value):
         self._deviation = value
 
-    def fit(self, D: List[Union[dict, list]], 
+    def fit(self, D: List[Union[dict, list]],
             y: Union[np.ndarray, None]=None) -> 'StackBoW':
-        if not self.pretrain and not self._b4msa_estimated:
-            self.b4msa_fit(D)
         y = self.dependent_variable(D, y=y)
-        self.classes_ = np.unique(y)
-        X = self.bow.transform(D)
-        bow_df = self.train_predict_decision_function([None]*y.shape[0],
-                                                      y=y,
-                                                      X=X)
-        dense_df = self.train_predict_decision_function(D, y=y)
-        if bow_df.shape[1] > 1:
-            bow_df = softmax(bow_df, axis=1)
-            dense_df = softmax(dense_df, axis=1)
-            _ = np.zeros(bow_df.shape[1])
+        self.classes_ = np.unique(y)            
+        dfs = [ins.train_predict_decision_function(D, y=y)
+               for ins in self._decision_function_models]
+        if dfs[0].shape[1] > 1:
+            dfs = [softmax(x, axis=1) for x in dfs]
+            _ = np.zeros(dfs[0].shape[1])
             params = dict(mixer=jnp.array(_))
-            p = classifier(params, stackbow, bow_df, y, 
-                           model_args=(dense_df,), 
+            p = classifier(params, stackbow, dfs[0], y,
+                           model_args=(dfs[1], ),
                            validation=0, epochs=10000,
                            deviation=self.deviation,
                            distribution=True,
                            **self.optimizer_kwargs)
             self._mixer_value = p['mixer']
         else:
-            bow_df = expit(bow_df)
-            dense_df = expit(dense_df)
-            X1 = jnp.c_[1 - bow_df, bow_df]
-            X2 = jnp.c_[1 - dense_df, dense_df]
+            dfs = [expit(x) for x in dfs]
+            X1 = jnp.c_[1 - dfs[0], dfs[0]]
+            X2 = jnp.c_[1 - dfs[1], dfs[1]]
             h = {v: k for k, v in enumerate(self.classes_)}
             y_ = jnp.array([h[i] for i in y])
             y_ = np.c_[1 - y_, y_]
@@ -375,27 +382,24 @@ class StackBoW(DenseBoW):
             perf = [deviation(y_, p * X1 + (1 - p) * X2)
                     for p in params]
             self._mixer_value = params[np.argmin(perf)]
-        self._bow_ins = self.estimator_class(**self.estimator_kwargs).fit(X, y)
-        super(StackBoW, self).fit(D, y=y)
+        _ = [clone(ins).fit(D, y=y) for ins in self._decision_function_models]
+        self._decision_function_models = _
         return self
     
     def decision_function(self, D: List[Union[dict, list]]) -> np.ndarray:
-        dense_df = super(StackBoW, self).decision_function(D)
-        X = self.bow.transform(D)
-        bow_df = self._bow_ins.decision_function(X)
-        if bow_df.ndim > 1:
-            bow_df = softmax(bow_df, axis=1)
-            dense_df = softmax(dense_df, axis=1)
-            mixer = expit(self._mixer_value)
-            frst = bow_df * mixer
-            scnd = dense_df * (1  - mixer)
-            return frst + scnd
+        dfs = [ins.decision_function(D)
+               for ins in self._decision_function_models]
+        if dfs[0].shape[1] > 1:
+            dfs = [softmax(x, axis=1) for x in dfs]
+            mixer = expit(self.mixer_value)
+            frst = dfs[0] * mixer
+            scnd = dfs[1] * (1  - mixer)
+            return frst + scnd            
         else:
-            bow_df = expit(bow_df)
-            dense_df = expit(dense_df)
-            X1 = jnp.c_[1 - bow_df, bow_df]
-            X2 = jnp.c_[1 - dense_df, dense_df]
-            p = self._mixer_value
+            dfs = [expit(x) for x in dfs]
+            X1 = jnp.c_[1 - dfs[0], dfs[0]]
+            X2 = jnp.c_[1 - dfs[1], dfs[1]]
+            p = self.mixer_value
             return p * X1 + (1 - p) * X2
 
     def predict(self, D: List[Union[dict, list]]) -> np.ndarray:

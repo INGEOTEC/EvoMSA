@@ -130,13 +130,13 @@ def test_StackBoW():
     """Test StackBoW"""
     from sklearn.metrics import f1_score
 
-    dataset = list(tweet_iterator(TWEETS))
-    ins = StackBoW(lang='es', voc_size_exponent=13).fit(dataset)
-    y = np.array([x['klass'] for x in dataset])
-    _ = f1_score(y, ins.predict(dataset), average='macro') 
+    D = list(tweet_iterator(TWEETS))
+    D2 = [x for x in D if x['klass'] in {'N', 'P'}] 
+    ins = StackBoW(lang='es').fit(D2)
+    y = np.array([x['klass'] for x in D2])
+    _ = f1_score(y, ins.predict(D2), average='macro')
     assert _ > 0.95
-    D = [x for x in dataset if x['klass'] in {'N', 'P'}]   
-    ins = StackBoW(lang='es', voc_size_exponent=13).fit(D).fit(D)
+    ins = StackBoW(lang='es').fit(D)
     y = np.array([x['klass'] for x in D])
-    _ = f1_score(y, ins.predict(D), average='macro')
+    _ = f1_score(y, ins.predict(D), average='macro') 
     assert _ > 0.95
