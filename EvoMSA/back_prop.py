@@ -15,10 +15,9 @@ from typing import Union, List
 import jax
 from jax import nn
 import jax.numpy as jnp
-import numpy as np
-from numpy import ndarray
-from scipy.special import expit, softmax
 from jax.experimental.sparse import BCSR
+import numpy as np
+from scipy.special import expit, softmax
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.base import clone
 from IngeoML.optimizer import classifier, array
@@ -98,6 +97,19 @@ def stackbow(params, X, X2):
     frst = X * mixer
     scnd = X2 * (1  - mixer)
     return frst + scnd
+
+
+@jax.jit
+def stackbow_b_k(params, X):
+    mixer = nn.softmax(params['mixer'])
+    return X @ mixer
+
+
+@jax.jit
+def stackbow_m_k(params, X):
+    mixer = nn.softmax(params['mixer'], axis=1)
+    hy = X * mixer
+    return hy.sum(axis=-1)
 
 
 class BoWBP(BoW):
@@ -316,7 +328,7 @@ class StackBoW(StackGeneralization):
             dense = DenseBoW(lang=lang, voc_size_exponent=15,
                              estimator_kwargs=estimator_kwargs)
             decision_function_models = [bow, dense]
-        assert len(decision_function_models) == 2
+        assert len(decision_function_models) > 1
         assert len(transform_models) == 0
         super().__init__(decision_function_models=decision_function_models,
                          **kwargs)
@@ -350,6 +362,56 @@ class StackBoW(StackGeneralization):
     def deviation(self, value):
         self._deviation = value
 
+    def _fit_bin_2(self, dfs, y):
+        """Fit a binary problem with 2 algorithms"""
+        X1 = jnp.c_[1 - dfs[0], dfs[0]]
+        X2 = jnp.c_[1 - dfs[1], dfs[1]]
+        h = {v: k for k, v in enumerate(self.classes_)}
+        y_ = jnp.array([h[i] for i in y])
+        y_ = np.c_[1 - y_, y_]
+        if self.deviation is None:
+            deviation = soft_BER
+        else:
+            deviation = self.deviation
+        params = jnp.linspace(0, 1, 100)
+        perf = [deviation(y_, p * X1 + (1 - p) * X2)
+                for p in params]
+        self._mixer_value = params[np.argmin(perf)]
+
+    def _fit_bin_k(self, dfs, y):
+        """Fit binary classification problems with k classifiers"""
+        _ = np.ones(len(dfs))
+        X = np.concatenate(dfs, axis=1)
+        params = dict(mixer=jnp.array(_))
+        p = classifier(params, stackbow_b_k, X, y,
+                       validation=0, epochs=10000,
+                       deviation=self.deviation,
+                       distribution=True,
+                       **self.optimizer_kwargs)
+        self._mixer_value = softmax(p['mixer'])
+
+    def _fit_mul_2(self, dfs, y):
+        _ = np.zeros(dfs[0].shape[1])
+        params = dict(mixer=jnp.array(_))
+        p = classifier(params, stackbow, dfs[0], y,
+                        model_args=(dfs[1], ),
+                        validation=0, epochs=10000,
+                        deviation=self.deviation,
+                        distribution=True,
+                        **self.optimizer_kwargs)
+        self._mixer_value = expit(p['mixer'])
+
+    def _fit_mul_k(self, dfs, y):
+        X = np.array([x.T for x in dfs]).T
+        _ = np.ones(X.shape[1:])
+        params = dict(mixer=jnp.array(_))
+        p = classifier(params, stackbow_m_k, X, y,
+                       validation=0, epochs=10000,
+                       deviation=self.deviation,
+                       distribution=True,
+                       **self.optimizer_kwargs)
+        self._mixer_value = softmax(p['mixer'], axis=1)
+
     def fit(self, D: List[Union[dict, list]],
             y: Union[np.ndarray, None]=None) -> 'StackBoW':
         y = self.dependent_variable(D, y=y)
@@ -358,30 +420,16 @@ class StackBoW(StackGeneralization):
                for ins in self._decision_function_models]
         if dfs[0].shape[1] > 1:
             dfs = [softmax(x, axis=1) for x in dfs]
-            _ = np.zeros(dfs[0].shape[1])
-            params = dict(mixer=jnp.array(_))
-            p = classifier(params, stackbow, dfs[0], y,
-                           model_args=(dfs[1], ),
-                           validation=0, epochs=10000,
-                           deviation=self.deviation,
-                           distribution=True,
-                           **self.optimizer_kwargs)
-            self._mixer_value = p['mixer']
+            if len(dfs) == 2:
+                self._fit_mul_2(dfs, y)
+            else:
+                self._fit_mul_k(dfs, y)
         else:
             dfs = [expit(x) for x in dfs]
-            X1 = jnp.c_[1 - dfs[0], dfs[0]]
-            X2 = jnp.c_[1 - dfs[1], dfs[1]]
-            h = {v: k for k, v in enumerate(self.classes_)}
-            y_ = jnp.array([h[i] for i in y])
-            y_ = np.c_[1 - y_, y_]
-            if self.deviation is None:
-                deviation = soft_BER
+            if len(dfs) == 2:
+                self._fit_bin_2(dfs, y)
             else:
-                deviation = self.deviation
-            params = jnp.linspace(0, 1, 100)
-            perf = [deviation(y_, p * X1 + (1 - p) * X2)
-                    for p in params]
-            self._mixer_value = params[np.argmin(perf)]
+                self._fit_bin_k(dfs, y)
         _ = [clone(ins).fit(D, y=y) for ins in self._decision_function_models]
         self._decision_function_models = _
         return self
@@ -391,26 +439,29 @@ class StackBoW(StackGeneralization):
                for ins in self._decision_function_models]
         if dfs[0].shape[1] > 1:
             dfs = [softmax(x, axis=1) for x in dfs]
-            mixer = expit(self.mixer_value)
-            frst = dfs[0] * mixer
-            scnd = dfs[1] * (1  - mixer)
-            return frst + scnd            
+            mixer = self.mixer_value
+            if len(dfs) == 2:
+                frst = dfs[0] * mixer
+                scnd = dfs[1] * (1  - mixer)
+                return frst + scnd
+            X = np.array([x.T for x in dfs]).T
+            return (X * mixer).sum(axis=-1)
         else:
             dfs = [expit(x) for x in dfs]
-            X1 = jnp.c_[1 - dfs[0], dfs[0]]
-            X2 = jnp.c_[1 - dfs[1], dfs[1]]
             p = self.mixer_value
-            return p * X1 + (1 - p) * X2
+            if len(dfs) == 2:
+                X1 = jnp.c_[1 - dfs[0], dfs[0]]
+                X2 = jnp.c_[1 - dfs[1], dfs[1]]
+                return p * X1 + (1 - p) * X2
+            X = np.concatenate(dfs, axis=1)
+            hy = X @ p
+            return np.c_[1 - hy, hy]
 
     def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
         df = self.decision_function(D)
         index = df.argmax(axis=1)
         return self.classes_[index]
 
-
-
-    
-        
 
 class StackBoWBP(DenseBoWBP):
     @property

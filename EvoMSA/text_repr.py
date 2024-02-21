@@ -414,6 +414,8 @@ class BoW(BaseEstimator):
         kf = self.kfold_class(**self.kfold_kwargs)
         kfolds = [x for x in kf.split(D, y)]
         if X is None:
+            if not self.pretrain and not self._b4msa_estimated:
+                self.b4msa_fit(D)
             X = self.transform(D, y=y)
         hys = Parallel(n_jobs=self.n_jobs)(delayed(train_predict)(tr, vs)
                                             for tr, vs in kfolds)
