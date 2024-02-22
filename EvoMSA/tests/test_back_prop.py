@@ -17,8 +17,8 @@ from sklearn.base import clone
 from microtc.utils import tweet_iterator
 from jax.experimental.sparse import BCSR
 import numpy as np
-from EvoMSA.back_prop import BoWBP, bow_model, DenseBoWBP, StackBoWBP
-from EvoMSA.text_repr import BoW, DenseBoW
+from EvoMSA.back_prop import BoWBP, bow_model, DenseBoWBP, StackBoWBP, StackBoW
+from EvoMSA.text_repr import BoW, DenseBoW, BoW
 from EvoMSA.tests.test_base import TWEETS
 
 
@@ -115,9 +115,48 @@ def test_DenseBoWBP():
     assert len(hy) == len(D)
 
 
-def test_StackBoWBP():
+def test_StackBoWBP_initial_parameters():
     """Test StackBoWBP"""
 
     dataset = list(tweet_iterator(TWEETS))
     ins = StackBoWBP(lang='es', voc_size_exponent=13).fit(dataset)
-    assert 'E' in ins.parameters
+    assert np.fabs(ins.parameters['E'] - np.array([0.5, 0.5])).sum() > 0
+    D = [x for x in dataset if x['klass'] in {'N', 'P'}]   
+    ins = StackBoWBP(lang='es', voc_size_exponent=13).fit(D)
+    assert np.fabs(ins.parameters['E'] - np.array([0.5, 0.5])).sum() > 0
+
+
+def test_StackBoW():
+    """Test StackBoW"""
+    from sklearn.metrics import f1_score
+
+    D = list(tweet_iterator(TWEETS))
+    D2 = [x for x in D if x['klass'] in {'N', 'P'}] 
+    ins = StackBoW(lang='es').fit(D2)
+    y = np.array([x['klass'] for x in D2])
+    _ = f1_score(y, ins.predict(D2), average='macro')
+    assert _ > 0.95
+    ins = StackBoW(lang='es').fit(D)
+    y = np.array([x['klass'] for x in D])
+    _ = f1_score(y, ins.predict(D), average='macro') 
+    assert _ > 0.95
+
+
+def test_StackBoW_3_algs():
+    """Test StackBoW 3 classifiers"""
+    from sklearn.metrics import f1_score
+
+    D = list(tweet_iterator(TWEETS))
+    D2 = [x for x in D if x['klass'] in {'N', 'P'}] 
+    bow = BoW(lang='es')
+    bow2 = BoW(lang='es', pretrain=False)
+    dense = DenseBoW(lang='es', voc_size_exponent=13)
+    ins = StackBoW([bow, bow2, dense], lang='es').fit(D2)
+    y = np.array([x['klass'] for x in D2])
+    _ = f1_score(y, ins.predict(D2), average='macro')
+    assert _ > 0.95
+    bow2 = BoW(lang='es', pretrain=False)
+    ins = StackBoW([bow, bow2, dense], lang='es').fit(D)
+    y = np.array([x['klass'] for x in D])
+    _ = f1_score(y, ins.predict(D), average='macro')
+    assert _ > 0.95
