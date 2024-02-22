@@ -71,7 +71,6 @@ def initial_parameters(hy_dense, df, y,
                        nclasses=2, score=None):
     """Estimate initial parameters :py:class:`~EvoMSA.back_prop.StackBoWBP`"""
     from sklearn.metrics import f1_score
-    from scipy.special import softmax
 
     def f(x):
         hy = (x[0] * hy_dense + x[1] * df)
@@ -323,11 +322,13 @@ class StackBoW(StackGeneralization):
                  lang: str='es', **kwargs):
         if decision_function_models is None:
             estimator_kwargs = dict(dual='auto', class_weight='balanced')
-            bow = BoW(lang=lang, voc_size_exponent=15,
+            bow_np = BoW(lang=lang, pretrain=False,
+                         estimator_kwargs=estimator_kwargs)
+            bow = BoW(lang=lang,
                       estimator_kwargs=estimator_kwargs)
             dense = DenseBoW(lang=lang, voc_size_exponent=15,
                              estimator_kwargs=estimator_kwargs)
-            decision_function_models = [bow, dense]
+            decision_function_models = [bow_np, bow, dense]
         assert len(decision_function_models) > 1
         assert len(transform_models) == 0
         super().__init__(decision_function_models=decision_function_models,
