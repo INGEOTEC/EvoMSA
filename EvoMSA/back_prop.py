@@ -23,6 +23,7 @@ from sklearn.base import clone
 from IngeoML.optimizer import classifier, array
 from IngeoML.utils import soft_BER
 from EvoMSA.text_repr import BoW, DenseBoW, StackGeneralization
+from EvoMSA.utils import b4msa_params
 
 
 @jax.jit
@@ -318,15 +319,21 @@ class StackBoW(StackGeneralization):
 
     def __init__(self, decision_function_models: list=None,
                  transform_models: list=[],
+                 voc_size_exponent: int=15,
                  deviation=None, optimizer_kwargs: dict=None,
                  lang: str='es', **kwargs):
         if decision_function_models is None:
             estimator_kwargs = dict(dual='auto', class_weight='balanced')
+            b4msa_kwargs = b4msa_params(lang=lang)
+            if voc_size_exponent != 17:
+                b4msa_kwargs['token_max_filter'] = 2**voc_size_exponent
             bow_np = BoW(lang=lang, pretrain=False,
+                         b4msa_kwargs=b4msa_kwargs,
                          estimator_kwargs=estimator_kwargs)
-            bow = BoW(lang=lang,
+            bow = BoW(lang=lang, voc_size_exponent=voc_size_exponent,
                       estimator_kwargs=estimator_kwargs)
-            dense = DenseBoW(lang=lang, voc_size_exponent=15,
+            dense = DenseBoW(lang=lang,
+                             voc_size_exponent=voc_size_exponent,
                              estimator_kwargs=estimator_kwargs)
             decision_function_models = [bow_np, bow, dense]
         assert len(decision_function_models) > 1
