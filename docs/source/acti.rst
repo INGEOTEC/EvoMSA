@@ -1,7 +1,7 @@
 .. _acti:
 
 `Automatic Conspiracy Theory Identification (ACTI) <https://ceur-ws.org/Vol-3473/paper36.pdf>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `The ACTI <https://ceur-ws.org/Vol-3473/paper36.pdf>`_ task (`webpage <https://russogiuseppe.github.io/ACTI>`_) presented at EVALITA 2023 focused on the automatic identification of conspiracy theories.
 

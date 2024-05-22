@@ -89,7 +89,9 @@ Once EvoMSA is installed, one must load a few libraries. The first line loads Ev
     >>> from EvoMSA import BoW, DenseBoW, StackGeneralization
     >>> from EvoMSA.tests.test_base import TWEETS
     >>> from microtc.utils import tweet_iterator
-    >>> from IngeoML import CI, SelectFromModelCV
+    >>> from IngeoML import SelectFromModelCV
+    >>> from CompStats import CI, StatisticSamples
+    >>> from CompStats import performance, difference, plot_difference
     >>> from sklearn.model_selection import StratifiedKFold
     >>> from sklearn.base import clone
     >>> from sklearn import metrics
@@ -163,17 +165,17 @@ The next step is to implement the k-fold strategy with the following instruction
 
 .. code-block:: python
 
-    >>> hy = np.empty_like(y)
+    >>> hy_bow = np.empty_like(y)
     >>> skf = StratifiedKFold(shuffle=True, random_state=0)
     >>> for tr, vs in skf.split(X, y):
     >>>     m = clone(bow).fit([X[x] for x in tr], y[tr])
-    >>>     hy[vs] = m.predict([X[x] for x in vs])
+    >>>     hy_bow[vs] = m.predict([X[x] for x in vs])
 
 Finally, the performance (:math:`f_1` score) for the different labels can be computed as follows.
 
 .. code-block:: python
 
-    >>> metrics.f1_score(y, hy, average=None)
+    >>> metrics.f1_score(y, hy_bow, average=None)
     array([0.5595, 0.    , 0.3741, 0.7474])
 
 In order to complement the point performance obtained in the previous instruction, the confidence interval can be computed with the following instructions. 
@@ -182,10 +184,11 @@ In order to complement the point performance obtained in the previous instructio
 
     >>> f1 = lambda y, hy: metrics.f1_score(y, hy, 
                                             average=None)
-    >>> ci = CI(statistic=f1)
-    >>> ci(y, hy)
-    (array([0.5072, 0.    , 0.3021, 0.7206]),
-     array([0.612 , 0.    , 0.4452, 0.7769]))   
+    >>> statistic = StatisticSamples(statistic=f1)
+    >>> samples = statistic(y, hy_bow)
+    >>> CI(samples)
+    (array([0.4989, 0.    , 0.3112, 0.7173]),
+     array([0.6081, 0.    , 0.4486, 0.7707]))   
 
 :ref:`densebow` Classifier
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -229,17 +232,17 @@ The next step is to implement the k-fold strategy with the following instruction
 
 .. code-block:: python
 
-    >>> hy = np.empty_like(y)
+    >>> hy_dense = np.empty_like(y)
     >>> skf = StratifiedKFold(shuffle=True, random_state=0)
     >>> for tr, vs in skf.split(X, y):
     >>>     m = clone(dense).fit([X[x] for x in tr], y[tr])
-    >>>     hy[vs] = m.predict([X[x] for x in vs])
+    >>>     hy_dense[vs] = m.predict([X[x] for x in vs])
 
 Finally, the performance (:math:`f_1` score) for the different labels can be computed as follows.
 
 .. code-block:: python
 
-    >>> metrics.f1_score(y, hy, average=None)
+    >>> metrics.f1_score(y, hy_dense, average=None)
     array([0.6208, 0.    , 0.4828, 0.7679])
 
 In order to complement the point performance obtained in the previous instruction, the confidence interval can be computed with the following instructions. 
@@ -247,10 +250,11 @@ In order to complement the point performance obtained in the previous instructio
 .. code-block:: python
 
     >>> f1 = lambda y, hy: metrics.f1_score(y, hy, average=None)
-    >>> ci = CI(statistic=f1)
-    >>> ci(y, hy)
-    (array([0.5682, 0.    , 0.418 , 0.7395]),
-     array([0.6648, 0.    , 0.5472, 0.7968]))  
+    >>> statistic = StatisticSamples(statistic=f1)
+    >>> samples = statistic(y, hy_dense)
+    >>> CI(samples)
+    (array([0.5683, 0.    , 0.4131, 0.7377]),
+     array([0.6679, 0.    , 0.5463, 0.7927]))  
 
 It is also possible to select the most discriminant features for the problem being solved. The method :py:class:`~IngeoML.feature_selection.SelectFromModelCV` is used in the following example. The first step is to create a clean instance of :py:class:`~EvoMSA.text_repr.DenseBoW`. The following lines define the parameters for the class :py:class:`~IngeoML.feature_selection.SelectFromModelCV`. Finally, the feature selection is performed on the method :py:func:`~EvoMSA.text_repr.DenseBoW.select`.
 
@@ -362,17 +366,17 @@ The next step is to implement the k-fold strategy with the following instruction
 
 .. code-block:: python
 
-    >>> hy = np.empty_like(y)
+    >>> hy_stack = np.empty_like(y)
     >>> skf = StratifiedKFold(shuffle=True, random_state=0)
     >>> for tr, vs in skf.split(X, y):
     >>>     m = clone(stack).fit([X[x] for x in tr], y[tr])
-    >>>     hy[vs] = m.predict([X[x] for x in vs])
+    >>>     hy_stack[vs] = m.predict([X[x] for x in vs])
 
 Finally, the performance (:math:`f_1` score) for the different labels can be computed as follows.
 
 .. code-block:: python
 
-    >>> metrics.f1_score(y, hy, average=None)
+    >>> metrics.f1_score(y, hy_stack, average=None)
     array([0.6445, 0.08  , 0.5181, 0.7426])
 
 In order to complement the point performance obtained in the previous instruction, the confidence interval can be computed with the following instructions. 
@@ -380,10 +384,40 @@ In order to complement the point performance obtained in the previous instructio
 .. code-block:: python
 
     >>> f1 = lambda y, hy: metrics.f1_score(y, hy, average=None)
-    >>> ci = CI(statistic=f1)
-    >>> ci(y, hy)
-    (array([0.5971, 0.    , 0.4444, 0.7132]),
-     array([0.6882, 0.2353, 0.5739, 0.7712]))    
+    >>> statistic = StatisticSamples(statistic=f1)
+    >>> samples = statistic(y, hy_stack)
+    >>> CI(samples)
+    (array([0.5973, 0.    , 0.4605, 0.7138]),
+     array([0.6883, 0.24  , 0.5748, 0.7728]))
+
+
+Comparison
+================
+
+It is important to note that the dataset is synthetic and must be used in any practical application; however, one can use it to compare the different text classifiers trained. The variables `hy_bow`, `hy_dense`, and `hy_stack` have the predictions of each text classifier, so the following line sets these predictions and the actual labels in a data frame. 
+
+.. code-block:: python
+
+    >>> df = pd.DataFrame(dict(BoW=hy_bow,
+                               Dense=hy_dense,
+                               Stack=hy_stack,
+                               y=y))
+    
+The next step is to define the performance score. The macro-f1 score is used in this case, as seen in the following line. 
+
+.. code-block:: python
+
+    >>> macro_f1 = lambda y, hy: metrics.f1_score(y, hy, average='macro')
+    >>> perf = performance(df, score=macro_f1)
+
+The final step is to estimate the difference in performance between the best system and the rest, as seen in the following lines. The figure shows the difference in performance between the best system :py:class:`~EvoMSA.text_repr.StackGeneralization` and the other text classifiers, namely :py:class:`~EvoMSA.text_repr.BoW` and :py:class:`~EvoMSA.text_repr.DenseBoW`. The :py:class:`~EvoMSA.text_repr.DenseBoW` classifier is in red to indicate that it is statistically equivalent to the :py:class:`~EvoMSA.text_repr.StackGeneralization` classifier. 
+
+.. code-block:: python
+
+    >>> diff = difference(perf)
+    >>> plot_difference(diff)
+
+.. image:: comp-repr.png
 
 Citing
 ==========
