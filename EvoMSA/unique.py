@@ -69,7 +69,7 @@ def unique(D: List[Union[dict, list]],
         _ = [i for k, i in enumerate(elementos)
              if k not in remove]
         return np.array(_)
-    
+
 
     def unique_rest(frst, rest):
         sim = np.dot(X[rest], X[frst].T).max(axis=1).toarray()
@@ -106,6 +106,8 @@ def unique(D: List[Union[dict, list]],
 
 
 def main(args):
+    """CLI"""
+
     def output_json(D, file):
         for x in D:
             print(json.dumps(x), file=file)
