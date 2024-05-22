@@ -82,7 +82,7 @@ def unique(D: List[Union[dict, list]],
         transform = BoW(**bow_params).transform
     X = transform(D)
     init = 0
-    pool = np.arange(len(D))
+    pool = np.arange(X.shape[0])
     with tqdm(total=pool.shape[0]) as _tqdm:
         while init < pool.shape[0]:
             past = pool[:init]    
