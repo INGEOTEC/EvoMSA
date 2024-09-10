@@ -47,7 +47,7 @@ jobs:
     - name: Tests on macOS and Windows
       if: ${{ runner.os != 'Linux' }}
       run: |
-        pytest EvoMSA/tests
+        python -m pytest EvoMSA/tests
     - name: coveralls
       if: ${{ runner.os == 'Linux' }}
       env:
