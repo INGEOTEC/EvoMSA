@@ -47,6 +47,8 @@ jobs:
     - name: Tests on macOS and Windows
       if: ${{ runner.os != 'Linux' }}
       run: |
+        cd ..
+        pip install ./EvoMSA
         cd /
         python -m pytest --pyargs EvoMSA.tests
     - name: coveralls
