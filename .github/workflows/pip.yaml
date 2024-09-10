@@ -14,7 +14,7 @@ jobs:
         shell: bash -l {0}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest]
         python-version: ["3.9", "3.10", "3.11"]
     steps:
     - uses: actions/checkout@v2
@@ -47,4 +47,4 @@ jobs:
       env:
         TWINE: ${{ secrets.TWINE }}              
       run: |
-        twine upload --skip-existing -u __token__ -p $TWINE dist/*.whl;
+        twine upload --skip-existing -u __token__ -p $TWINE dist/*;
