@@ -333,6 +333,7 @@ class StackBoW(StackGeneralization):
             bow = BoW(lang=lang, voc_size_exponent=voc_size_exponent,
                       estimator_kwargs=estimator_kwargs)
             dense = DenseBoW(lang=lang,
+                             dataset=False,
                              voc_size_exponent=voc_size_exponent,
                              estimator_kwargs=estimator_kwargs)
             decision_function_models = [bow_np, bow, dense]

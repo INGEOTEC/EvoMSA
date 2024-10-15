@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12"]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -32,9 +32,10 @@ jobs:
         conda install --yes pip
         pip install coverage
         pip install coveralls
-        conda install --yes numpy scipy scikit-learn nltk nose b4msa evodag cython IngeoML
+        conda install --yes numpy scipy scikit-learn nltk pytest b4msa evodag cython
         pip install jax
-        pip install optax        
+        pip install optax   
+        pip install -U ingeoml        
         python -c "import nltk; nltk.download('stopwords')"
         python setup.py build_ext --inplace
     - name: Tests on Linux
@@ -43,11 +44,11 @@ jobs:
         which python
         python --version
         which coverage
-        nosetests --verbose --with-coverage --cover-package=EvoMSA EvoMSA/tests
+        coverage run -m pytest EvoMSA/tests
     - name: Tests on macOS and Windows
       if: ${{ runner.os != 'Linux' }}
       run: |
-        nosetests --verbose EvoMSA/tests
+        python -m pytest EvoMSA/tests
     - name: coveralls
       if: ${{ runner.os == 'Linux' }}
       env:

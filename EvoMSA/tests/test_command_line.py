@@ -17,7 +17,6 @@ from microtc.utils import load_model, tweet_iterator
 import sys
 import os
 from EvoMSA.tests.test_base import TWEETS
-from nose.tools import assert_almost_equals
 
 
 def test_train():
