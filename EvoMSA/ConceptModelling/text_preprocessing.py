@@ -407,26 +407,26 @@ class TextPreprocessing():
     #             text = regex.sub(pattern, text)
     #     return text
 
-    def escapeText(self, text):
-        """
-        Aplica el caracter de escape a los símbolos especiales para expresiones regulares
+    # def escapeText(self, text):
+    #     """
+    #     Aplica el caracter de escape a los símbolos especiales para expresiones regulares
 
-        """
-        text = re.sub(r"\/", r"\/", text)
-        text = re.sub(r"\\", r"\\\\", text)
-        text = re.sub("\(", "\(", text)
-        text = re.sub("\)", "\)", text)
-        text = re.sub("\[", "\[", text)
-        text = re.sub("\]", "\]", text)
-        text = re.sub("\.", "\.", text)
-        text = re.sub("\*", "\*", text)
-        text = re.sub("\-", "\\-", text)
-        text = re.sub("\+", "\\+", text)
-        text = re.sub("\?", "\\?", text)
-        text = re.sub(r"\^", r"\^", text)
-        text = re.sub(r"\|", r"\|", text)
-        text = re.sub(r"\*", r"\*", text)
-        return text
+    #     """
+    #     text = re.sub(r"\/", r"\/", text)
+    #     text = re.sub(r"\\", r"\\\\", text)
+    #     text = re.sub("\(", "\(", text)
+    #     text = re.sub("\)", "\)", text)
+    #     text = re.sub("\[", "\[", text)
+    #     text = re.sub("\]", "\]", text)
+    #     text = re.sub("\.", "\.", text)
+    #     text = re.sub("\*", "\*", text)
+    #     text = re.sub("\-", "\\-", text)
+    #     text = re.sub("\+", "\\+", text)
+    #     text = re.sub("\?", "\\?", text)
+    #     text = re.sub(r"\^", r"\^", text)
+    #     text = re.sub(r"\|", r"\|", text)
+    #     text = re.sub(r"\*", r"\*", text)
+    #     return text
 
     # def escapeEmoticons(self, text):
     #     """
