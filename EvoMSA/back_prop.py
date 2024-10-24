@@ -21,7 +21,7 @@ from scipy.special import expit, softmax
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.base import clone
 from IngeoML.optimizer import classifier, array
-from IngeoML.utils import soft_BER
+from IngeoML.jax_utils import soft_BER
 from EvoMSA.text_repr import BoW, DenseBoW, StackGeneralization
 from EvoMSA.utils import b4msa_params
 
