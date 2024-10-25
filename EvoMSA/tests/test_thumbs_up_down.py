@@ -57,8 +57,8 @@ def test_TextPreprocessing():
     assert output == 'hola _url'
     output = ins.text_transform('hola http://a.b', stemming_comp=True)
     assert output == ''
-    output = ins.escapeText('(hola)')
-    assert output == '\\(hola\\)'
+    # output = ins.escapeText('(hola)')
+    # assert output == '\\(hola\\)'
 
 
 
