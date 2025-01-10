@@ -14,6 +14,6 @@
 __version__ = '2.0.11'
 
 try:
-    from EvoMSA.text_repr import BoW, TextRepresentations, StackGeneralization, DenseBoW
+    from EvoMSA.text_repr import BoW, TextRepresentations, StackGeneralization, DenseBoW, BoWT, DenseBoWT
 except ModuleNotFoundError:
     pass
