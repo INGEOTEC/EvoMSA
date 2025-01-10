@@ -62,7 +62,7 @@ def test_BoW_key():
     assert abs(bow.transform(X) - O * 2).sum() == 0
 
 
-def test_DenseBoW_transform():
+def test_TextRepresentations_transform():
     from EvoMSA.text_repr import TextRepresentations
     D = list(tweet_iterator(TWEETS))
     text_repr = TextRepresentations(lang='es', 
@@ -84,14 +84,14 @@ def test_DenseBoW_fit():
     text_repr.predict(['Buen dia'])
 
 
-def test_DenseBoW_key():
-    from EvoMSA.text_repr import DenseBoW
+def test_DenseBoWT_key():
+    from EvoMSA.text_repr import DenseBoWT
     D = list(tweet_iterator(TWEETS))
-    O = DenseBoW(lang='es', unit_vector=False,
+    O = DenseBoWT(lang='es', unit_vector=False,
                  voc_size_exponent=13,
                  keyword=False, emoji=False).transform(D)    
     X = [dict(klass=x['klass'], premise=x['text'], conclusion=x['text']) for x in D]
-    bow = DenseBoW(lang='es', unit_vector=False,
+    bow = DenseBoWT(lang='es', unit_vector=False,
                    voc_size_exponent=13,
                    keyword=False, emoji=False, 
                    key=['premise', 'conclusion'])
@@ -124,10 +124,10 @@ def test_StackGeneralization_train_predict_decision_function():
     assert hy.shape[1] == 2
 
 
-def test_DenseBoW_tr_setter():
-    from EvoMSA.text_repr import DenseBoW
+def test_DenseBoWT_tr_setter():
+    from EvoMSA.text_repr import DenseBoWT
     D = list(tweet_iterator(TWEETS))
-    text_repr = DenseBoW(lang='es', 
+    text_repr = DenseBoWT(lang='es', 
                          keyword=False, 
                          voc_size_exponent=13,
                          emoji=False)
@@ -143,9 +143,9 @@ def test_BoW_setter():
     assert bow._bow
 
 
-def test_DenseBoW_names():
-    from EvoMSA.text_repr import DenseBoW
-    text_repr = DenseBoW(lang='es', 
+def test_DenseBoWT_names():
+    from EvoMSA.text_repr import DenseBoWT
+    text_repr = DenseBoWT(lang='es', 
                          voc_size_exponent=13,
                          keyword=False, 
                          emoji=False)

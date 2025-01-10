@@ -42,7 +42,313 @@ def config_regressor(instance):
     return instance
 
 
-class BoW(BaseEstimator):
+class BoWT(BaseEstimator):
+    """
+    BoW is a bag-of-words text classifier. It is described in 
+    "A Simple Approach to Multilingual Polarity Classification in Twitter. 
+    Eric S. Tellez, Sabino Miranda-Jiménez, Mario Graff, 
+    Daniela Moctezuma, Ranyart R. Suárez, Oscar S. Siordia. 
+    Pattern Recognition Letters" and 
+    "An Automated Text Categorization Framework based 
+    on Hyperparameter Optimization. Eric S. Tellez, Daniela Moctezuma, 
+    Sabino Miranda-Jímenez, Mario Graff. 
+    Knowledge-Based Systems Volume 149, 1 June 2018." 
+
+    BoW uses, by default, a pre-trained bag-of-words representation. The 
+    representation was trained on 4,194,304 (:math:`2^{22}`) tweets
+    randomly selected. The pre-trained representations are used
+    when the parameters :attr:`lang` and :attr:`pretrain` are
+    set; :attr:`pretrain` by default is set to True, and the default 
+    language is Spanish (es). The available languages are:
+    Arabic (ar), Catalan (ca), German (de), English (en), 
+    Spanish (es), French (fr), Hindi (hi), Indonesian (in), 
+    Italian (it), Japanese (ja), Korean (ko), Dutch (nl),
+    Polish (pl), Portuguese (pt), Russian (ru), Tagalog (tl), 
+    Turkish (tr), and Chinese (zh).
+    
+
+    :param lang: Language. (ar | ca | de | en | es | fr | hi | in | it | ja | ko | nl | pl | pt | ru | tl | tr | zh), default='es'.
+    :type lang: str
+    :param voc_size_exponent: Vocabulary size. default=17, i.e., :math:`2^{17}`
+    :type voc_size_exponent: int
+    :param voc_selection: Vocabulary (most_common_by_type | most_common). default=most_common_by_type
+    :type voc_selection: str
+    :param key: Key where the text is in the dictionary. (default='text')
+    :type key: Union[str, List[str]]
+    :param mixer_func: Function to combine the output in case of multiple texts
+    :type mixer_func: Callable[[List], csr_matrix]
+    :param pretrain: Whether to use a pre-trained representation. default=True.
+    :type pretrain: bool
+    :param b4msa_kwargs: :py:class:`b4msa.textmodel.TextModel` keyword arguments used to train a bag-of-words representation. default=dict().
+    :type b4msa_kwargs: dict
+    :param v1: Whether to use version 1 or pretrained representations. default=False
+    :type v1: bool
+
+    >>> from microtc.utils import tweet_iterator
+    >>> from EvoMSA.tests.test_base import TWEETS
+    >>> from EvoMSA import BoW
+    >>> bow = BoW(lang='es')
+    """
+    def __init__(self, lang: str='es',
+                 voc_size_exponent: int=17,
+                 voc_selection: str='most_common_by_type', 
+                 key: Union[str, List[str]]='text',
+                 mixer_func: Callable[[List], csr_matrix]=sum,
+                 pretrain=True,
+                 b4msa_kwargs=dict(),
+                 v1: bool=False) -> None:
+        assert lang is None or lang in MODEL_LANG
+        if lang in MODEL_LANG:
+            assert voc_size_exponent >= 13 and voc_size_exponent <= 17
+            assert voc_selection in ['most_common_by_type', 'most_common']
+        self.voc_size_exponent = voc_size_exponent
+        self.voc_selection = voc_selection
+        self._lang = lang
+        self.key = key
+        self.mixer_func = mixer_func
+        self.b4msa_kwargs = b4msa_kwargs
+        self.pretrain = pretrain
+        self._b4msa_estimated = False
+        self.v1 = v1
+
+    def fit(self, D: List[Union[dict, list]], 
+            y: Union[np.ndarray, None]=None) -> 'BoW':
+        """Estimate the parameters of the BoW (:py:func:`BoW.b4msa_fit`)
+        and the classifier or regressor (:py:attr:`BoW.estimator_class` - 
+        the fitted instance is accesible at :py:attr:`BoW.estimator_instance`) 
+        using the dataset (`D`, `y`).
+
+        :param D: Texts; in the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries. 
+        :param y: Response variable. The response variable can also be in `D` on the key :py:attr:`BoW.label_key`.
+        :type y: Array or None
+
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW
+        >>> import numpy as np
+        >>> D = list(tweet_iterator(TWEETS))
+        >>> bow = BoW(lang='es', pretrain=False).fit(D)                
+        """
+        if not self.pretrain and not self._b4msa_estimated:
+            self.b4msa_fit(D)
+        return self
+
+    def transform(self, D: List[Union[List, dict]], y=None) -> csr_matrix:
+        """Represent the texts in `D` in the vector space.
+
+        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
+        :type D: List of texts or dictionaries. 
+
+        >>> from EvoMSA import BoW
+        >>> X = BoW(lang='en').transform(['Hi', 'Good morning'])
+        >>> X = BoW(lang='en').transform([dict(text='Hi'), dict(text='Good morning')])
+        >>> X.shape
+        (2, 131072)
+        """
+        assert len(D)
+        if not self.pretrain:
+            assert self._b4msa_estimated
+        if self.pretrain and self.cache is not None:
+            X = self.cache
+            self.cache = None
+            return X
+        if self.key == 'text' or isinstance(D[0], str):
+            return self.bow.transform(D)
+        assert isinstance(D[0], dict)
+        if isinstance(self.key, str):
+            key = self.key
+            return self.bow.transform([x[key] for x in D])
+        Xs = [self.bow.transform([x[key] for x in D])
+              for key in self.key]
+        return self.mixer_func(Xs)
+
+    @property
+    def pretrain(self):
+        """Whether the to use pre-trained text representations
+        
+        The parameters of the BoW text representation 
+        are :py:attr:`BoW.lang`, :py:attr:`BoW.voc_selection`,
+        and :py:attr:`BoW.voc_size_exponent`. The aforementioned parameters are
+        not available on Version 1.0 (:py:attr:`BoW.v1`).
+
+        """
+        return self._pretrain
+
+    @pretrain.setter
+    def pretrain(self, value):
+        self._pretrain = value
+
+    @property
+    def bow(self):
+        """Bag of Word text representation.
+        
+        The following example tokenizes *hi*.
+        The notation is the following, the first 'hi' corresponds to the word *hi*.
+        Then, there come the q-grams of characters, the token 'q:hi' represents 
+        the q-gram *hi*. All the q-grams start with the prefix 'q:'. Finally, 
+        the character ~ represents a space.
+
+        >>> bow = BoW(lang='en')
+        >>> bow.bow.tokenize(['hi'])
+        ['hi', 'q:~h', 'q:hi', 'q:i~', 'q:~hi', 'q:hi~', 'q:~hi~']        
+        """
+        try:
+            bow = self._bow
+        except AttributeError:
+            if self.pretrain:
+                if self.v1:
+                    self._bow = load_bow(lang=self.lang, v1=self.v1)
+                else:
+                    freq = load_bow(lang=self.lang,
+                                    d=self.voc_size_exponent, 
+                                    func=self.voc_selection)
+                    params = b4msa_params(lang=self.lang,
+                                        dim=self._voc_size_exponent)
+                    params.update(self.b4msa_kwargs)
+                    bow = TextModel(**params)
+                    tfidf = TFIDF()
+                    tfidf.N = freq.update_calls
+                    tfidf.word2id, tfidf.wordWeight = tfidf.counter2weight(freq)
+                    bow.model = tfidf
+                    self._bow = bow
+            else:
+                self._bow = TextModel(lang=self.lang,
+                                      **self.b4msa_kwargs)
+            bow = self._bow
+        return bow
+
+    @bow.setter
+    def bow(self, value):
+        self._bow = value
+
+    @property
+    def names(self):
+        """Vector space components"""
+        _names = [None] * len(self.bow.id2token)
+        for k, v in self.bow.id2token.items():
+            _names[k] = v
+        return _names
+
+    @property
+    def weights(self):
+        """Vector space weights"""
+        try:
+            return self._weights
+        except AttributeError:
+            w = [None] * len(self.bow.token_weight)
+            for k, v in self.bow.token_weight.items():
+                w[k] = v
+            self._weights = w
+            return self._weights
+        
+    @property
+    def lang(self):
+        """Language of the pre-trained text representations"""
+        return self._lang
+    
+    @property
+    def voc_selection(self):
+        """Method used to select the vocabulary"""
+        return self._voc_selection
+    
+    @voc_selection.setter
+    def voc_selection(self, value):
+        self._voc_selection = value
+
+    @property
+    def voc_size_exponent(self):
+        """Vocabulary size :math:`2^v`; where :math:`v` is :py:attr:`voc_size_exponent` """
+        return self._voc_size_exponent
+    
+    @voc_size_exponent.setter
+    def voc_size_exponent(self, value):
+        self._voc_size_exponent = value
+    
+    @property
+    def v1(self):
+        """Whether to use the Version 1.0 text representations. 
+        This version is only available for Arabic (ar), English (en), and Spanish (es).
+        """
+        return self._v1
+    
+    @v1.setter
+    def v1(self, value):
+        self._v1 = value
+
+    def b4msa_fit(self, D: List[Union[List, dict]]):
+        """Estimate the parameters of the BoW (:py:class:`BoW.bow`) 
+        in case it is not pretrained (:py:attr:`BoW.pretrain`)
+        
+        :param D: Dataset
+        :type D: List of texts or dictionaries.
+
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> from EvoMSA import BoW
+        >>> bow = BoW(pretrain=False)
+        >>> bow.b4msa_fit(list(tweet_iterator(TWEETS)))
+        >>> X = bow.transform(['Hola'])
+        >>> X.shape
+        (1, 84802)
+        """
+        assert len(D)
+        self._b4msa_estimated = True
+        if self.key == 'text' or isinstance(D[0], str):
+            return self.bow.fit(D)
+        assert isinstance(D[0], dict)
+        if isinstance(self.key, str):
+            key = self.key
+            return self.bow.fit([x[key] for x in D])
+        _ = [[x[key] for key in self.key] for x in D]
+        return self.bow.fit(_)
+    
+    @property
+    def key(self):
+        """Key where the text(s) is(are) in the dictionary."""
+        return self._key
+
+    @key.setter
+    def key(self, value):
+        self._key = value
+
+    @property
+    def b4msa_kwargs(self):
+        """Keyword arguments of B4MSA"""
+        return self._b4msa_kwargs
+    
+    @b4msa_kwargs.setter
+    def b4msa_kwargs(self, value):
+        self._b4msa_kwargs = value
+
+    @property
+    def mixer_func(self):
+        """The function is used to fix the output of the text's representations."""
+        return self._mixer_func
+    
+    @mixer_func.setter
+    def mixer_func(self, value):
+        self._mixer_func = value
+
+    def __sklearn_clone__(self):
+        klass = self.__class__
+        params = self.get_params()
+        return klass(**params)
+
+    @property
+    def cache(self):
+        """If the cache is set, it is returned when calling :py:attr:`BoW.transform`; afterward, it is unset."""
+        try:
+            return self._cache
+        except AttributeError:
+            return None
+        
+    @cache.setter
+    def cache(self, value):
+        self._cache = value
+
+
+class BoW(BoWT):
     """
     BoW is a bag-of-words text classifier. It is described in 
     "A Simple Approach to Multilingual Polarity Classification in Twitter. 
@@ -109,38 +415,33 @@ class BoW(BaseEstimator):
                  voc_size_exponent: int=17,
                  voc_selection: str='most_common_by_type', 
                  key: Union[str, List[str]]='text',
-                 label_key: str='klass',
                  mixer_func: Callable[[List], csr_matrix]=sum,
+                 pretrain=True,
+                 b4msa_kwargs=dict(),
+                 v1: bool=False,
+                 label_key: str='klass',
                  decision_function_name: str='decision_function',
                  estimator_class=LinearSVC,
                  estimator_kwargs=dict(dual=True),
-                 pretrain=True,
-                 b4msa_kwargs=dict(),
                  kfold_class=StratifiedKFold,
                  kfold_kwargs: dict=dict(random_state=0,
                                          shuffle=True),
-                 v1: bool=False,
                  n_jobs: int=1) -> None:
-        assert lang is None or lang in MODEL_LANG
-        if lang in MODEL_LANG:
-            assert voc_size_exponent >= 13 and voc_size_exponent <= 17
-            assert voc_selection in ['most_common_by_type', 'most_common']
-        self.voc_size_exponent = voc_size_exponent
-        self.voc_selection = voc_selection
+        super(BoW, self).__init__(lang=lang,
+                                  voc_size_exponent=voc_size_exponent,
+                                  voc_selection=voc_selection,
+                                  key=key,
+                                  mixer_func=mixer_func,
+                                  pretrain=pretrain,
+                                  b4msa_kwargs=b4msa_kwargs)
         self.n_jobs = n_jobs
-        self._lang = lang
-        self.key = key
         self.label_key = label_key
-        self.mixer_func = mixer_func
         self.decision_function_name = decision_function_name
         self.estimator_class = estimator_class
         self.estimator_kwargs = estimator_kwargs
-        self.b4msa_kwargs = b4msa_kwargs
-        self._pretrain = pretrain
         self.kfold_class = kfold_class
         self.kfold_kwargs = kfold_kwargs
         self._b4msa_estimated = False
-        self.v1 = v1
 
     def fit(self, D: List[Union[dict, list]], 
             y: Union[np.ndarray, None]=None) -> 'BoW':
@@ -161,41 +462,11 @@ class BoW(BaseEstimator):
         >>> D = list(tweet_iterator(TWEETS))
         >>> bow = BoW(lang='es').fit(D)                
         """
-        if not self.pretrain and not self._b4msa_estimated:
-            self.b4msa_fit(D)
+        super(BoW, self).fit(D, y=y)
         y = self.dependent_variable(D, y=y)
         _ = self.transform(D, y=y)
         self.estimator_instance = self.estimator_class(**self.estimator_kwargs).fit(_, y)
         return self
-    
-    def transform(self, D: List[Union[List, dict]], y=None) -> csr_matrix:
-        """Represent the texts in `D` in the vector space.
-
-        :param D: Texts to be transformed. In the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`
-        :type D: List of texts or dictionaries. 
-
-        >>> from EvoMSA import BoW
-        >>> X = BoW(lang='en').transform(['Hi', 'Good morning'])
-        >>> X = BoW(lang='en').transform([dict(text='Hi'), dict(text='Good morning')])
-        >>> X.shape
-        (2, 131072)
-        """
-        assert len(D)
-        if not self.pretrain:
-            assert self._b4msa_estimated
-        if self.pretrain and self.cache is not None:
-            X = self.cache
-            self.cache = None
-            return X
-        if self.key == 'text' or isinstance(D[0], str):
-            return self.bow.transform(D)
-        assert isinstance(D[0], dict)
-        if isinstance(self.key, str):
-            key = self.key
-            return self.bow.transform([x[key] for x in D])
-        Xs = [self.bow.transform([x[key] for x in D])
-              for key in self.key]
-        return self.mixer_func(Xs)    
 
     def predict(self, D: List[Union[dict, list]]) -> np.ndarray:
         """Predict the response variable on the dataset `D`.
@@ -234,69 +505,6 @@ class BoW(BaseEstimator):
         return hy
 
     @property
-    def bow(self):
-        """Bag of Word text representation.
-        
-        The following example tokenizes *hi*.
-        The notation is the following, the first 'hi' corresponds to the word *hi*.
-        Then, there come the q-grams of characters, the token 'q:hi' represents 
-        the q-gram *hi*. All the q-grams start with the prefix 'q:'. Finally, 
-        the character ~ represents a space.
-
-        >>> bow = BoW(lang='en')
-        >>> bow.bow.tokenize(['hi'])
-        ['hi', 'q:~h', 'q:hi', 'q:i~', 'q:~hi', 'q:hi~', 'q:~hi~']        
-        """
-        try:
-            bow = self._bow
-        except AttributeError:
-            if self.pretrain:
-                if self.v1:
-                    self._bow = load_bow(lang=self.lang, v1=self.v1)
-                else:
-                    freq = load_bow(lang=self.lang,
-                                    d=self.voc_size_exponent, 
-                                    func=self.voc_selection)
-                    params = b4msa_params(lang=self.lang,
-                                        dim=self._voc_size_exponent)
-                    params.update(self.b4msa_kwargs)
-                    bow = TextModel(**params)
-                    tfidf = TFIDF()
-                    tfidf.N = freq.update_calls
-                    tfidf.word2id, tfidf.wordWeight = tfidf.counter2weight(freq)
-                    bow.model = tfidf
-                    self._bow = bow
-            else:
-                self._bow = TextModel(lang=self.lang,
-                                      **self.b4msa_kwargs)
-            bow = self._bow
-        return bow
-
-    @bow.setter
-    def bow(self, value):
-        self._bow = value
-
-    @property
-    def names(self):
-        """Vector space components"""
-        _names = [None] * len(self.bow.id2token)
-        for k, v in self.bow.id2token.items():
-            _names[k] = v
-        return _names
-
-    @property
-    def weights(self):
-        """Vector space weights"""
-        try:
-            return self._weights
-        except AttributeError:
-            w = [None] * len(self.bow.token_weight)
-            for k, v in self.bow.token_weight.items():
-                w[k] = v
-            self._weights = w
-            return self._weights
-
-    @property
     def estimator_instance(self):
         """Estimator - Classifier or Regressor fitted (:py:attr:`BoW.fit`) on the dataset"""
         return self._m
@@ -304,79 +512,6 @@ class BoW(BaseEstimator):
     @estimator_instance.setter
     def estimator_instance(self, m):
         self._m = m
-
-    @property
-    def pretrain(self):
-        """Whether the to use pre-trained text representations
-        
-        The parameters of the BoW text representation 
-        are :py:attr:`BoW.lang`, :py:attr:`BoW.voc_selection`,
-        and :py:attr:`BoW.voc_size_exponent`. The aforementioned parameters are
-        not available on Version 1.0 (:py:attr:`BoW.v1`).
-
-        """
-        return self._pretrain
-
-    @property
-    def lang(self):
-        """Language of the pre-trained text representations"""
-        return self._lang
-    
-    @property
-    def voc_selection(self):
-        """Method used to select the vocabulary"""
-        return self._voc_selection
-    
-    @voc_selection.setter
-    def voc_selection(self, value):
-        self._voc_selection = value
-
-    @property
-    def voc_size_exponent(self):
-        """Vocabulary size :math:`2^v`; where :math:`v` is :py:attr:`voc_size_exponent` """
-        return self._voc_size_exponent
-    
-    @voc_size_exponent.setter
-    def voc_size_exponent(self, value):
-        self._voc_size_exponent = value
-    
-    @property
-    def v1(self):
-        """Whether to use the Version 1.0 text representations. 
-        This version is only available for Arabic (ar), English (en), and Spanish (es).
-        """
-        return self._v1
-    
-    @v1.setter
-    def v1(self, value):
-        self._v1 = value
-
-    def b4msa_fit(self, D: List[Union[List, dict]]):
-        """Estimate the parameters of the BoW (:py:class:`BoW.bow`) 
-        in case it is not pretrained (:py:attr:`BoW.pretrain`)
-        
-        :param D: Dataset
-        :type D: List of texts or dictionaries.
-
-        >>> from microtc.utils import tweet_iterator
-        >>> from EvoMSA.tests.test_base import TWEETS
-        >>> from EvoMSA import BoW
-        >>> bow = BoW(pretrain=False)
-        >>> bow.b4msa_fit(list(tweet_iterator(TWEETS)))
-        >>> X = bow.transform(['Hola'])
-        >>> X.shape
-        (1, 84802)
-        """
-        assert len(D)
-        self._b4msa_estimated = True
-        if self.key == 'text' or isinstance(D[0], str):
-            return self.bow.fit(D)
-        assert isinstance(D[0], dict)
-        if isinstance(self.key, str):
-            key = self.key
-            return self.bow.fit([x[key] for x in D])
-        _ = [[x[key] for key in self.key] for x in D]
-        return self.bow.fit(_)
 
     def train_predict_decision_function(self, D: List[Union[dict, list]], 
                                         y: Union[np.ndarray, None]=None,
@@ -447,18 +582,6 @@ class BoW(BaseEstimator):
         return y
 
     @property
-    def cache(self):
-        """If the cache is set, it is returned when calling :py:attr:`BoW.transform`; afterward, it is unset."""
-        try:
-            return self._cache
-        except AttributeError:
-            return None
-        
-    @cache.setter
-    def cache(self, value):
-        self._cache = value
-
-    @property
     def label_key(self):
         """Key where the response is in the dictionary."""
         return self._label_key
@@ -466,15 +589,6 @@ class BoW(BaseEstimator):
     @label_key.setter
     def label_key(self, value):
         self._label_key = value
-
-    @property
-    def key(self):
-        """Key where the text(s) is(are) in the dictionary."""
-        return self._key
-
-    @key.setter
-    def key(self, value):
-        self._key = value
 
     @property
     def decision_function_name(self):
@@ -522,39 +636,15 @@ class BoW(BaseEstimator):
         self._estimator_kwargs = value        
 
     @property
-    def b4msa_kwargs(self):
-        """Keyword arguments of B4MSA"""
-        return self._b4msa_kwargs
-    
-    @b4msa_kwargs.setter
-    def b4msa_kwargs(self, value):
-        self._b4msa_kwargs = value
-
-    @property
-    def mixer_func(self):
-        """The function is used to fix the output of the text's representations."""
-        return self._mixer_func
-    
-    @mixer_func.setter
-    def mixer_func(self, value):
-        self._mixer_func = value
-
-    @property
     def n_jobs(self):
         """Number of jobs used in multiprocessing."""
         return self._n_jobs
-    
+
     @n_jobs.setter
     def n_jobs(self, value):
         self._n_jobs = value
 
-    def __sklearn_clone__(self):
-        klass = self.__class__
-        params = self.get_params()
-        return klass(**params)
-
-
-class DenseBoW(BoW):
+class DenseBoWT(BoWT):
     """
     DenseBoW is a text classifier in fact it is 
     a subclass of :py:class:`BoW` being the difference the process
@@ -577,26 +667,26 @@ class DenseBoW(BoW):
     :type unit_vector: bool
     :param distance_hyperplane: Compute de distance to hyperplance in :py:func:`~EvoMSA.text_repr.DenseBoW.transform`
     :type distance_hyperplane: bool
+    :param n_jobs: Number of jobs. default=1
+    :type n_jobs: int    
 
     >>> from EvoMSA import DenseBoW
     >>> from microtc.utils import tweet_iterator
     >>> from EvoMSA.tests.test_base import TWEETS
     >>> D = list(tweet_iterator(TWEETS))
     >>> dense =  DenseBoW(lang='es')
-    >>> dense.fit(D)
-    >>> dense.predict(['Buenos dias']).tolist()
-    ['P']    
     """
     def __init__(self, 
                  emoji: bool=True,
                  dataset: bool=True,
                  keyword: bool=True,
                  skip_dataset: Set[str]=set(),
-                 estimator_kwargs=dict(dual=False),
                  unit_vector=True,
                  distance_hyperplane=False,
+                 n_jobs: int=1,
                  **kwargs) -> None:
-        super(DenseBoW, self).__init__(estimator_kwargs=estimator_kwargs, **kwargs)
+        super(DenseBoWT, self).__init__(**kwargs)
+        self.n_jobs = n_jobs
         self.skip_dataset = skip_dataset
         self._names = []
         self._text_representations = []
@@ -606,19 +696,9 @@ class DenseBoW(BoW):
         self.keyword = keyword
         self.distance_hyperplane = distance_hyperplane
 
-    def fit(self, *args, **kwargs) -> 'DenseBoW':
-        """Estimate the parameters of the classifier or regressor 
-        (:py:attr:`DenseBoW.estimator_class` - the fitted instance is accesible 
-        at :py:attr:`DenseBoW.estimator_instance`) using the dataset (`D`, `y`).
-
-        >>> from EvoMSA import DenseBoW
-        >>> from microtc.utils import tweet_iterator
-        >>> from EvoMSA.tests.test_base import TWEETS
-        >>> D = list(tweet_iterator(TWEETS))
-        >>> dense =  DenseBoW(lang='es').fit(D)        
-        """
-        return super(DenseBoW, self).fit(*args, **kwargs)
-
+    def fit(self, *args, **kwargs) -> 'DenseBoWT':
+        return self
+    
     def transform(self, D: List[Union[List, dict]], y=None) -> np.ndarray:
         """Represent the texts in `D` in the vector space.
 
@@ -632,7 +712,7 @@ class DenseBoW(BoW):
         (2, 1287)
         """                
         if isinstance(self.key, str):
-            X = super(DenseBoW, self).transform(D, y=y)
+            X = super(DenseBoWT, self).transform(D, y=y)
             models = Parallel(n_jobs=self.n_jobs)(delayed(m.decision_function)(X)
                                                   for m in self.text_representations)
             models = np.array(models).T
@@ -643,7 +723,7 @@ class DenseBoW(BoW):
             else:
                 return models
         assert len(D) and isinstance(D[0], dict)
-        Xs = [super(DenseBoW, self).transform([x[key] for x in D], y=y)
+        Xs = [super(DenseBoWT, self).transform([x[key] for x in D], y=y)
               for key in self.key]
         with Parallel(n_jobs=self.n_jobs) as parallel:
             models = []
@@ -660,78 +740,6 @@ class DenseBoW(BoW):
             return models / np.atleast_2d(np.linalg.norm(models, axis=1)).T
         else:
             return models
-
-    def predict(self, *args, **kwargs) -> np.ndarray:
-        """Predict the response variable on the dataset `D`.
-
-        >>> from EvoMSA import DenseBoW
-        >>> from microtc.utils import tweet_iterator
-        >>> from EvoMSA.tests.test_base import TWEETS
-        >>> D = list(tweet_iterator(TWEETS))
-        >>> dense = DenseBoW(lang='es').fit(D)
-        >>> dense.predict(['Buenos dias']).tolist()
-        ['P']                
-        """
-        return super(DenseBoW, self).predict(*args, **kwargs)
-
-    @property
-    def text_representations(self):
-        """Classifiers that define the text representation."""
-        return self._text_representations
-
-    @text_representations.setter
-    def text_representations(self, value):
-        self._text_representations = value        
-
-    def select(self, subset: Union[list, None]=None,
-               D: List[Union[dict, list, None]]=None, 
-               y: Union[np.ndarray, None]=None,
-               feature_selection: Callable=KruskalFS,
-               feature_selection_kwargs: dict=dict()) -> 'DenseBoW':
-        """Procedure to perform feature selection or indices of the features to be selected.
-
-        :param subset: Representations to be selected.
-        :type subset: List of indices.
-        :param D: Texts; in the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`. default=None
-        :type D: List of texts or dictionaries. 
-        :param y: Response variable. The response variable can also be in `D` on the key :py:attr:`BoW.label_key`. default=None
-        :type y: Array or None
-
-        >>> from EvoMSA import DenseBoW
-        >>> from microtc.utils import tweet_iterator
-        >>> from EvoMSA.tests.test_base import TWEETS
-        >>> T = list(tweet_iterator(TWEETS))
-        >>> text_repr =  DenseBoW(lang='es').select(D=T)
-        >>> text_repr.weights.shape
-        (2672, 131072)        
-        """
-        assert subset is not None or D is not None
-        if hasattr(self, '_norm_weights'):
-            delattr(self, '_norm_weights')
-        if subset is not None:
-            if len(subset) == 0:
-                return self
-            tr = self.text_representations
-            self.text_representations = [tr[i] for i in subset]
-            names = self.names
-            self.names = [names[i] for i in subset]
-            return self
-        y = self.dependent_variable(D, y=y)
-        X = self.transform(D)
-        _ = feature_selection(**feature_selection_kwargs).fit(X, y=y)
-        self.feature_selection = _
-        index = self.feature_selection.get_support(indices=True)
-        return self.select(subset=index)
-
-    @property
-    def feature_selection(self):
-        """Feature selection used in :py:func:`~EvoMSA.text_repr.DenseBoW.select`"""
-        return self._feature_selection
-    
-    @feature_selection.setter
-    def feature_selection(self, value):
-        self._feature_selection = value
-
 
     def text_representations_extend(self, value: Union[List, str]):
         """Add dense BoW representations.
@@ -783,8 +791,8 @@ class DenseBoW(BoW):
         :math:`M` is the dimension of the vector space (see :py:attr:`DenseBoW.names`)
         and :math:`d` is the vocabulary size.
 
-        >>> from EvoMSA import DenseBoW
-        >>> text_repr = DenseBoW(lang='es')
+        >>> from EvoMSA import DenseBoWT
+        >>> text_repr = DenseBoWT(lang='es')
         >>> text_repr.weights.shape
         (2672, 131072)        
         """
@@ -794,7 +802,7 @@ class DenseBoW(BoW):
             w = np.array([x._coef for x in self.text_representations])
             self._weights = w
             return self._weights
-
+        
     @property
     def bias(self):
         """Bias."""
@@ -856,7 +864,7 @@ class DenseBoW(BoW):
     def distance_hyperplane(self, value):
         self._distance_hyperplane = value
 
-    def fromjson(self, filename:str) -> 'DenseBoW':
+    def fromjson(self, filename:str) -> 'DenseBoWT':
         """Load the text representations from a json file.
         
         :param filename: Path
@@ -866,16 +874,25 @@ class DenseBoW(BoW):
                   for kwargs in tweet_iterator(filename)]
         self.text_representations_extend(models)
         return self
-    
+
     def get_params(self, deep=True):
         """Obtain the parameters of the class"""
         dense_params = self._get_param_names()
-        bow_params = BoW._get_param_names()
+        bow_params = BoWT._get_param_names()
         params = dict()
         for k in bow_params + dense_params:
             params[k] = getattr(self, k)
         return params
+    
+    @property
+    def n_jobs(self):
+        """Number of jobs used in multiprocessing."""
+        return self._n_jobs
 
+    @n_jobs.setter
+    def n_jobs(self, value):
+        self._n_jobs = value    
+    
     @property
     def skip_dataset(self):
         """Datasets discarded from the text representations"""
@@ -932,6 +949,15 @@ class DenseBoW(BoW):
             self.text_representations.extend(_)
             self.names.extend([x.labels[-1] for x in _])
 
+    @property
+    def text_representations(self):
+        """Classifiers that define the text representation."""
+        return self._text_representations
+
+    @text_representations.setter
+    def text_representations(self, value):
+        self._text_representations = value               
+
     def __sklearn_clone__(self):
         klass = self.__class__
         params = self.get_params()
@@ -945,7 +971,147 @@ class DenseBoW(BoW):
         return ins
 
 
-TextRepresentations = DenseBoW
+TextRepresentations = DenseBoWT
+
+
+class DenseBoW(DenseBoWT, BoW):
+    """
+    DenseBoW is a text classifier in fact it is 
+    a subclass of :py:class:`BoW` being the difference the process
+    to represent the text in a vector space. This process is described in
+    "`EvoMSA: A Multilingual Evolutionary Approach
+    for Sentiment Analysis <https://ieeexplore.ieee.org/document/8956106>`_,
+    Mario Graff, Sabino Miranda-Jimenez, Eric Sadit Tellez, Daniela Moctezuma. 
+    Computational Intelligence Magazine, vol 15 no. 1, pp. 76-88, Feb. 2020."
+    Particularly, in the section where the Emoji Space is described.
+
+    :param emoji: Whether to use emoji text representations. default=True.
+    :type emoji: bool
+    :param dataset: Whether to use labeled dataset text representations (only available in 'ar', 'en', 'es', and 'zh'). default=True
+    :type dataset: bool
+    :param keyword: Whether to use keyword text representations. default=True.
+    :type keyword: bool
+    :param skip_dataset: Set of discarded dataset.
+    :type skip_dataset: set
+    :param unit_vector: Normalize vectors to have length 1. default=True
+    :type unit_vector: bool
+    :param distance_hyperplane: Compute de distance to hyperplance in :py:func:`~EvoMSA.text_repr.DenseBoW.transform`
+    :type distance_hyperplane: bool
+
+    >>> from EvoMSA import DenseBoW
+    >>> from microtc.utils import tweet_iterator
+    >>> from EvoMSA.tests.test_base import TWEETS
+    >>> D = list(tweet_iterator(TWEETS))
+    >>> dense =  DenseBoW(lang='es')
+    >>> dense.fit(D)
+    >>> dense.predict(['Buenos dias']).tolist()
+    ['P']    
+    """
+    def __init__(self, 
+                 emoji: bool=True,
+                 dataset: bool=True,
+                 keyword: bool=True,
+                 skip_dataset: Set[str]=set(),
+                 estimator_kwargs=dict(dual=False),
+                 unit_vector=True,
+                 distance_hyperplane=False,
+                 n_jobs: int=1,
+                 **kwargs) -> None:
+        super(DenseBoW, self).__init__(emoji=emoji,
+                                       dataset=dataset,
+                                       keyword=keyword,
+                                       skip_dataset=skip_dataset,
+                                       unit_vector=unit_vector,
+                                       distance_hyperplane=distance_hyperplane,
+                                       n_jobs=n_jobs, 
+                                       estimator_kwargs=estimator_kwargs,
+                                       **kwargs)
+
+    def fit(self, *args, **kwargs) -> 'DenseBoW':
+        """Estimate the parameters of the classifier or regressor 
+        (:py:attr:`DenseBoW.estimator_class` - the fitted instance is accesible 
+        at :py:attr:`DenseBoW.estimator_instance`) using the dataset (`D`, `y`).
+
+        >>> from EvoMSA import DenseBoW
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> D = list(tweet_iterator(TWEETS))
+        >>> dense =  DenseBoW(lang='es').fit(D)        
+        """
+        BoW.fit(self, *args, **kwargs)
+        return self
+
+    def predict(self, *args, **kwargs) -> np.ndarray:
+        """Predict the response variable on the dataset `D`.
+
+        >>> from EvoMSA import DenseBoW
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> D = list(tweet_iterator(TWEETS))
+        >>> dense = DenseBoW(lang='es').fit(D)
+        >>> dense.predict(['Buenos dias']).tolist()
+        ['P']                
+        """
+        return super(DenseBoW, self).predict(*args, **kwargs)
+
+    def select(self, subset: Union[list, None]=None,
+               D: List[Union[dict, list, None]]=None, 
+               y: Union[np.ndarray, None]=None,
+               feature_selection: Callable=KruskalFS,
+               feature_selection_kwargs: dict=dict()) -> 'DenseBoW':
+        """Procedure to perform feature selection or indices of the features to be selected.
+
+        :param subset: Representations to be selected.
+        :type subset: List of indices.
+        :param D: Texts; in the case, it is a list of dictionaries the text is on the key :py:attr:`BoW.key`. default=None
+        :type D: List of texts or dictionaries. 
+        :param y: Response variable. The response variable can also be in `D` on the key :py:attr:`BoW.label_key`. default=None
+        :type y: Array or None
+
+        >>> from EvoMSA import DenseBoW
+        >>> from microtc.utils import tweet_iterator
+        >>> from EvoMSA.tests.test_base import TWEETS
+        >>> T = list(tweet_iterator(TWEETS))
+        >>> text_repr =  DenseBoW(lang='es').select(D=T)
+        >>> text_repr.weights.shape
+        (2672, 131072)        
+        """
+        assert subset is not None or D is not None
+        if hasattr(self, '_norm_weights'):
+            delattr(self, '_norm_weights')
+        if subset is not None:
+            if len(subset) == 0:
+                return self
+            tr = self.text_representations
+            self.text_representations = [tr[i] for i in subset]
+            names = self.names
+            self.names = [names[i] for i in subset]
+            return self
+        y = self.dependent_variable(D, y=y)
+        X = self.transform(D)
+        _ = feature_selection(**feature_selection_kwargs).fit(X, y=y)
+        self.feature_selection = _
+        index = self.feature_selection.get_support(indices=True)
+        return self.select(subset=index)
+
+    @property
+    def feature_selection(self):
+        """Feature selection used in :py:func:`~EvoMSA.text_repr.DenseBoW.select`"""
+        return self._feature_selection
+
+    @feature_selection.setter
+    def feature_selection(self, value):
+        self._feature_selection = value
+
+    def get_params(self, deep=True):
+        """Obtain the parameters of the class"""
+        dense_params = self._get_param_names()
+        bow_params = BoW._get_param_names()
+        params = dict()
+        for k in bow_params + dense_params:
+            params[k] = getattr(self, k)
+        return params        
+
 
 class StackGeneralization(BoW):
     """The idea behind stack generalization is to train an estimator on the predictions made by the base classifiers or regressors.
