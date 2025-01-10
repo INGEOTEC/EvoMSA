@@ -433,7 +433,8 @@ class BoW(BoWT):
                                   key=key,
                                   mixer_func=mixer_func,
                                   pretrain=pretrain,
-                                  b4msa_kwargs=b4msa_kwargs)
+                                  b4msa_kwargs=b4msa_kwargs,
+                                  v1=v1)
         self.n_jobs = n_jobs
         self.label_key = label_key
         self.decision_function_name = decision_function_name
@@ -676,7 +677,7 @@ class DenseBoWT(BoWT):
     >>> D = list(tweet_iterator(TWEETS))
     >>> dense =  DenseBoW(lang='es')
     """
-    def __init__(self, 
+    def __init__(self,
                  emoji: bool=True,
                  dataset: bool=True,
                  keyword: bool=True,
@@ -956,7 +957,7 @@ class DenseBoWT(BoWT):
 
     @text_representations.setter
     def text_representations(self, value):
-        self._text_representations = value               
+        self._text_representations = value
 
     def __sklearn_clone__(self):
         klass = self.__class__
@@ -1023,9 +1024,11 @@ class DenseBoW(DenseBoWT, BoW):
                                        skip_dataset=skip_dataset,
                                        unit_vector=unit_vector,
                                        distance_hyperplane=distance_hyperplane,
-                                       n_jobs=n_jobs, 
                                        estimator_kwargs=estimator_kwargs,
+                                       n_jobs=n_jobs,
                                        **kwargs)
+        # BoW.__init__(self, 
+        #              n_jobs=n_jobs, **kwargs)
 
     def fit(self, *args, **kwargs) -> 'DenseBoW':
         """Estimate the parameters of the classifier or regressor 
