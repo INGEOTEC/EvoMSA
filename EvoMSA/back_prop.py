@@ -251,7 +251,7 @@ class BoWBP(BoW):
         return self.classes_[index]
 
 
-class DenseBoWBP(DenseBoW, BoWBP):
+class DenseBoWBP(BoWBP, DenseBoW):
     """DenseBoWBP is a :py:class:`~EvoMSA.text_repr.DenseBoW` with the difference that the parameters are fine-tuned using jax
     
     >>> from microtc.utils import tweet_iterator
