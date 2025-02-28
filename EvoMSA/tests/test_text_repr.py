@@ -164,6 +164,13 @@ def test_DenseBoW_select():
     assert X.shape[1] == len(text_repr.names)
 
 
+def test_BoW_pretrain_nolang():
+    """test BoW pretrain=False lang='XyX' """
+    from EvoMSA.text_repr import BoW
+    D = list(tweet_iterator(TWEETS))
+    bow = BoW(lang='xxx', pretrain=False).fit(D)
+
+
 def test_BoW_pretrain_False():
     from EvoMSA.text_repr import BoW
     D = list(tweet_iterator(TWEETS))
