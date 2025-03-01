@@ -608,7 +608,7 @@ def dataset_information(lang='es'):
 
 def b4msa_params(lang, dim=15):
     from microtc.params import OPTION_DELETE, OPTION_NONE    
-    assert lang in MODEL_LANG
+    # assert lang in MODEL_LANG
     tm_kwargs=dict(num_option=OPTION_NONE,
                    usr_option=OPTION_DELETE,
                    url_option=OPTION_DELETE, 

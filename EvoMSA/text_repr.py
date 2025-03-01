@@ -97,7 +97,8 @@ class BoWT(BaseEstimator):
                  pretrain=True,
                  b4msa_kwargs=dict(),
                  v1: bool=False) -> None:
-        assert lang is None or lang in MODEL_LANG
+        if pretrain:
+            assert lang is None or lang in MODEL_LANG
         if lang in MODEL_LANG:
             assert voc_size_exponent >= 13 and voc_size_exponent <= 17
             assert voc_selection in ['most_common_by_type', 'most_common']
