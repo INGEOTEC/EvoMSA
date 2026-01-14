@@ -1,0 +1,41 @@
+[build-system]
+# Add Cython as a build dependency
+requires = ["setuptools>=61.0", "Cython>=3.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = 'EvoMSA'
+description = "Set of algorithms to detect the dialect of a given text"
+readme = "README.rst"
+dependencies = [
+    'numpy',
+    'scikit-learn>=1.3.0',
+    'cython',
+    'microtc',
+    'b4msa',
+    'ingeoml>=0.0.25'
+]
+dynamic = ['version']
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+
+[tool.setuptools.dynamic]
+version = {attr = 'EvoMSA.__version__'}
+
+[tool.setuptools]
+packages = ['EvoMSA', 'EvoMSA.tests']
+ext-modules = [{name = "EvoMSA.cython_utils", sources = ["EvoMSA/cython_utils.pyx"]}]
+
+[project.urls]
+Homepage = "https://evomsa.readthedocs.io"
+Repository = "https://github.com/INGEOTEC/EvoMSA"
+Issues = "https://github.com/INGEOTEC/EvoMSA/issues"
