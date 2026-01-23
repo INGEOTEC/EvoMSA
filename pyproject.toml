@@ -32,7 +32,7 @@ classifiers = [
 version = {attr = 'EvoMSA.__version__'}
 
 [tool.setuptools]
-packages = ['EvoMSA', 'EvoMSA.tests']
+packages = ['EvoMSA', 'EvoMSA.tests', 'EvoMSA.ConceptModelling', 'EvoMSA.conf', 'EvoMSA.models']
 ext-modules = [{name = "EvoMSA.cython_utils", sources = ["EvoMSA/cython_utils.pyx"]}]
 
 [project.urls]
